@@ -73,9 +73,16 @@ function Sidebar({ collapsed, onToggle }) {
       items: [
         { name: 'Table Seating',    path: '/tables',   icon: UtensilsCrossed, module: 'tables' },
         { name: 'Kitchen KOT',      path: '/kitchen',  icon: ChefHat,         module: 'kot' },
-        { name: 'POS Terminal',     path: '/orders',   icon: ClipboardList,   module: 'orders', roles: ['WAITER', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
+        { name: 'POS Terminal',     path: '/orders',   icon: ClipboardList,   module: 'orders', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
         { name: 'POS Menu Manager', path: '/menu',     icon: BookOpen,        module: 'pos', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
         { name: 'POS Billing',      path: '/pos',      icon: Store,           module: 'pos' },
+      ]
+    },
+    {
+      category: 'Captain Dashboard',
+      items: [
+        { name: 'New Order (POS)',          path: '/captain',         icon: UtensilsCrossed, roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
+        { name: 'Active Orders & History',  path: '/captain/history', icon: ClipboardList,   roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
       ]
     },
     {
@@ -180,6 +187,7 @@ function Sidebar({ collapsed, onToggle }) {
                   <NavLink
                     key={item.name}
                     to={item.path}
+                    end={item.path === '/captain' || item.path === '/'}
                     onClick={() => {
                       if (window.innerWidth < 768 && !collapsed) {
                         onToggle();
