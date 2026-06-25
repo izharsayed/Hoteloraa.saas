@@ -32,7 +32,7 @@ import { MODULE_ACCESS } from '../utils/permissions';
 function Sidebar({ collapsed, onToggle }) {
   const navigate = useNavigate();
   const userJson = localStorage.getItem('user');
-  let user = { name: 'Staff', userRole: 'WAITER', businessType: 'HOTEL_RESTAURANT' };
+  let user = { name: 'Staff', userRole: 'CAPTAIN', businessType: 'HOTEL_RESTAURANT' };
   try {
     if (userJson) user = JSON.parse(userJson);
   } catch (e) {}
@@ -123,14 +123,15 @@ function Sidebar({ collapsed, onToggle }) {
   return (
     <aside
       className={`
-        ${collapsed ? 'w-16' : 'w-64'}
+        ${collapsed ? 'w-0 md:w-16 -translate-x-full md:translate-x-0' : 'w-64 translate-x-0'}
         bg-white border-r border-border-cream flex flex-col h-full select-none shrink-0
         transition-all duration-300 ease-in-out overflow-hidden
+        absolute md:relative z-50 shadow-2xl md:shadow-none
       `}
     >
       {/* Brand Header */}
       {collapsed ? (
-        <div className="flex flex-col items-center py-4 border-b border-border-cream bg-white shrink-0 animate-fadeIn">
+        <div className="hidden md:flex flex-col items-center py-4 border-b border-border-cream bg-white shrink-0 animate-fadeIn">
           <img 
             src="/logo-icon.png" 
             alt="Hoteloraa Logo Icon" 
@@ -179,6 +180,11 @@ function Sidebar({ collapsed, onToggle }) {
                   <NavLink
                     key={item.name}
                     to={item.path}
+                    onClick={() => {
+                      if (window.innerWidth < 768 && !collapsed) {
+                        onToggle();
+                      }
+                    }}
                     title={collapsed ? item.name : undefined}
                     className={({ isActive }) => `
                       flex items-center gap-3 font-medium text-xs transition-all duration-200 group

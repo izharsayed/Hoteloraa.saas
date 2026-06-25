@@ -257,7 +257,7 @@ CREATE TYPE public."UserRole" AS ENUM (
     'TENANT_ADMIN',
     'MANAGER',
     'RECEPTIONIST',
-    'WAITER',
+    'CAPTAIN',
     'CHEF',
     'HOUSEKEEPING',
     'ACCOUNTANT',
@@ -854,7 +854,7 @@ CREATE TABLE public.users (
     email text NOT NULL,
     phone text,
     "passwordHash" text NOT NULL,
-    "userRole" public."UserRole" DEFAULT 'WAITER'::public."UserRole" NOT NULL,
+    "userRole" public."UserRole" DEFAULT 'CAPTAIN'::public."UserRole" NOT NULL,
     "isActive" boolean DEFAULT true NOT NULL,
     "lastLogin" timestamp(3) without time zone,
     "avatarUrl" text,
@@ -1222,12 +1222,12 @@ bead3615-196a-44be-9ee9-4e109e690ad1	c9120329-4212-4dbd-83f2-a6fa63c3f6e4	\N	Vik
 fa480429-9164-4323-ae9d-30ec22b1f7f2	c9120329-4212-4dbd-83f2-a6fa63c3f6e4	\N	Meera Nair	receptionist@starlodge.com	\N	$2a$12$E.kCVIxRf3EfEgX3MlWJre7hc7TCRC6.v1s94zOLiTT0KsbXF5IdS	RECEPTIONIST	f	\N	\N	2026-06-20 07:32:17.4	2026-06-20 07:32:17.4
 83964007-5ce7-4bad-8b5b-45fa8d8eca1c	3e18dc81-281d-494b-9ccb-e7a1cfcc3584	\N	Amit Roy	admin@grandoak.com	\N	$2a$12$E.kCVIxRf3EfEgX3MlWJre7hc7TCRC6.v1s94zOLiTT0KsbXF5IdS	TENANT_ADMIN	t	\N	\N	2026-06-20 07:32:17.403	2026-06-20 07:32:17.403
 3e5dbde1-8a7b-4a29-8cf1-91cabc6d691a	790fd1da-32b8-4ad2-b6e4-a82a76d5f070	\N	Mustkim	mustkim@caferoma.com	\N	$2a$12$E.kCVIxRf3EfEgX3MlWJre7hc7TCRC6.v1s94zOLiTT0KsbXF5IdS	CASHIER	t	2026-06-20 07:33:39.651	\N	2026-06-20 07:32:17.393	2026-06-20 07:33:39.652
-43650074-8c9a-4d56-a645-7e17b391b133	5f75a454-14e0-4fee-b3a5-aef54e73b3c4	\N	Ravi Verma	ravi@royalpalace.com	\N	$2a$12$E.kCVIxRf3EfEgX3MlWJre7hc7TCRC6.v1s94zOLiTT0KsbXF5IdS	WAITER	t	2026-06-20 07:33:43.266	\N	2026-06-20 07:32:17.38	2026-06-20 07:33:43.268
+43650074-8c9a-4d56-a645-7e17b391b133	5f75a454-14e0-4fee-b3a5-aef54e73b3c4	\N	Ravi Verma	ravi@royalpalace.com	\N	$2a$12$E.kCVIxRf3EfEgX3MlWJre7hc7TCRC6.v1s94zOLiTT0KsbXF5IdS	CAPTAIN	t	2026-06-20 07:33:43.266	\N	2026-06-20 07:32:17.38	2026-06-20 07:33:43.268
 9af30155-4c19-4077-a8d9-6c5746d4bb5f	5f75a454-14e0-4fee-b3a5-aef54e73b3c4	\N	Jubeda Khatun	admin@royalpalace.com	\N	$2a$12$E.kCVIxRf3EfEgX3MlWJre7hc7TCRC6.v1s94zOLiTT0KsbXF5IdS	TENANT_ADMIN	t	2026-06-20 07:41:37.698	\N	2026-06-20 07:32:17.375	2026-06-20 07:41:37.7
 5adf86c0-a2de-48f8-8882-309ba76eaea3	5f75a454-14e0-4fee-b3a5-aef54e73b3c4	\N	Faisal Ahmed	faisal@royalpalace.com	\N	$2a$12$E.kCVIxRf3EfEgX3MlWJre7hc7TCRC6.v1s94zOLiTT0KsbXF5IdS	MANAGER	t	2026-06-20 07:41:58.461	\N	2026-06-20 07:32:17.378	2026-06-20 07:41:58.462
 b2eccb61-acbb-4df1-a996-de6505dc17b6	56e09902-5e1e-47d5-afb5-6e0ffc3860b2	\N	Global Administrator	SuperAdmin@hoteloraa.com	\N	$2a$12$O7UrwtCYLLpAO/kr7jsH5.wawEDDBbIuL/mW0WlfmB73mmwKMobs2	SUPER_ADMIN	t	2026-06-20 07:48:26.962	\N	2026-06-20 07:32:17.29	2026-06-20 07:48:26.963
 0473884d-319f-4d2b-b65e-efd3ddac536b	5f75a454-14e0-4fee-b3a5-aef54e73b3c4	\N	Sunita Devi	sunita@royalpalace.com	\N	$2a$12$13zQQO0vWHAy75vq/goG/eNOxw7TRAjFhDgrgxxMXmuj0ks3rIcnK	HOUSEKEEPING	t	2026-06-20 07:21:53.257	\N	2026-06-20 07:18:03.26	2026-06-20 07:21:53.259
-a453a503-16d5-44e1-a3ea-3837b38dc2c1	5f75a454-14e0-4fee-b3a5-aef54e73b3c4	\N	kesfuis	izhar@royal.com	789654123	$2a$12$em0spiFykZi6qO70YASOXuU4H.B5ns.BsQc6dgf0Lc37PqaAc5HHW	WAITER	t	\N	\N	2026-06-20 07:41:13.577	2026-06-20 07:41:13.577
+a453a503-16d5-44e1-a3ea-3837b38dc2c1	5f75a454-14e0-4fee-b3a5-aef54e73b3c4	\N	kesfuis	izhar@royal.com	789654123	$2a$12$em0spiFykZi6qO70YASOXuU4H.B5ns.BsQc6dgf0Lc37PqaAc5HHW	CAPTAIN	t	\N	\N	2026-06-20 07:41:13.577	2026-06-20 07:41:13.577
 797a7254-9608-4251-ac04-2cac5a51c445	5f75a454-14e0-4fee-b3a5-aef54e73b3c4	\N	Priya Sharma	priya@royalpalace.com	\N	$2a$12$13zQQO0vWHAy75vq/goG/eNOxw7TRAjFhDgrgxxMXmuj0ks3rIcnK	RECEPTIONIST	t	2026-06-20 07:42:19.956	\N	2026-06-20 07:18:03.177	2026-06-20 07:42:19.957
 8b77e9a5-a035-4afc-bf18-2900f94a73cb	5b175098-f34b-460a-b8dc-6e5042d1fb34	\N	izhar Admin	izharsayed31@gmail.com	\N	$2a$12$tc1X9uUhguQXUZM/O1UtM.MWOcmrj.eLEXng1PAdFq8Tv.CoFoRwm	TENANT_ADMIN	t	\N	\N	2026-06-20 07:38:35.374	2026-06-20 07:56:41.36
 1da1826f-dbba-417a-aede-35967c5df388	5f75a454-14e0-4fee-b3a5-aef54e73b3c4	\N	Rahul Mehta	rahul@royalpalace.com	\N	$2a$12$13zQQO0vWHAy75vq/goG/eNOxw7TRAjFhDgrgxxMXmuj0ks3rIcnK	ACCOUNTANT	t	2026-06-20 07:19:42.929	\N	2026-06-20 07:18:03.263	2026-06-20 07:19:42.932

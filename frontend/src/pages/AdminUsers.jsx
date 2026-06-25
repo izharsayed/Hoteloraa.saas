@@ -4,7 +4,7 @@ import api from '../utils/api.js';
 
 function AdminUsers() {
   const [users, setUsers] = useState([]);
-  const [roles] = useState(['MANAGER', 'RECEPTIONIST', 'WAITER', 'CHEF', 'HOUSEKEEPING', 'ACCOUNTANT', 'CASHIER']);
+  const [roles] = useState(['MANAGER', 'RECEPTIONIST', 'CAPTAIN', 'CHEF', 'HOUSEKEEPING', 'ACCOUNTANT', 'CASHIER']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -14,7 +14,7 @@ function AdminUsers() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [userRole, setUserRole] = useState('WAITER');
+  const [userRole, setUserRole] = useState('CAPTAIN');
   const [password, setPassword] = useState('');
 
   // Password reset state
@@ -53,7 +53,7 @@ function AdminUsers() {
       setName('');
       setEmail('');
       setPhone('');
-      setUserRole('WAITER');
+      setUserRole('CAPTAIN');
       setPassword('');
       fetchUsers();
     } catch (err) {

@@ -3,13 +3,13 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { LogOut, Coffee, Bell, Info, CheckCircle, AlertTriangle, X } from 'lucide-react';
 import api from '../utils/api.js';
 
-function WaiterLayout() {
+function CaptainLayout() {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const userJson = localStorage.getItem('user');
-  let user = { name: 'Waiter Staff', userRole: 'WAITER', tenantName: 'Hoteloraa Property Node' };
+  let user = { name: 'Captain Staff', userRole: 'CAPTAIN', tenantName: 'Hoteloraa Property Node' };
   try {
     if (userJson) user = JSON.parse(userJson);
   } catch (e) {}
@@ -65,13 +65,13 @@ function WaiterLayout() {
     <div className="min-h-screen flex flex-col bg-cream font-sans">
       {/* Top Header */}
       <header className="h-16 border-b border-border-cream bg-navy flex items-center justify-between px-6 z-10 shrink-0 text-white shadow-md">
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/waiter')}>
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/captain')}>
           <div className="w-8 h-8 rounded-lg bg-gold flex items-center justify-center font-display font-bold text-navy">
             W
           </div>
           <div>
             <h1 className="font-display font-bold text-sm tracking-tight text-white leading-none">Hoteloraa</h1>
-            <span className="text-[9px] font-bold text-gold/80 tracking-widest uppercase mt-1 block">Waiter POS Ordering</span>
+            <span className="text-[9px] font-bold text-gold/80 tracking-widest uppercase mt-1 block">Captain POS Ordering</span>
           </div>
         </div>
 
@@ -165,4 +165,4 @@ function WaiterLayout() {
   );
 }
 
-export default WaiterLayout;
+export default CaptainLayout;

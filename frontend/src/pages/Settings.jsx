@@ -34,7 +34,7 @@ function SettingsPage() {
   // Staff State
   const [staffList, setStaffList] = useState([
     { id: 1, name: 'Ananya Sharma', email: 'ananya@hoteloraa.saas', role: 'MANAGER', status: 'Active' },
-    { id: 2, name: 'Aarav Patel', email: 'aarav@hoteloraa.saas', role: 'WAITER', status: 'Active' },
+    { id: 2, name: 'Aarav Patel', email: 'aarav@hoteloraa.saas', role: 'CAPTAIN', status: 'Active' },
     { id: 3, name: 'Siddharth Roy', email: 'siddharth@hoteloraa.saas', role: 'CHEF', status: 'Active' },
     { id: 4, name: 'Priya Iyer', email: 'priya@hoteloraa.saas', role: 'RECEPTIONIST', status: 'Active' },
     { id: 5, name: 'Rohan Verma', email: 'rohan@hoteloraa.saas', role: 'HOUSEKEEPING', status: 'Active' },
@@ -42,14 +42,14 @@ function SettingsPage() {
 
   const [newStaffName, setNewStaffName] = useState('');
   const [newStaffEmail, setNewStaffEmail] = useState('');
-  const [newStaffRole, setNewStaffRole] = useState('WAITER');
+  const [newStaffRole, setNewStaffRole] = useState('CAPTAIN');
   const [showAddStaffModal, setShowAddStaffModal] = useState(false);
 
   // Role Permissions State
-  const [selectedRole, setSelectedRole] = useState('WAITER');
+  const [selectedRole, setSelectedRole] = useState('CAPTAIN');
   
   const [rolePermissions, setRolePermissions] = useState({
-    WAITER: {
+    CAPTAIN: {
       ROOMS: { CREATE: false, READ: false, UPDATE: false, DELETE: false },
       RESERVATIONS: { CREATE: false, READ: false, UPDATE: false, DELETE: false },
       TABLES: { CREATE: false, READ: true, UPDATE: true, DELETE: false },
@@ -123,7 +123,7 @@ function SettingsPage() {
     setStaffList([...staffList, newStaff]);
     setNewStaffName('');
     setNewStaffEmail('');
-    setNewStaffRole('WAITER');
+    setNewStaffRole('CAPTAIN');
     setShowAddStaffModal(false);
     showNotification('Staff member added successfully!');
   };
@@ -406,7 +406,7 @@ function SettingsPage() {
                       className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold"
                     >
                       <option value="MANAGER">Manager</option>
-                      <option value="WAITER">Waiter</option>
+                      <option value="CAPTAIN">Captain</option>
                       <option value="CHEF">Chef</option>
                       <option value="RECEPTIONIST">Receptionist</option>
                       <option value="HOUSEKEEPING">Housekeeper</option>
@@ -453,7 +453,7 @@ function SettingsPage() {
                 onChange={(e) => setSelectedRole(e.target.value)}
                 className="px-4 py-2 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-bold text-navy"
               >
-                <option value="WAITER">Waiter</option>
+                <option value="CAPTAIN">Captain</option>
                 <option value="CHEF">Chef</option>
                 <option value="RECEPTIONIST">Receptionist</option>
                 <option value="HOUSEKEEPING">Housekeeping</option>

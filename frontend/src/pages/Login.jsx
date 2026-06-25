@@ -10,7 +10,7 @@ const ROLE_REDIRECT = {
   MANAGER:      '/',
   RECEPTIONIST: '/rooms',
   CASHIER:      '/pos',
-  WAITER:       '/waiter',
+  CAPTAIN:       '/captain',
   CHEF:         '/kitchen',
   HOUSEKEEPING: '/housekeeping',
   ACCOUNTANT:   '/reports',
@@ -58,7 +58,7 @@ const demoRoles = [
     desc: 'POS & billing',
   },
   {
-    name: 'Waiter',
+    name: 'Captain',
     email: 'ravi@royalpalace.com',
     password: 'password123',
     color: 'from-orange-500 to-amber-500',

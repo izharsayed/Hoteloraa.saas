@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import api from '../utils/api.js';
 
-function Waiter() {
+function Captain() {
   const [activeTab, setActiveTab] = useState('pos'); // 'pos' | 'history'
   const [tables, setTables] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -602,7 +602,7 @@ function Waiter() {
                         <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate font-medium mt-1">
                           <span className="flex items-center gap-1"><Utensils className="w-3.5 h-3.5 text-slate/60 shrink-0" /> {order.table?.name || 'Quick POS'}</span>
                           <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-slate/60 shrink-0" /> {new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                          <span>Waiter: {order.user?.name || 'POS'}</span>
+                          <span>Captain: {order.user?.name || 'POS'}</span>
                           <span>Items: {itemsCount}</span>
                         </div>
                       </div>
@@ -809,4 +809,4 @@ function Waiter() {
   );
 }
 
-export default Waiter;
+export default Captain;

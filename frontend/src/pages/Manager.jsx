@@ -48,7 +48,7 @@ function ManagerPage() {
   // Staff Shift State
   const [staffShifts, setStaffShifts] = useState([
     { id: 1, name: 'Priya Iyer', role: 'Receptionist', shift: 'Morning (07:00 - 15:00)', status: 'ON_DUTY' },
-    { id: 2, name: 'Aarav Patel', role: 'Waiter', shift: 'Evening (15:00 - 23:00)', status: 'ON_DUTY' },
+    { id: 2, name: 'Aarav Patel', role: 'Captain', shift: 'Evening (15:00 - 23:00)', status: 'ON_DUTY' },
     { id: 3, name: 'Siddharth Roy', role: 'Chef', shift: 'Morning (07:00 - 15:00)', status: 'ON_DUTY' },
     { id: 4, name: 'Rohan Verma', role: 'Housekeeper', shift: 'Night (23:00 - 07:00)', status: 'OFF_DUTY' },
     { id: 5, name: 'Meera Sen', role: 'Accountant', shift: 'Morning (09:00 - 17:00)', status: 'OFF_DUTY' },

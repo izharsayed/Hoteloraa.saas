@@ -132,16 +132,16 @@ async function runTests() {
     // -------------------------------------------------------------
     console.log(`\n${colors.cyan}Step 4: Creating new users for staff roles...${colors.reset}`);
     
-    // 4.1 Waiter
-    const waiterUser = {
-      name: 'Test Waiter',
-      email: `waiter-${uniqueId}@integrationtest.com`,
-      phone: '+918888888888',
-      userRole: 'WAITER',
+    // 4.1 Captain
+    const captainUser = {
+      name: 'Test Captain',
+      email: `captain-${uniqueId}@integrationtest.com`,
+      phone: '1231231234',
+      userRole: 'CAPTAIN',
       password: 'password123'
     };
-    const createWaiter = await apiRequest('/users', 'POST', waiterUser, token);
-    assertResponse(createWaiter, 201, 'Create Waiter User');
+    const createCaptain = await apiRequest('/users', 'POST', captainUser, token);
+    assertResponse(createCaptain, 201, 'Create Captain User');
 
     // 4.2 Receptionist
     const receptionistUser = {

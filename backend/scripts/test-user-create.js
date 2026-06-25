@@ -4,7 +4,7 @@ const data = JSON.stringify({
   name: 'Test Staff',
   email: 'teststaff@starlodge.com',
   phone: '', 
-  userRole: 'WAITER',
+  userRole: 'CAPTAIN',
   password: 'password123'
 });
 

@@ -49,7 +49,7 @@ async function repairUsers() {
     const royalUsers = [
       { name: 'Jubeda Khatun',  email: 'admin@royalpalace.com',   userRole: 'TENANT_ADMIN'   },
       { name: 'Faisal Ahmed',   email: 'faisal@royalpalace.com',  userRole: 'MANAGER'        },
-      { name: 'Ravi Verma',     email: 'ravi@royalpalace.com',    userRole: 'WAITER'         },
+      { name: 'Ravi Verma',     email: 'ravi@royalpalace.com',    userRole: 'CAPTAIN'         },
       { name: 'Tanvir Hussain', email: 'tanvir@royalpalace.com',  userRole: 'CHEF'           },
       // priya, sunita, rahul already exist — upsertUser handles duplicates
       { name: 'Priya Sharma',   email: 'priya@royalpalace.com',   userRole: 'RECEPTIONIST'   },
@@ -100,7 +100,7 @@ async function repairUsers() {
   console.log('  Manager       → faisal@royalpalace.com      / password123');
   console.log('  Receptionist  → priya@royalpalace.com       / password123');
   console.log('  Cashier       → mustkim@caferoma.com        / password123');
-  console.log('  Waiter        → ravi@royalpalace.com        / password123');
+  console.log('  Captain       → ravi@royalpalace.com        / password123');
   console.log('  Kitchen Staff → tanvir@royalpalace.com      / password123');
   console.log('  Housekeeping  → sunita@royalpalace.com      / password123');
   console.log('  Accountant    → rahul@royalpalace.com       / password123');

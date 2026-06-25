@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import Sidebar from './components/Sidebar.jsx';
 import AccessDenied from './components/AccessDenied.jsx';
-import { Bell, Info, CheckCircle, AlertTriangle, X } from 'lucide-react';
+import { Bell, Info, CheckCircle, AlertTriangle, X, Menu as MenuIcon } from 'lucide-react';
 import api from './utils/api.js';
 
 // Core Pages
@@ -39,9 +39,9 @@ import AdminRBAC from './pages/AdminRBAC.jsx';
 import AdminFeatures from './pages/AdminFeatures.jsx';
 import AdminSettings from './pages/AdminSettings.jsx';
 
-// Waiter Panel
-import WaiterLayout from './components/WaiterLayout.jsx';
-import Waiter from './pages/Waiter.jsx';
+// Captain Panel
+import CaptainLayout from './components/CaptainLayout.jsx';
+import Captain from './pages/Captain.jsx';
 
 // Super Admin Panel
 import SuperAdminLayout from './components/SuperAdminLayout.jsx';
@@ -118,7 +118,14 @@ function DashboardLayout() {
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-cream">
+    <div className="flex h-screen overflow-hidden bg-cream relative">
+      {/* Mobile overlay */}
+      {!sidebarCollapsed && (
+        <div 
+          className="md:hidden fixed inset-0 bg-navy/20 backdrop-blur-sm z-40" 
+          onClick={() => setSidebarCollapsed(true)}
+        />
+      )}
       <Sidebar 
         collapsed={sidebarCollapsed} 
         onToggle={() => {
@@ -131,15 +138,21 @@ function DashboardLayout() {
       />
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Top bar */}
-        <header className="h-16 border-b border-border-cream bg-white/70 backdrop-blur-md flex items-center justify-between px-6 z-10 shrink-0">
+        <header className="h-16 border-b border-border-cream bg-white/70 backdrop-blur-md flex items-center justify-between px-4 md:px-6 z-10 shrink-0">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-xs px-2 py-1 bg-gold-pale border border-gold/30 rounded text-gold font-semibold uppercase tracking-wider">
+            <button 
+              className="md:hidden p-2 text-slate hover:text-navy rounded-xl hover:bg-cream/50 transition-colors"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            >
+              <MenuIcon className="w-5 h-5" />
+            </button>
+            <span className="hidden md:inline-flex font-mono text-xs px-2 py-1 bg-gold-pale border border-gold/30 rounded text-gold font-semibold uppercase tracking-wider">
               {user.tenantName || 'Live Environment'}
             </span>
             {/* Online indicator */}
             <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] inline-block" />
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 md:gap-4">
             {/* Notification Bell */}
             <div className="relative">
               <button 
@@ -202,11 +215,11 @@ function DashboardLayout() {
               )}
             </div>
 
-            <div className="text-right">
+            <div className="text-right hidden sm:block">
               <p className="text-xs font-semibold text-charcoal">{user.name}</p>
               <p className="text-[10px] text-slate font-medium">{roleLabel}</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-navy text-gold font-display font-bold flex items-center justify-center border border-gold/20 shadow-inner">
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-navy text-gold font-display font-bold flex items-center justify-center border border-gold/20 shadow-inner text-xs md:text-sm">
               {initials}
             </div>
           </div>
@@ -239,7 +252,7 @@ function ProtectedRoute({ allowedRoles, module: moduleKey }) {
     if (allowedRoles && !allowedRoles.includes(user.userRole)) {
       // Smart redirect based on role
       if (user.userRole === 'SUPER_ADMIN') return <Navigate to="/superadmin" replace />;
-      if (user.userRole === 'WAITER') return <Navigate to="/waiter" replace />;
+      if (user.userRole === 'CAPTAIN') return <Navigate to="/captain" replace />;
       if (user.userRole === 'CHEF') return <Navigate to="/kitchen" replace />;
       return <AccessDenied />;
     }
@@ -273,7 +286,7 @@ function App() {
         ======================================================== */}
         <Route element={
           <ProtectedRoute allowedRoles={[
-            'TENANT_ADMIN', 'MANAGER', 'RECEPTIONIST', 'WAITER', 'CHEF',
+            'TENANT_ADMIN', 'MANAGER', 'RECEPTIONIST', 'CAPTAIN', 'CHEF',
             'HOUSEKEEPING', 'ACCOUNTANT', 'CASHIER'
           ]} />
         }>
@@ -352,11 +365,11 @@ function App() {
         </Route>
 
         {/* ========================================================
-            WAITER PANEL — dedicated POS interface for waiters
-        ======================================================== */}
-        <Route element={<ProtectedRoute allowedRoles={['WAITER', 'TENANT_ADMIN', 'MANAGER']} />}>
-          <Route element={<WaiterLayout />}>
-            <Route path="/waiter" element={<Waiter />} />
+            CAPTAIN PANEL — dedicated POS interface for captains
+          */}
+        <Route element={<ProtectedRoute allowedRoles={['CAPTAIN', 'TENANT_ADMIN', 'MANAGER']} />}>
+          <Route element={<CaptainLayout />}>
+            <Route path="/captain" element={<Captain />} />
           </Route>
         </Route>
 

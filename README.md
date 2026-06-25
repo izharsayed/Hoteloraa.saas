@@ -151,7 +151,7 @@ Permissions:
 
 ---
 
-## Waiter
+## Captain
 
 Permissions:
 
@@ -207,7 +207,7 @@ Customer Arrives
 ↓
 Table Assigned
 ↓
-Waiter Takes Order
+Captain Takes Order
 ↓
 Order Sent To KOT
 ↓
@@ -215,7 +215,7 @@ Kitchen Prepares Food
 ↓
 Ready For Service
 ↓
-Waiter Serves
+Captain Serves
 ↓
 Cashier Generates Bill
 ↓

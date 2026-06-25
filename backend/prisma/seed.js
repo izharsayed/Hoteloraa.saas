@@ -100,7 +100,7 @@ async function main() {
         create: [
           { name: 'Jubeda Khatun',  email: 'admin@royalpalace.com',        passwordHash: defaultPass, userRole: 'TENANT_ADMIN',  isActive: true },
           { name: 'Faisal Ahmed',   email: 'faisal@royalpalace.com',       passwordHash: defaultPass, userRole: 'MANAGER',       isActive: true },
-          { name: 'Ravi Verma',     email: 'ravi@royalpalace.com',         passwordHash: defaultPass, userRole: 'WAITER',        isActive: true },
+          { name: 'Ravi Verma',     email: 'ravi@royalpalace.com',         passwordHash: defaultPass, userRole: 'CAPTAIN',        isActive: true },
           { name: 'Tanvir Hussain', email: 'tanvir@royalpalace.com',       passwordHash: defaultPass, userRole: 'CHEF',          isActive: true },
           { name: 'Priya Sharma',   email: 'priya@royalpalace.com',        passwordHash: defaultPass, userRole: 'RECEPTIONIST',  isActive: true },
           { name: 'Sunita Devi',    email: 'sunita@royalpalace.com',       passwordHash: defaultPass, userRole: 'HOUSEKEEPING',  isActive: true },

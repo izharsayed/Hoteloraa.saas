@@ -42,7 +42,7 @@ enum UserRole {
   TENANT_ADMIN
   MANAGER
   RECEPTIONIST
-  WAITER
+  CAPTAIN
   CHEF
   HOUSEKEEPING
   ACCOUNTANT
@@ -285,7 +285,7 @@ model User {
   email        String
   phone        String?
   passwordHash String
-  userRole     UserRole @default(WAITER)
+  userRole     UserRole @default(CAPTAIN)
   isActive     Boolean  @default(true)
   lastLogin    DateTime?
   avatarUrl    String?

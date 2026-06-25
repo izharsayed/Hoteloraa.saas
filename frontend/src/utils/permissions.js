@@ -10,7 +10,7 @@ export const ROLES = {
   MANAGER: 'MANAGER',
   RECEPTIONIST: 'RECEPTIONIST',
   CASHIER: 'CASHIER',
-  WAITER: 'WAITER',
+  CAPTAIN: 'CAPTAIN',
   CHEF: 'CHEF',
   HOUSEKEEPING: 'HOUSEKEEPING',
   ACCOUNTANT: 'ACCOUNTANT',
@@ -29,9 +29,9 @@ export const MODULE_ACCESS = {
   guests:       [ROLES.TENANT_ADMIN, ROLES.MANAGER, ROLES.RECEPTIONIST],
   housekeeping: [ROLES.TENANT_ADMIN, ROLES.MANAGER, ROLES.HOUSEKEEPING],
   pos:          [ROLES.TENANT_ADMIN, ROLES.MANAGER, ROLES.CASHIER],
-  tables:       [ROLES.TENANT_ADMIN, ROLES.MANAGER, ROLES.WAITER],
-  orders:       [ROLES.TENANT_ADMIN, ROLES.MANAGER, ROLES.CASHIER, ROLES.WAITER],
-  kot:          [ROLES.TENANT_ADMIN, ROLES.MANAGER, ROLES.WAITER, ROLES.CHEF],
+  tables:       [ROLES.TENANT_ADMIN, ROLES.MANAGER, ROLES.CAPTAIN],
+  orders:       [ROLES.TENANT_ADMIN, ROLES.MANAGER, ROLES.CASHIER, ROLES.CAPTAIN],
+  kot:          [ROLES.TENANT_ADMIN, ROLES.MANAGER, ROLES.CAPTAIN, ROLES.CHEF],
   inventory:    [ROLES.TENANT_ADMIN, ROLES.MANAGER, ROLES.ACCOUNTANT],
   vendors:      [ROLES.TENANT_ADMIN, ROLES.MANAGER, ROLES.ACCOUNTANT],
   purchases:    [ROLES.TENANT_ADMIN, ROLES.MANAGER, ROLES.ACCOUNTANT],
@@ -84,7 +84,7 @@ export function getDefaultRedirect(userRole) {
   switch (userRole) {
     case ROLES.SUPER_ADMIN:   return '/superadmin';
     case ROLES.TENANT_ADMIN:  return '/';
-    case ROLES.WAITER:        return '/waiter';
+    case ROLES.CAPTAIN:        return '/captain';
     case ROLES.CHEF:          return '/kitchen';
     case ROLES.HOUSEKEEPING:  return '/housekeeping';
     case ROLES.RECEPTIONIST:  return '/rooms';

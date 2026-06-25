@@ -488,7 +488,7 @@ function Tables() {
                       </span>
                     </div>
                     <div className="text-[11px] text-slate bg-cream/20 p-3 rounded-xl border border-border-cream/30">
-                      Table currently marked as occupied. Use Waiter POS to manage active items and kitchen tickets.
+                      Table currently marked as occupied. Use Captain POS to manage active items and kitchen tickets.
                     </div>
                   </div>
                 )}

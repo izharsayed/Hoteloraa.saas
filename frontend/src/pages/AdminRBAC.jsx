@@ -8,14 +8,25 @@ function AdminRBAC() {
   const [error, setError] = useState('');
   const [selectedRole, setSelectedRole] = useState(null);
 
+const systemRoles = [
+  { id: 'sys-manager', name: 'Manager', description: 'Full access to property operations and reporting.', isSystem: true },
+  { id: 'sys-receptionist', name: 'Receptionist', description: 'Front desk operations and guest management.', isSystem: true },
+  { id: 'sys-captain', name: 'Captain', description: 'Restaurant order management and POS.', isSystem: true },
+  { id: 'sys-chef', name: 'Chef', description: 'Kitchen Order Ticket (KOT) management.', isSystem: true },
+  { id: 'sys-housekeeping', name: 'Housekeeping', description: 'Room status and cleaning management.', isSystem: true },
+  { id: 'sys-accountant', name: 'Accountant', description: 'Financial reporting and accounting.', isSystem: true },
+  { id: 'sys-cashier', name: 'Cashier', description: 'Billing and payments.', isSystem: true },
+];
+
   const fetchRoles = async () => {
     setLoading(true);
     setError('');
     try {
       const data = await api.get('/roles');
-      setRoles(data || []);
-      if (data && data.length > 0) {
-        setSelectedRole(data[0]);
+      const allRoles = [...systemRoles, ...(data || [])];
+      setRoles(allRoles);
+      if (allRoles.length > 0) {
+        setSelectedRole(allRoles[0]);
       }
     } catch (err) {
       setError(err.message || 'Failed to load property roles');

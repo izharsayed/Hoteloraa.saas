@@ -45,7 +45,7 @@ function AdminOverview() {
     {
       title: 'Staff Personnel',
       value: `${stats.activeStaff} / ${stats.staffCount} Online`,
-      subtitle: 'Managers, Waiters, Chefs',
+      subtitle: 'Managers, Captains, Chefs',
       icon: Users,
       color: 'text-navy',
       bgColor: 'bg-gold-pale/50',
@@ -131,7 +131,7 @@ function AdminOverview() {
               <CheckCircle className="w-5 h-5 text-success shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-semibold text-charcoal">Operational Staff Configured</p>
-                <p className="text-[10px] text-slate">Manager, Cashier, Chef, and Waiter accounts initialized.</p>
+                <p className="text-[10px] text-slate">Manager, Cashier, Chef, and Captain accounts initialized.</p>
               </div>
             </div>
 

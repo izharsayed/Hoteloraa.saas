@@ -79,7 +79,7 @@ const getRoleIcon = (roleName) => {
   if (name.includes('tenant admin') || name.includes('admin')) return Users;
   if (name.includes('manager')) return Settings2;
   if (name.includes('receptionist')) return Key;
-  if (name.includes('waiter')) return Coffee;
+  if (name.includes('captain')) return Coffee;
   if (name.includes('chef') || name.includes('kitchen') || name.includes('cook')) return Shield;
   if (name.includes('cashier') || name.includes('accountant') || name.includes('billing')) return Receipt;
   return Shield;

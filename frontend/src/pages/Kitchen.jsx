@@ -25,7 +25,7 @@ function Kitchen() {
           kotNumber: kot.kotNumber,
           orderId: kot.order?.id,
           table: kot.order?.table?.name || 'Quick POS',
-          waiter: kot.user?.name || 'POS System',
+          captain: kot.user?.name || 'POS System',
           orderType,
           status: kot.status === 'PENDING' ? 'Pending' : kot.status === 'IN_PROGRESS' ? 'InProgress' : 'Ready',
           createdAt: new Date(kot.createdAt),
@@ -440,7 +440,7 @@ function Kitchen() {
             <div className="border-b border-border-cream pb-4 mb-6">
               <span className="text-[10px] text-slate font-bold uppercase tracking-wider">KOT DETAILS MONITOR</span>
               <h3 className="font-mono font-bold text-xl text-navy mt-1">{activeTicket.kotNumber}</h3>
-              <p className="text-xs text-slate mt-1">Waiter: {activeTicket.waiter} | Order: {activeTicket.orderType}</p>
+              <p className="text-xs text-slate mt-1">Captain: {activeTicket.captain} | Order: {activeTicket.orderType}</p>
             </div>
 
             <div className="space-y-4 mb-8">

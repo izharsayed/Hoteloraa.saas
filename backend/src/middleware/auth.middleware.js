@@ -79,7 +79,7 @@ var _database = require('../config/database'); var _database2 = _interopRequireD
 
 // Simple helper to assign default behavior to standard system roles
 const checkStaticRoleFallback = (role, module, action) => {
-  const waiterPerms = {
+  const captainPerms = {
     MENU: ['READ'],
     ORDERS: ['CREATE', 'READ', 'UPDATE'],
     KOT: ['CREATE', 'READ', 'UPDATE'],
@@ -156,7 +156,7 @@ const checkStaticRoleFallback = (role, module, action) => {
 
   let allowedActions = [];
 
-  if (role === 'WAITER') allowedActions = waiterPerms[module] || [];
+  if (role === 'CAPTAIN') allowedActions = captainPerms[module] || [];
   else if (role === 'CHEF') allowedActions = chefPerms[module] || [];
   else if (role === 'HOUSEKEEPING') allowedActions = housekeeperPerms[module] || [];
   else if (role === 'RECEPTIONIST') allowedActions = receptionistPerms[module] || [];
@@ -199,7 +199,7 @@ const checkStaticRoleFallback = (role, module, action) => {
         }
       }
 
-      // 3. Fallback to static rules for pre-defined system roles (e.g. WAITER can READ MENU, CHEF can UPDATE KOT)
+      // 3. Fallback to static rules for pre-defined system roles (e.g. CAPTAIN can READ MENU, CHEF can UPDATE KOT)
       const hasStaticAccess = checkStaticRoleFallback(userRole, module, action);
       if (hasStaticAccess) {
         return next();

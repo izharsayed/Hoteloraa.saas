@@ -195,7 +195,7 @@ var _notificationsservice = require('../notifications/notifications.service'); v
     },
   });
 
-  // Trigger notification to waiter who placed the order
+  // Trigger notification to captain who placed the order
   if (_optionalChain([updatedKOT, 'access', _ => _.order, 'optionalAccess', _2 => _2.userId])) {
     const tableName = _optionalChain([updatedKOT, 'access', _3 => _3.order, 'access', _4 => _4.table, 'optionalAccess', _5 => _5.name]) || 'Quick POS';
     if (dto.status === 'IN_PROGRESS') {
