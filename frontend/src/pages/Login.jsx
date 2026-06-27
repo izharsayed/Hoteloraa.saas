@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Check, ArrowLeft, KeyRound, RefreshCw, ShieldCheck, Copy, CopyCheck, ChevronDown, Sparkles } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Check, ArrowLeft, KeyRound, RefreshCw, ShieldCheck, ChevronDown, Sparkles } from 'lucide-react';
 import api from '../utils/api.js';
 
 // Role → redirect path mapping (single source of truth)
@@ -96,8 +96,7 @@ function ForgotStep({ onBack, onCodeReceived }) {
   const [email, setEmail]     = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
-  const [result, setResult]   = useState(null); // { resetToken, userName, email, expiresIn }
-  const [copied, setCopied]   = useState(false);
+  const [result, setResult]   = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -113,15 +112,6 @@ function ForgotStep({ onBack, onCodeReceived }) {
     }
   };
 
-  const handleCopy = () => {
-    if (result?.resetToken) {
-      navigator.clipboard.writeText(result.resetToken).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      });
-    }
-  };
-
   // If we got a token, show the "code reveal" screen
   if (result) {
     return (
@@ -131,32 +121,30 @@ function ForgotStep({ onBack, onCodeReceived }) {
           <div className="w-14 h-14 rounded-full bg-emerald-50/50 border border-emerald-200/50 flex items-center justify-center mb-1">
             <ShieldCheck className="w-6 h-6 text-emerald-600" strokeWidth={1.5} />
           </div>
-          <h4 className="font-display font-medium text-2xl text-slate-900">Reset Code Generated</h4>
+          <h4 className="font-display font-medium text-2xl text-slate-900">Check Your Email</h4>
           <p className="text-slate-800 text-[11px] font-bold leading-relaxed max-w-[280px]">
-            {result.userName
-              ? `Hello ${result.userName}! Your one-time reset code is below.`
-              : 'If that email is registered, a code has been generated.'}
+            {result.message || 'If that email is registered, a reset code has been sent.'}
           </p>
         </div>
 
-        {result.resetToken ? (
+        {false ? (
           <>
             {/* Token display box */}
             <div className="w-full bg-navy/5 border border-navy/10 rounded-2xl p-4 flex flex-col items-center gap-2">
               <p className="text-[10px] font-bold text-slate-900 uppercase tracking-widest">Your Reset Code</p>
               <div className="flex items-center gap-3">
                 <span className="font-mono text-3xl font-black text-[#0B1F3A] tracking-[0.3em] select-all">
-                  {result.resetToken}
+                  {' '}
                 </span>
                 <button
                   type="button"
-                  onClick={handleCopy}
+                  onClick={() => {}}
                   title="Copy code"
                   className="p-1.5 rounded-lg bg-white/50 border border-white/60 hover:border-gold/50 text-slate-900 hover:text-gold transition-all active:scale-95"
                 >
-                  {copied
-                    ? <CopyCheck className="w-4 h-4 text-emerald-500" />
-                    : <Copy className="w-4 h-4" />}
+                  {false
+                    ? <KeyRound className="w-4 h-4 text-emerald-500" />
+                    : <KeyRound className="w-4 h-4" />}
                 </button>
               </div>
               <p className="text-[10px] text-slate-800 font-semibold">
@@ -171,7 +159,7 @@ function ForgotStep({ onBack, onCodeReceived }) {
 
             <button
               type="button"
-              onClick={() => onCodeReceived(result.resetToken)}
+              onClick={() => onCodeReceived('')}
               className="w-full py-3.5 bg-[#0B1F3A] hover:bg-[#142d50] text-white rounded-full font-bold text-xs tracking-wider transition-all shadow-md active:scale-[0.98] uppercase flex items-center justify-center gap-2"
             >
               <KeyRound className="w-4 h-4" />
@@ -206,7 +194,7 @@ function ForgotStep({ onBack, onCodeReceived }) {
         </div>
         <h4 className="font-display font-medium text-2xl text-slate-900">Forgot Password?</h4>
         <p className="text-slate-800 text-[11px] font-bold leading-relaxed max-w-[280px]">
-          Enter your email address and we'll generate a secure reset code for you.
+          Enter your email address and we'll send a secure reset code if the account exists.
         </p>
       </div>
 
@@ -440,6 +428,9 @@ function ResetStep({ prefillToken, onBack, onSuccess }) {
 }
 
 // ─── Main Login Page ──────────────────────────────────────────────────────────
+import logo from '../assets/logo.png';
+import newLoginBg from '../assets/new_login_bg.png';
+
 function Login() {
   const navigate = useNavigate();
 
@@ -538,7 +529,7 @@ function Login() {
       {/* Premium Background Image */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 scale-105"
-        style={{ backgroundImage: "url('/new_login_bg.png')" }}
+        style={{ backgroundImage: `url(${newLoginBg})` }}
       />
       {/* Luxury Color Overlay for Contrast & Glassmorphism Blur */}
       <div className="absolute inset-0 z-0 bg-gradient-to-tr from-navy/60 via-navy/20 to-gold/25" />
@@ -562,7 +553,7 @@ function Login() {
         <div className="liquid-glass rounded-[2rem] p-8 md:p-10 shadow-2xl flex flex-col items-center">
 
           {/* Brand Header — always visible */}
-          <img src="/logo.png" alt="Hoteloraa Logo" className="h-16 w-auto object-contain mb-4 select-none" />
+          <img src={logo} alt="Hoteloraa Logo" className="h-16 w-auto object-contain mb-4 select-none" />
           <span className="px-3.5 py-0.5 border border-[#D4AF37]/40 text-[9px] font-bold text-[#D4AF37] rounded-full tracking-widest uppercase mb-4 bg-[#D4AF37]/10 select-none">
             Staff Portal
           </span>

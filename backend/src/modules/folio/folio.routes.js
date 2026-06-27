@@ -8,9 +8,9 @@ const router = _express.Router.call(void 0, );
 
 router.use(_authmiddleware.authenticate);
 
-router.get('/payment/:paymentId', folioController.getFolioByPaymentId);
-router.get('/reservation/:reservationId', folioController.getGuestFolio); // Detailed folio statement
-router.get('/reservation/:reservationId/raw', folioController.getFolioByReservationId); // Raw folio items list
-router.post('/item', _validatemiddleware.validate.call(void 0, _foliodto.addFolioItemSchema), folioController.addFolioItem);
+router.get('/payment/:paymentId', _authmiddleware.checkPermission.call(void 0, 'FOLIO', 'READ'), folioController.getFolioByPaymentId);
+router.get('/reservation/:reservationId', _authmiddleware.checkPermission.call(void 0, 'FOLIO', 'READ'), folioController.getGuestFolio); // Detailed folio statement
+router.get('/reservation/:reservationId/raw', _authmiddleware.checkPermission.call(void 0, 'FOLIO', 'READ'), folioController.getFolioByReservationId); // Raw folio items list
+router.post('/item', _authmiddleware.checkPermission.call(void 0, 'FOLIO', 'CREATE'), _validatemiddleware.validate.call(void 0, _foliodto.addFolioItemSchema), folioController.addFolioItem);
 
 exports. default = router;

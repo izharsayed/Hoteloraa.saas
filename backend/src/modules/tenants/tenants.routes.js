@@ -8,9 +8,9 @@ const router = _express.Router.call(void 0, );
 
 router.use(_authmiddleware.authenticate);
 
-router.get('/profile', tenantsController.getTenantProfile);
-router.put('/profile', _validatemiddleware.validate.call(void 0, _tenantsdto.updateTenantSchema), tenantsController.updateTenant);
-router.get('/features', tenantsController.getTenantFeatures);
-router.patch('/features/:feature/toggle', _authmiddleware.authorize.call(void 0, 'SUPER_ADMIN', 'TENANT_ADMIN'), tenantsController.toggleFeature);
+router.get('/profile', _authmiddleware.checkPermission.call(void 0, 'SETTINGS', 'READ'), tenantsController.getTenantProfile);
+router.put('/profile', _authmiddleware.checkPermission.call(void 0, 'SETTINGS', 'UPDATE'), _validatemiddleware.validate.call(void 0, _tenantsdto.updateTenantSchema), tenantsController.updateTenant);
+router.get('/features', _authmiddleware.checkPermission.call(void 0, 'SETTINGS', 'READ'), tenantsController.getTenantFeatures);
+router.patch('/features/:feature/toggle', _authmiddleware.authorize.call(void 0, 'SUPER_ADMIN', 'TENANT_ADMIN'), _authmiddleware.checkPermission.call(void 0, 'SETTINGS', 'UPDATE'), tenantsController.toggleFeature);
 
 exports. default = router;

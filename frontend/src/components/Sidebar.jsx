@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import logoIcon from '../assets/logo-icon.png';
+import logo from '../assets/logo.png';
 import { 
   LayoutDashboard, 
   Bed,
@@ -28,6 +30,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { MODULE_ACCESS } from '../utils/permissions';
+import api from '../utils/api.js';
 
 function Sidebar({ collapsed, onToggle }) {
   const navigate = useNavigate();
@@ -121,9 +124,8 @@ function Sidebar({ collapsed, onToggle }) {
     }))
     .filter((group) => group.items.length > 0);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const handleLogout = async () => {
+    await api.logout();
     navigate('/login?loggedOut=1');
   };
 
@@ -140,7 +142,7 @@ function Sidebar({ collapsed, onToggle }) {
       {collapsed ? (
         <div className="hidden md:flex flex-col items-center py-4 border-b border-border-cream bg-white shrink-0 animate-fadeIn">
           <img 
-            src="/logo-icon.png" 
+            src={logoIcon} 
             alt="Hoteloraa Logo Icon" 
             className="h-8 w-auto object-contain cursor-pointer hover:scale-105 active:scale-95 transition-transform"
             onClick={onToggle}
@@ -153,7 +155,7 @@ function Sidebar({ collapsed, onToggle }) {
             className="flex items-center gap-3 cursor-pointer"
             onClick={() => navigate('/')}
           >
-            <img src="/logo.png" alt="Hoteloraa Logo" className="h-9 w-auto object-contain" />
+            <img src={logo} alt="Hoteloraa Logo" className="h-9 w-auto object-contain" />
           </div>
           <button
             onClick={onToggle}

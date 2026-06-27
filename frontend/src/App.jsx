@@ -237,10 +237,9 @@ function DashboardLayout() {
 // ProtectedRoute — enforces authentication and optionally role-based access
 // --------------------------------------------------------------------------
 function ProtectedRoute({ allowedRoles, module: moduleKey }) {
-  const token = localStorage.getItem('token');
   const userJson = localStorage.getItem('user');
 
-  if (!token || !userJson) {
+  if (!userJson) {
     return <Navigate to="/login" replace />;
   }
 

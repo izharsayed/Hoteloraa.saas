@@ -170,7 +170,7 @@ function Housekeeping() {
                             {task.room?.number}
                           </span>
                           <div>
-                            <h4 className="font-bold text-charcoal text-sm">{task.room?.roomType?.name} Room</h4>
+                            <h4 className="font-bold text-charcoal text-sm">{task.room?.roomType?.name}</h4>
                             <p className="text-[10px] text-slate mt-0.5 font-medium flex items-center gap-1">
                               <AlertCircle className="w-3.5 h-3.5" /> {task.notes || 'Automated cleanup from checkout'}
                             </p>

@@ -8,9 +8,9 @@ const router = _express.Router.call(void 0, );
 
 router.use(_authmiddleware.authenticate);
 
-router.get('/', paymentsController.getPayments);
-router.get('/summary', paymentsController.getPaymentSummary);
-router.get('/:id', paymentsController.getPaymentById);
-router.post('/', _validatemiddleware.validate.call(void 0, _paymentsdto.createPaymentSchema), paymentsController.createPayment);
+router.get('/', _authmiddleware.checkPermission.call(void 0, 'PAYMENTS', 'READ'), paymentsController.getPayments);
+router.get('/summary', _authmiddleware.checkPermission.call(void 0, 'PAYMENTS', 'READ'), paymentsController.getPaymentSummary);
+router.get('/:id', _authmiddleware.checkPermission.call(void 0, 'PAYMENTS', 'READ'), paymentsController.getPaymentById);
+router.post('/', _authmiddleware.checkPermission.call(void 0, 'PAYMENTS', 'CREATE'), _validatemiddleware.validate.call(void 0, _paymentsdto.createPaymentSchema), paymentsController.createPayment);
 
 exports. default = router;

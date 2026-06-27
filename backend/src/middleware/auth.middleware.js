@@ -3,6 +3,17 @@ var _jsonwebtoken = require('jsonwebtoken'); var _jsonwebtoken2 = _interopRequir
 var _env = require('../config/env'); var _env2 = _interopRequireDefault(_env);
 var _database = require('../config/database'); var _database2 = _interopRequireDefault(_database);
 
+const AUTH_COOKIE_NAME = 'hoteloraa_token';
+
+const readCookie = (cookieHeader, name) => {
+  if (!cookieHeader) return null;
+  const cookies = cookieHeader.split(';');
+  for (const cookie of cookies) {
+    const [rawKey, ...rawValue] = cookie.trim().split('=');
+    if (rawKey === name) return decodeURIComponent(rawValue.join('='));
+  }
+  return null;
+};
 
 
 
@@ -20,12 +31,15 @@ var _database = require('../config/database'); var _database2 = _interopRequireD
 ) => {
   try {
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const token = authHeader && authHeader.startsWith('Bearer ')
+      ? authHeader.split(' ')[1]
+      : readCookie(req.headers.cookie, AUTH_COOKIE_NAME);
+
+    if (!token) {
       res.status(401).json({ success: false, message: 'No token provided' });
       return;
     }
 
-    const token = authHeader.split(' ')[1];
     const decoded = _jsonwebtoken2.default.verify(token, _env2.default.jwt.secret) 
 
 
@@ -68,12 +82,22 @@ var _database = require('../config/database'); var _database2 = _interopRequireD
 }; exports.authorize = authorize;
 
  const requireTenant = (req, res, next) => {
-  const tenantId = req.headers['x-tenant-id']  || _optionalChain([req, 'access', _ => _.user, 'optionalAccess', _2 => _2.tenantId]);
+  if (!req.user) {
+    res.status(401).json({ success: false, message: 'Unauthorized' });
+    return;
+  }
+
+  const headerTenantId = req.headers['x-tenant-id'];
+  const tenantId = req.user.userRole === 'SUPER_ADMIN' && headerTenantId
+    ? headerTenantId
+    : req.user.tenantId;
+
   if (!tenantId) {
     res.status(400).json({ success: false, message: 'Tenant ID required' });
     return;
   }
-  if (req.user) req.user.tenantId = tenantId;
+
+  req.user.tenantId = tenantId;
   next();
 }; exports.requireTenant = requireTenant;
 
@@ -84,6 +108,7 @@ const checkStaticRoleFallback = (role, module, action) => {
     ORDERS: ['CREATE', 'READ', 'UPDATE'],
     KOT: ['CREATE', 'READ', 'UPDATE'],
     TABLES: ['READ', 'UPDATE'],
+    POS: ['CREATE', 'READ'],
   };
 
   const chefPerms = {

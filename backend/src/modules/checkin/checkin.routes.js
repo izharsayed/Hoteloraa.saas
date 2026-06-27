@@ -10,12 +10,12 @@ const router = _express.Router.call(void 0, );
 router.use(_authmiddleware.authenticate);
 
 // GET /checkin/pending  — CONFIRMED reservations due for check-in
-router.get('/pending', checkInController.getPendingCheckIns);
+router.get('/pending', _authmiddleware.checkPermission.call(void 0, 'CHECKIN', 'READ'), checkInController.getPendingCheckIns);
 
 // GET /checkin/today   — reservations checked in today
-router.get('/today', checkInController.getTodayCheckIns);
+router.get('/today', _authmiddleware.checkPermission.call(void 0, 'CHECKIN', 'READ'), checkInController.getTodayCheckIns);
 
 // POST /checkin        — perform check-in (body validated against checkInSchema)
-router.post('/', _validatemiddleware.validate.call(void 0, _checkindto.checkInSchema), checkInController.checkIn);
+router.post('/', _authmiddleware.checkPermission.call(void 0, 'CHECKIN', 'CREATE'), _validatemiddleware.validate.call(void 0, _checkindto.checkInSchema), checkInController.checkIn);
 
 exports. default = router;

@@ -7,8 +7,10 @@ var _helpers = require('../../shared/helpers');
 
 const router = _express.Router.call(void 0, );
 
+router.use(_authmiddleware.authenticate);
+
 // GET current subscription
-router.get('/', _authmiddleware.authenticate, async (req, res, next) => {
+router.get('/', _authmiddleware.checkPermission.call(void 0, 'SETTINGS', 'READ'), async (req, res, next) => {
   try {
     const subscription = await _database2.default.subscription.findUnique({ where: { tenantId: req.user.tenantId } });
     _helpers.sendSuccess.call(void 0, res, subscription);
@@ -16,7 +18,7 @@ router.get('/', _authmiddleware.authenticate, async (req, res, next) => {
 });
 
 // PUT upgrade plan (SUPER_ADMIN only in full impl)
-router.put('/upgrade', _authmiddleware.authenticate, _authmiddleware.authorize.call(void 0, 'SUPER_ADMIN', 'TENANT_ADMIN'), async (req, res, next) => {
+router.put('/upgrade', _authmiddleware.authorize.call(void 0, 'SUPER_ADMIN', 'TENANT_ADMIN'), _authmiddleware.checkPermission.call(void 0, 'SETTINGS', 'UPDATE'), async (req, res, next) => {
   try {
     const { plan, endDate } = req.body;
     const subscription = await _database2.default.subscription.update({

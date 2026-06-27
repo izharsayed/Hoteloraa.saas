@@ -34,6 +34,27 @@ function Rooms() {
     }
   };
 
+  const formatFloor = (floorStr) => {
+    if (!floorStr) return '1st Floor';
+    const f = String(floorStr).trim();
+    if (f.toLowerCase().includes('floor')) return f;
+    const num = parseInt(f, 10);
+    if (!isNaN(num)) {
+      const j = num % 10, k = num % 100;
+      if (j === 1 && k !== 11) {
+        return `${num}st Floor`;
+      }
+      if (j === 2 && k !== 12) {
+        return `${num}nd Floor`;
+      }
+      if (j === 3 && k !== 13) {
+        return `${num}rd Floor`;
+      }
+      return `${num}th Floor`;
+    }
+    return `${f} Floor`;
+  };
+
   const fetchRooms = async () => {
     try {
       setLoading(true);
@@ -44,7 +65,7 @@ function Rooms() {
         number: r.number,
         type: r.roomType?.name || 'Standard',
         status: mapDbStatusToUi(r.status),
-        floor: r.floor ? (r.floor.includes('Floor') ? r.floor : `${r.floor} Floor`) : '1st Floor',
+        floor: formatFloor(r.floor),
         rate: `₹${(r.roomType?.basePrice || 2500).toLocaleString()}`
       }));
       setRooms(mapped);

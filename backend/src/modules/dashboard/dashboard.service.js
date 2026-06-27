@@ -23,8 +23,17 @@
       status: 'PAID',
       orderId: { not: null },
     },
+    include: {
+      order: true,
+    },
   });
   const todayRevenue = payments.reduce((acc, curr) => acc + curr.amount, 0);
+  const dineInSales = payments
+    .filter((p) => p.order && p.order.tableId)
+    .reduce((acc, curr) => acc + curr.amount, 0);
+  const takeawaySales = payments
+    .filter((p) => p.order && !p.order.tableId)
+    .reduce((acc, curr) => acc + curr.amount, 0);
 
   // 3. Pending KOTs count
   const pendingKOTs = await _database2.default.kOT.count({
@@ -66,6 +75,8 @@
   return {
     totalOrders,
     todayRevenue,
+    dineInSales,
+    takeawaySales,
     pendingKOTs,
     occupiedTables,
     totalTables,
@@ -119,8 +130,23 @@
       status: 'PAID',
       reservationId: { not: null },
     },
+    include: {
+      reservation: true,
+    },
   });
   const todayRevenue = payments.reduce((acc, curr) => acc + curr.amount, 0);
+  const roomBookings = payments.reduce((acc, curr) => {
+    if (curr.reservation) {
+      return acc + Math.max(0, curr.reservation.roomCharges - curr.reservation.discount);
+    }
+    return acc + curr.amount;
+  }, 0);
+  const roomService = payments.reduce((acc, curr) => {
+    if (curr.reservation) {
+      return acc + curr.reservation.extraCharges;
+    }
+    return acc;
+  }, 0);
 
   // 5. Pending Housekeeping tasks count
   const pendingHousekeeping = await _database2.default.housekeeping.count({
@@ -148,6 +174,8 @@
     todayCheckIns,
     todayCheckOuts,
     todayRevenue,
+    roomBookings,
+    roomService,
     pendingHousekeeping,
     recentReservations,
   };
@@ -161,6 +189,8 @@
     restaurant: {
       totalOrders: restaurant.totalOrders,
       todayRevenue: restaurant.todayRevenue,
+      dineInSales: restaurant.dineInSales,
+      takeawaySales: restaurant.takeawaySales,
       pendingKOTs: restaurant.pendingKOTs,
       occupiedTables: restaurant.occupiedTables,
       totalTables: restaurant.totalTables,
@@ -173,6 +203,8 @@
       todayCheckIns: lodging.todayCheckIns,
       todayCheckOuts: lodging.todayCheckOuts,
       todayRevenue: lodging.todayRevenue,
+      roomBookings: lodging.roomBookings,
+      roomService: lodging.roomService,
       pendingHousekeeping: lodging.pendingHousekeeping,
       recentReservations: lodging.recentReservations,
     },

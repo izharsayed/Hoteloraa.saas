@@ -1,5 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import logoIcon from '../assets/logo-icon.png';
+import logo from '../assets/logo.png';
 import { 
   Shield, 
   Users, 
@@ -10,6 +12,7 @@ import {
   LayoutDashboard,
   ChevronLeft
 } from 'lucide-react';
+import api from '../utils/api.js';
 
 function AdminSidebar({ collapsed, onToggle }) {
   const navigate = useNavigate();
@@ -22,9 +25,8 @@ function AdminSidebar({ collapsed, onToggle }) {
     { name: 'Tenant Settings', path: '/admin/settings', icon: Settings },
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const handleLogout = async () => {
+    await api.logout();
     navigate('/login?loggedOut=1');
   };
 
@@ -40,7 +42,7 @@ function AdminSidebar({ collapsed, onToggle }) {
       {collapsed ? (
         <div className="flex flex-col items-center py-4 border-b border-border-cream bg-white shrink-0 animate-fadeIn">
           <img 
-            src="/logo-icon.png" 
+            src={logoIcon} 
             alt="Hoteloraa Logo Icon" 
             className="h-8 w-auto object-contain cursor-pointer hover:scale-105 active:scale-95 transition-transform"
             onClick={onToggle}
@@ -82,10 +84,16 @@ function AdminSidebar({ collapsed, onToggle }) {
               end={item.path === '/admin'}
               title={collapsed ? item.name : undefined}
               className={({ isActive }) => `
-                flex items-center gap-3 px-3 py-2 rounded-xl font-medium text-xs transition-all duration-200 group
+                flex items-center gap-3 font-medium text-xs transition-all duration-200 group
+                ${collapsed 
+                  ? 'w-10 h-10 justify-center rounded-xl mx-auto' 
+                  : 'px-3 py-2 rounded-xl hover:translate-x-1'
+                }
                 ${isActive 
-                  ? 'bg-gold-pale text-navy border-l-4 border-gold shadow-sm font-semibold' 
-                  : 'text-slate hover:bg-white/50 hover:text-navy'
+                  ? collapsed 
+                    ? 'bg-gold-pale text-navy shadow-sm' 
+                    : 'bg-gold-pale text-navy border-l-4 border-gold shadow-sm font-semibold'
+                  : 'text-slate hover:bg-gold-pale/50 hover:text-navy'
                 }
               `}
             >

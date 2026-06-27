@@ -71,9 +71,46 @@ const SALT_ROUNDS = 12;
   // Only block on ACTIVE users — allow re-onboarding with the same email
   // if the previous account was deactivated/suspended.
   const existing = await _database2.default.user.findFirst({
-    where: { tenantId, email: dto.email, isActive: true },
+    where: { tenantId, email: dto.email },
   });
-  if (existing) throw _errormiddleware.createError.call(void 0, 'Email is already registered in this tenant', 400);
+
+  if (existing) {
+    if (existing.isActive) {
+      throw _errormiddleware.createError.call(void 0, 'Email is already registered in this tenant', 400);
+    }
+
+    // Reactivate and update credentials/details for deactivated account
+    const passwordHash = await _bcryptjs2.default.hash(dto.password, SALT_ROUNDS);
+    const user = await _database2.default.user.update({
+      where: { id: existing.id },
+      data: {
+        name: dto.name,
+        phone: dto.phone,
+        passwordHash,
+        userRole: dto.userRole,
+        roleId: dto.roleId,
+        isActive: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        userRole: true,
+        roleId: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+    return user;
+  }
 
   const passwordHash = await _bcryptjs2.default.hash(dto.password, SALT_ROUNDS);
 
@@ -96,6 +133,13 @@ const SALT_ROUNDS = 12;
       roleId: true,
       isActive: true,
       createdAt: true,
+      updatedAt: true,
+      role: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
   });
 

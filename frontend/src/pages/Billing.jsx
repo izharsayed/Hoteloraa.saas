@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   CreditCard, 
   IndianRupee, 
@@ -28,7 +29,10 @@ function Billing() {
       userObj = { ...userObj, ...u };
     }
   } catch (e) {}
-  const hotelName = userObj.hotelName || userObj.businessName || 'Your Hotel Name';
+  const hotelName = userObj.tenantName || userObj.hotelName || userObj.businessName || 'Your Hotel Name';
+  const hotelAddress = userObj.address 
+    ? [userObj.address, userObj.city, userObj.country].filter(Boolean).join(', ')
+    : '';
 
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [invoices, setInvoices] = useState([]);
@@ -77,7 +81,7 @@ function Billing() {
         room: order.table?.floor || 'Restaurant',
         status: order.status === 'COMPLETED' ? 'Paid' : 'Unpaid',
         discount: order.discountAmount || 0,
-        paidAmount: order.totalAmount || 0,
+        paidAmount: order.payment ? order.payment.amount : 0,
         gstRate: 5,
         serviceChargeRate: 0,
         items: order.items ? order.items.map(item => ({
@@ -895,12 +899,16 @@ function Billing() {
         )}
 
       {/* Receipt Preview Modal */}
-      {showReceiptModal && selectedInvoice && (
-        <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4 print-modal-overlay">
-          <div className={`bg-white rounded-[2rem] border border-border-cream p-8 w-full ${printFormat === 'pos' ? 'max-w-md' : 'max-w-2xl'} shadow-2xl relative max-h-[90vh] overflow-y-auto print:p-0 print:shadow-none print:border-none print:max-w-none print:max-h-none print:overflow-visible`}>
+      {showReceiptModal && selectedInvoice && createPortal(
+        <div className="fixed inset-0 z-[100] bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4 print-modal-overlay">
+          <div className={`bg-white rounded-[2rem] border border-border-cream flex flex-col w-full ${printFormat === 'pos' ? 'max-w-md' : 'max-w-2xl'} shadow-2xl relative max-h-[90vh] overflow-hidden print:p-0 print:shadow-none print:border-none print:max-w-none print:max-h-none print:overflow-visible print:block`}>
             {/* Dynamic Print CSS */}
             <style dangerouslySetInnerHTML={{__html: `
               @media print {
+                @page {
+                  size: ${printFormat === 'pos' ? '80mm auto' : 'auto'};
+                  margin: 0;
+                }
                 body * {
                   visibility: hidden;
                 }
@@ -942,13 +950,13 @@ function Billing() {
             {/* Close button - hidden on print */}
             <button 
               onClick={() => setShowReceiptModal(false)}
-              className="absolute top-6 right-6 text-slate hover:text-navy transition-colors print:hidden"
+              className="absolute top-6 right-6 z-10 text-slate hover:text-navy transition-colors print:hidden"
             >
               <X className="w-6 h-6" />
             </button>
 
             {/* Format Selector Tab Bar - Hidden on print */}
-            <div className="flex justify-center border-b border-border-cream pb-4 mb-6 print:hidden">
+            <div className="flex justify-center border-b border-border-cream p-8 pb-4 shrink-0 print:hidden">
               <div className="flex bg-surface-linen/50 p-1 rounded-xl border border-border-cream">
                 <button
                   type="button"
@@ -971,8 +979,10 @@ function Billing() {
               </div>
             </div>
 
-            {/* Printable Invoice Container */}
-            <div id="printable-area" className="space-y-6">
+            {/* Scrollable Container */}
+            <div className="flex-1 overflow-y-auto px-8 py-6 min-h-0 print:overflow-visible print:p-0">
+              {/* Printable Invoice Container */}
+              <div id="printable-area" className="space-y-6">
               {printFormat === 'a4' ? (
                 /* ---------------- STANDARD A4 FORMAT ---------------- */
                 <div className="space-y-6 font-sans">
@@ -999,7 +1009,7 @@ function Billing() {
                     <div className="text-right">
                       <h4 className="font-bold text-navy uppercase tracking-wider mb-2">Property Address:</h4>
                       <p className="font-bold text-charcoal">{hotelName}</p>
-                      <p className="text-slate mt-0.5">VIP Road, New Delhi, India</p>
+                      {hotelAddress && <p className="text-slate mt-0.5">{hotelAddress}</p>}
                     </div>
                   </div>
 
@@ -1115,11 +1125,11 @@ function Billing() {
                 </div>
               ) : (
                 /* ---------------- 3" POS THERMAL SLIP ---------------- */
-                <div className="font-mono text-xs text-charcoal space-y-4 max-w-[320px] mx-auto p-4 border border-dashed border-slate-300 rounded-xl bg-stone-50/50 print:bg-white print:border-0 print:p-0">
+                <div className="font-mono text-xs text-charcoal space-y-4 max-w-[320px] mx-auto p-4 border border-dashed border-slate-300 rounded-xl bg-stone-50/50 print:bg-stone-50/50 print:border print:border-dashed print:border-slate-300">
                   <div className="text-center space-y-1">
                     <h3 className="font-bold text-lg text-navy tracking-wider uppercase">{hotelName}</h3>
                     <p className="text-[9px] uppercase text-slate font-bold">F&B POS</p>
-                    <p className="text-[9px] text-slate">VIP Road, New Delhi, India</p>
+                    {hotelAddress && <p className="text-[9px] text-slate">{hotelAddress}</p>}
                     <p className="text-[10px] border-b border-dashed border-slate-300 py-1">--------------------------------</p>
                   </div>
 
@@ -1226,9 +1236,10 @@ function Billing() {
                 </div>
               )}
             </div>
+            </div>
 
             {/* Print/Dismiss buttons - hidden on print */}
-            <div className="flex gap-3 mt-8 pt-4 border-t border-border-cream print:hidden">
+            <div className="flex gap-3 px-8 pb-8 pt-4 border-t border-border-cream shrink-0 print:hidden">
               <button 
                 type="button"
                 onClick={() => window.print()}
@@ -1245,7 +1256,8 @@ function Billing() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

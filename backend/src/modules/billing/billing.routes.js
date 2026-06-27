@@ -8,9 +8,9 @@ const router = _express.Router.call(void 0, );
 
 router.use(_authmiddleware.authenticate);
 
-router.get('/order/:orderId', billingController.getBillByOrderId);
-router.post('/generate', _validatemiddleware.validate.call(void 0, _billingdto.generateBillSchema), billingController.generateBill);
-router.get('/recent', billingController.getRecentBills);
-router.get('/daily-sales', billingController.getDailySales);
+router.get('/order/:orderId', _authmiddleware.checkPermission.call(void 0, 'BILLING', 'READ'), billingController.getBillByOrderId);
+router.post('/generate', _authmiddleware.checkPermission.call(void 0, 'BILLING', 'CREATE'), _validatemiddleware.validate.call(void 0, _billingdto.generateBillSchema), billingController.generateBill);
+router.get('/recent', _authmiddleware.checkPermission.call(void 0, 'BILLING', 'READ'), billingController.getRecentBills);
+router.get('/daily-sales', _authmiddleware.checkPermission.call(void 0, 'BILLING', 'READ'), billingController.getDailySales);
 
 exports. default = router;

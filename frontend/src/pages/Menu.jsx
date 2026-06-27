@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Search, Utensils, X, Info } from 'lucide-react';
-import api from '../utils/api.js';
+import api, { assetUrl } from '../utils/api.js';
+
+const dishImages = import.meta.glob('../assets/images/dishes/*.png', { eager: true, as: 'url' });
 
 function Menu() {
   const [categories, setCategories] = useState([]);
@@ -205,6 +207,10 @@ function Menu() {
     if (!path) return null;
     if (path.startsWith('/uploads')) {
       return `http://localhost:5000${path}`;
+    }
+    if (path.startsWith('/images/dishes/')) {
+      const fileName = path.split('/').pop();
+      return dishImages[`../assets/images/dishes/${fileName}`] || path;
     }
     return path;
   };

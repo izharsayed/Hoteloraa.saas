@@ -8,7 +8,7 @@ const router = _express.Router.call(void 0, );
 
 router.use(_authmiddleware.authenticate);
 
-router.get('/data', posController.getPOSData);
-router.post('/quick-order', _validatemiddleware.validate.call(void 0, _posdto.quickOrderSchema), posController.quickOrder);
+router.get('/data', _authmiddleware.checkPermission.call(void 0, 'POS', 'READ'), posController.getPOSData);
+router.post('/quick-order', _authmiddleware.checkPermission.call(void 0, 'POS', 'CREATE'), _validatemiddleware.validate.call(void 0, _posdto.quickOrderSchema), posController.quickOrder);
 
 exports. default = router;

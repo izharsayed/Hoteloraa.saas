@@ -52,6 +52,34 @@ var _errormiddleware = require('../../middleware/error.middleware');
 }; exports.getPaymentById = getPaymentById;
 
  const createPayment = async (tenantId, userId, dto) => {
+  if (dto.orderId) {
+    const order = await _database2.default.order.findFirst({
+      where: { id: dto.orderId, tenantId },
+      select: { id: true },
+    });
+    if (!order) throw _errormiddleware.createError.call(void 0, 'Order not found', 404);
+
+    const existingPayment = await _database2.default.payment.findUnique({
+      where: { orderId: dto.orderId },
+      select: { id: true },
+    });
+    if (existingPayment) throw _errormiddleware.createError.call(void 0, 'Payment already exists for this order', 409);
+  }
+
+  if (dto.reservationId) {
+    const reservation = await _database2.default.reservation.findFirst({
+      where: { id: dto.reservationId, tenantId },
+      select: { id: true },
+    });
+    if (!reservation) throw _errormiddleware.createError.call(void 0, 'Reservation not found', 404);
+
+    const existingPayment = await _database2.default.payment.findUnique({
+      where: { reservationId: dto.reservationId },
+      select: { id: true },
+    });
+    if (existingPayment) throw _errormiddleware.createError.call(void 0, 'Payment already exists for this reservation', 409);
+  }
+
   const isCredit = dto.method === 'CREDIT';
   
   return _database2.default.payment.create({

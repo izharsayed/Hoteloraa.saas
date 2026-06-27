@@ -1,4 +1,11 @@
-const API_BASE_URL = 'http://localhost:5000/api/v1';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '');
+const API_ORIGIN = API_BASE_URL.replace(/\/api\/v\d+$/, '');
+
+export const assetUrl = (path) => {
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${API_ORIGIN}${path.startsWith('/') ? path : `/${path}`}`;
+};
 
 /**
  * Resolve the tenantSlug from an email address.
@@ -27,14 +34,9 @@ export const getTenantSlugFromEmail = (email) => {
 };
 
 const getHeaders = () => {
-  const token = localStorage.getItem('token');
-  const headers = {
+  return {
     'Content-Type': 'application/json',
   };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  return headers;
 };
 
 const handleResponse = async (response) => {
@@ -56,6 +58,7 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       method: 'GET',
       headers: getHeaders(),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -64,20 +67,16 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       method: 'POST',
       headers: getHeaders(),
+      credentials: 'include',
       body: JSON.stringify(body),
     });
     return handleResponse(response);
   },
 
   upload: async (path, formData) => {
-    const token = localStorage.getItem('token');
-    const headers = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
     const response = await fetch(`${API_BASE_URL}${path}`, {
       method: 'POST',
-      headers,
+      credentials: 'include',
       body: formData,
     });
     return handleResponse(response);
@@ -87,6 +86,7 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       method: 'PUT',
       headers: getHeaders(),
+      credentials: 'include',
       body: JSON.stringify(body),
     });
     return handleResponse(response);
@@ -96,6 +96,7 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       method: 'PATCH',
       headers: getHeaders(),
+      credentials: 'include',
       body: JSON.stringify(body),
     });
     return handleResponse(response);
@@ -105,6 +106,7 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       method: 'DELETE',
       headers: getHeaders(),
+      credentials: 'include',
     });
     return handleResponse(response);
   },
@@ -118,6 +120,7 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(body),
     });
     const data = await response.json();
@@ -125,14 +128,22 @@ export const api = {
       throw new Error(data.message || 'Invalid credentials');
     }
     
-    // Store user session info
-    localStorage.setItem('token', data.data.token);
     localStorage.setItem('user', JSON.stringify(data.data.user));
     return data.data;
   },
 
-  logout: () => {
-    localStorage.removeItem('token');
+  logout: async () => {
+    try {
+      await fetch(`${API_BASE_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } finally {
+      localStorage.removeItem('user');
+    }
+  },
+
+  clearLocalSession: () => {
     localStorage.removeItem('user');
   },
 
@@ -140,6 +151,7 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ email }),
     });
     const data = await response.json();
@@ -153,6 +165,7 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ token, newPassword, confirmPassword }),
     });
     const data = await response.json();

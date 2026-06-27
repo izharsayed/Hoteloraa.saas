@@ -19,7 +19,13 @@
  * 16. Dashboard Stats
  */
 
-const BASE_URL = 'http://localhost:5000/api/v1';
+const BASE_URL = process.env.TEST_API_BASE_URL || 'http://localhost:5000/api/v1';
+const TEST_PASSWORD = process.env.TEST_PASSWORD;
+
+if (!TEST_PASSWORD) {
+  console.error('TEST_PASSWORD environment variable is required.');
+  process.exit(1);
+}
 
 // ANSI terminal colors for beautiful logging
 const colors = {
@@ -108,7 +114,7 @@ async function runTests() {
       businessType: 'HOTEL_RESTAURANT',
       name: 'Integration Admin',
       email: `admin-${uniqueId}@integrationtest.com`,
-      password: 'password123',
+      password: TEST_PASSWORD,
       phone: '+919999999999'
     };
     const register = await apiRequest('/auth/register', 'POST', tenantData);
@@ -138,7 +144,7 @@ async function runTests() {
       email: `captain-${uniqueId}@integrationtest.com`,
       phone: '1231231234',
       userRole: 'CAPTAIN',
-      password: 'password123'
+      password: TEST_PASSWORD
     };
     const createCaptain = await apiRequest('/users', 'POST', captainUser, token);
     assertResponse(createCaptain, 201, 'Create Captain User');
@@ -149,7 +155,7 @@ async function runTests() {
       email: `recept-${uniqueId}@integrationtest.com`,
       phone: '+917777777777',
       userRole: 'RECEPTIONIST',
-      password: 'password123'
+      password: TEST_PASSWORD
     };
     const createRecept = await apiRequest('/users', 'POST', receptionistUser, token);
     assertResponse(createRecept, 201, 'Create Receptionist User');

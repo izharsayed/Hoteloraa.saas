@@ -9,10 +9,10 @@ const router = _express.Router.call(void 0, );
 // All room-type routes require authentication
 router.use(_authmiddleware.authenticate);
 
-router.get('/', roomTypesController.getRoomTypes);
-router.get('/:id', roomTypesController.getRoomTypeById);
-router.post('/', _validatemiddleware.validate.call(void 0, _roomtypesdto.createRoomTypeSchema), roomTypesController.createRoomType);
-router.put('/:id', _validatemiddleware.validate.call(void 0, _roomtypesdto.updateRoomTypeSchema), roomTypesController.updateRoomType);
-router.delete('/:id', roomTypesController.deleteRoomType);
+router.get('/', _authmiddleware.checkPermission.call(void 0, 'ROOM_TYPES', 'READ'), roomTypesController.getRoomTypes);
+router.get('/:id', _authmiddleware.checkPermission.call(void 0, 'ROOM_TYPES', 'READ'), roomTypesController.getRoomTypeById);
+router.post('/', _authmiddleware.checkPermission.call(void 0, 'ROOM_TYPES', 'CREATE'), _validatemiddleware.validate.call(void 0, _roomtypesdto.createRoomTypeSchema), roomTypesController.createRoomType);
+router.put('/:id', _authmiddleware.checkPermission.call(void 0, 'ROOM_TYPES', 'UPDATE'), _validatemiddleware.validate.call(void 0, _roomtypesdto.updateRoomTypeSchema), roomTypesController.updateRoomType);
+router.delete('/:id', _authmiddleware.checkPermission.call(void 0, 'ROOM_TYPES', 'DELETE'), roomTypesController.deleteRoomType);
 
 exports. default = router;

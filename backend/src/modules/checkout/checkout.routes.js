@@ -8,8 +8,8 @@ const router = _express.Router.call(void 0, );
 
 router.use(_authmiddleware.authenticate);
 
-router.get('/pending', checkOutController.getPendingCheckOuts);
-router.get('/today', checkOutController.getTodayCheckOuts);
-router.post('/', _validatemiddleware.validate.call(void 0, _checkoutdto.checkOutSchema), checkOutController.checkOut);
+router.get('/pending', _authmiddleware.checkPermission.call(void 0, 'CHECKOUT', 'READ'), checkOutController.getPendingCheckOuts);
+router.get('/today', _authmiddleware.checkPermission.call(void 0, 'CHECKOUT', 'READ'), checkOutController.getTodayCheckOuts);
+router.post('/', _authmiddleware.checkPermission.call(void 0, 'CHECKOUT', 'CREATE'), _validatemiddleware.validate.call(void 0, _checkoutdto.checkOutSchema), checkOutController.checkOut);
 
 exports. default = router;
