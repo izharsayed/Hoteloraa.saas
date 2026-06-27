@@ -40,7 +40,6 @@ import AdminFeatures from './pages/AdminFeatures.jsx';
 import AdminSettings from './pages/AdminSettings.jsx';
 
 // Captain Panel
-import CaptainLayout from './components/CaptainLayout.jsx';
 import Captain from './pages/Captain.jsx';
 
 // Super Admin Panel
@@ -367,8 +366,9 @@ function App() {
             CAPTAIN PANEL — dedicated POS interface for captains
           */}
         <Route element={<ProtectedRoute allowedRoles={['CAPTAIN', 'TENANT_ADMIN', 'MANAGER']} />}>
-          <Route element={<CaptainLayout />}>
+          <Route element={<DashboardLayout />}>
             <Route path="/captain" element={<Captain />} />
+            <Route path="/captain/history" element={<Captain />} />
           </Route>
         </Route>
 

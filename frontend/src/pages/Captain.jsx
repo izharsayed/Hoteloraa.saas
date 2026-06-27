@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   Coffee, 
   Utensils, 
@@ -22,7 +23,8 @@ import api, { assetUrl } from '../utils/api.js';
 const dishImages = import.meta.glob('../assets/images/dishes/*.png', { eager: true, as: 'url' });
 
 function Captain() {
-  const [activeTab, setActiveTab] = useState('pos'); // 'pos' | 'history'
+  const location = useLocation();
+  const activeTab = location.pathname.includes('history') ? 'history' : 'pos';
   const [tables, setTables] = useState([]);
   const [categories, setCategories] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
@@ -289,35 +291,6 @@ function Captain() {
     <div className="h-full flex flex-col min-h-0 space-y-4">
       {error && <div className="p-3 bg-danger-pale border border-danger/10 text-danger rounded-xl text-xs font-bold shrink-0">{error}</div>}
       {success && <div className="p-3 bg-success-pale border border-success/10 text-success rounded-xl text-xs font-bold shrink-0">{success}</div>}
-
-      {/* Tabs */}
-      <div className="flex gap-4 border-b border-border-cream pb-1 shrink-0 overflow-x-auto">
-        <button 
-          onClick={() => setActiveTab('pos')}
-          className={`flex items-center gap-1.5 pb-2 text-sm font-bold transition-all relative whitespace-nowrap ${
-            activeTab === 'pos' 
-              ? 'text-navy border-b-2 border-gold font-extrabold' 
-              : 'text-slate hover:text-navy'
-          }`}
-        >
-          <Utensils className="w-4 h-4 shrink-0" />
-          <span>New Order (POS)</span>
-        </button>
-        <button 
-          onClick={() => {
-            setActiveTab('history');
-            loadOrders();
-          }}
-          className={`flex items-center gap-1.5 pb-2 text-sm font-bold transition-all relative whitespace-nowrap ${
-            activeTab === 'history' 
-              ? 'text-navy border-b-2 border-gold font-extrabold' 
-              : 'text-slate hover:text-navy'
-          }`}
-        >
-          <History className="w-4 h-4 shrink-0" />
-          <span>Active Orders & History</span>
-        </button>
-      </div>
 
       {loading ? (
         <div className="text-center py-20 text-slate font-semibold text-xs animate-pulse">Loading console...</div>
