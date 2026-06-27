@@ -162,6 +162,13 @@ function Captain() {
 
   // Quick action: Serve Order
   const handleServeOrder = async (orderId) => {
+    const order = orders.find(o => o.id === orderId);
+    if (order && order.status !== 'READY') {
+      setError('Order is not ready yet.');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
     setError('');
     setSuccess('');
     setSubmitting(true);
