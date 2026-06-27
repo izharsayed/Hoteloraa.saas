@@ -22,6 +22,8 @@ var _crypto = require('crypto');
 var _crypto2 = _interopRequireDefault(_crypto);
 var _errormiddleware = require('../../middleware/error.middleware');
 
+var _emailService = require('../../shared/email.service');
+
 const SALT_ROUNDS = 12;
 const PASSWORD_RESET_RESPONSE = {
   message: 'If that email is registered, a reset code has been sent.',
@@ -39,6 +41,7 @@ const registerTenant = async (dto) => {
 
   const passwordHash = await _bcryptjs2.default.hash(dto.password, SALT_ROUNDS);
   const features = DEFAULT_FEATURES[dto.businessType] || [];
+  const verificationToken = _crypto2.default.randomBytes(32).toString('hex');
 
   const tenant = await _database2.default.tenant.create({
     data: {
@@ -52,6 +55,8 @@ const registerTenant = async (dto) => {
           phone: dto.phone,
           passwordHash,
           userRole: 'TENANT_ADMIN',
+          isEmailVerified: false,
+          verificationToken,
         },
       },
       subscription: {
@@ -73,6 +78,41 @@ const registerTenant = async (dto) => {
 
   const user = tenant.users[0];
   const token = generateToken(user.id, tenant.id, user.email, user.userRole);
+
+  // Send registration details & verification email
+  const verificationLink = `${_env2.default.clientUrl}/verify-email?token=${verificationToken}`;
+  await _emailService.sendMail({
+    to: dto.email,
+    subject: `Welcome to Hoteloraa! Verify your email for ${dto.tenantName}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e5e5; border-radius: 12px; background-color: #ffffff;">
+        <h2 style="color: #0c2340; text-align: center;">Welcome to Hoteloraa SaaS!</h2>
+        <p>Hello <strong>${dto.name}</strong>,</p>
+        <p>Thank you for registering your business, <strong>${dto.tenantName}</strong>, on the Hoteloraa SaaS platform. Your property workspace has been successfully provisioned!</p>
+        
+        <div style="background-color: #f7f9fa; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e5e5;">
+          <h3 style="margin-top: 0; color: #0c2340;">Business Registration Details</h3>
+          <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+            <tr><td style="width: 130px; font-weight: bold; padding: 4px 0;">Property Name:</td><td>${dto.tenantName}</td></tr>
+            <tr><td style="font-weight: bold; padding: 4px 0;">Portal URL:</td><td><a href="${_env2.default.clientUrl}/t/${dto.tenantSlug}" style="color: #d4af37; text-decoration: none; font-weight: bold;">${_env2.default.clientUrl}/t/${dto.tenantSlug}</a></td></tr>
+            <tr><td style="font-weight: bold; padding: 4px 0;">Business Type:</td><td>${dto.businessType}</td></tr>
+            <tr><td style="font-weight: bold; padding: 4px 0;">Registered Email:</td><td>${dto.email}</td></tr>
+          </table>
+        </div>
+
+        <p>Before you can log in and start managing your property, please verify your email address by clicking the button below:</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${verificationLink}" style="background-color: #d4af37; color: #0c2340; text-decoration: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">Verify Email Address</a>
+        </div>
+
+        <p style="font-size: 12px; color: #666; text-align: center; margin-top: 20px;">
+          If the button doesn't work, copy and paste this link in your browser:<br>
+          <a href="${verificationLink}" style="color: #d4af37;">${verificationLink}</a>
+        </p>
+      </div>
+    `
+  });
 
   return {
     tenant: { id: tenant.id, name: tenant.name, slug: tenant.slug },
@@ -108,6 +148,11 @@ const login = async (dto) => {
   const isValid = await _bcryptjs2.default.compare(dto.password, user.passwordHash);
   if (!isValid) throw _errormiddleware.createError.call(void 0, 'Invalid credentials', 401);
 
+  // Check if email is verified
+  if (!user.isEmailVerified) {
+    throw _errormiddleware.createError.call(void 0, 'Please verify your email address to log in.', 403);
+  }
+
   await _database2.default.user.update({ where: { id: user.id }, data: { lastLogin: new Date() } });
 
   const token = generateToken(user.id, tenant.id, user.email, user.userRole, _nullishCoalesce(user.roleId, () => undefined));
@@ -142,7 +187,7 @@ exports.getProfile = getProfile;
 const forgotPassword = async (dto) => {
   const user = await _database2.default.user.findFirst({
     where: { email: dto.email, isActive: true },
-    select: { id: true },
+    select: { id: true, name: true },
   });
 
   if (!user) {
@@ -156,6 +201,25 @@ const forgotPassword = async (dto) => {
 
   await _database2.default.passwordResetToken.create({
     data: { userId: user.id, token: rawToken, expiresAt },
+  });
+
+  // Send the password reset code email
+  await _emailService.sendMail({
+    to: dto.email,
+    subject: 'Password Reset Verification Code - Hoteloraa',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e5e5; border-radius: 12px; background-color: #ffffff;">
+        <h2 style="color: #0c2340; text-align: center;">Reset Your Password</h2>
+        <p>Hello <strong>${user.name}</strong>,</p>
+        <p>We received a request to reset your password for your Hoteloraa account. Use the verification code below to proceed with resetting your password. This code will expire in 15 minutes.</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <span style="font-family: monospace; font-size: 32px; font-weight: bold; letter-spacing: 5px; background-color: #f7f9fa; padding: 10px 20px; border: 1px dashed #d4af37; border-radius: 6px; color: #0c2340; display: inline-block;">${rawToken}</span>
+        </div>
+
+        <p>If you did not request a password reset, you can safely ignore this email.</p>
+      </div>
+    `
   });
 
   return PASSWORD_RESET_RESPONSE;
@@ -185,6 +249,27 @@ const resetPassword = async (dto) => {
   return { message: 'Password reset successfully. You can now log in with your new password.' };
 };
 exports.resetPassword = resetPassword;
+
+const verifyEmail = async (token) => {
+  const user = await _database2.default.user.findFirst({
+    where: { verificationToken: token }
+  });
+
+  if (!user) {
+    throw _errormiddleware.createError.call(void 0, 'Invalid or expired verification token', 400);
+  }
+
+  await _database2.default.user.update({
+    where: { id: user.id },
+    data: {
+      isEmailVerified: true,
+      verificationToken: null
+    }
+  });
+
+  return { message: 'Email verified successfully! You can now log in.' };
+};
+exports.verifyEmail = verifyEmail;
 
 const generateToken = (id, tenantId, email, userRole, roleId) => {
   return _jsonwebtoken2.default.sign(

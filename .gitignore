@@ -68,3 +68,8 @@ coverage/
 turbo.json.local
 dist-ssr/
 *.local
+
+# Email logs
+sent_emails/
+**/sent_emails/*
+
