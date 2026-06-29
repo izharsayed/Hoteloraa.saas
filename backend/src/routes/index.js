@@ -32,6 +32,10 @@ var _superadminroutes = require('../modules/superadmin/superadmin.routes'); var 
 var _notificationsroutes = require('../modules/notifications/notifications.routes'); var _notificationsroutes2 = _interopRequireDefault(_notificationsroutes);
 var _floorsroutes = require('../modules/floors/floors.routes'); var _floorsroutes2 = _interopRequireDefault(_floorsroutes);
 
+// Attendance (new)
+const attendanceRoutes = require('../modules/attendance/attendance.routes');
+const shiftsRoutes = require('../modules/shifts/shifts.routes');
+
 const router = _express.Router.call(void 0, );
 
 // Health check
@@ -84,5 +88,9 @@ router.use('/subscriptions', _subscriptionsroutes2.default);
 router.use('/categories', _categoriesroutes2.default);
 router.use('/superadmin', _superadminroutes2.default);
 router.use('/notifications', _notificationsroutes2.default);
+
+// Attendance & Shifts (new)
+router.use('/attendance', attendanceRoutes);
+router.use('/shifts', shiftsRoutes);
 
 exports. default = router;
