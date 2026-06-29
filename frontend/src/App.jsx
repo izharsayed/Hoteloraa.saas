@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import Sidebar from './components/Sidebar.jsx';
 import AccessDenied from './components/AccessDenied.jsx';
@@ -65,6 +65,7 @@ function DashboardLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('sidebar_collapsed_manager') === 'true');
   const [notifications, setNotifications] = useState([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notificationRef = useRef(null);
 
   const userJson = localStorage.getItem('user');
   let user = { name: 'Staff Member', userRole: 'Staff' };
@@ -95,6 +96,19 @@ function DashboardLayout() {
       fetchNotifications();
     }, 7000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Handle click outside to close notifications
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setNotificationsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const handleMarkRead = async (id) => {
@@ -154,7 +168,7 @@ function DashboardLayout() {
           </div>
           <div className="flex items-center gap-3 md:gap-4">
             {/* Notification Bell */}
-            <div className="relative">
+            <div className="relative" ref={notificationRef}>
               <button 
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
                 className="p-2 text-slate hover:text-navy hover:bg-cream/40 rounded-xl transition-all relative flex items-center justify-center"
