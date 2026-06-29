@@ -1543,6 +1543,7 @@ function Reservations() {
   const [toast, setToast] = useState({ msg: '', type: 'success' });
   const [showWizard, setShowWizard] = useState(false);
   const [savingStatus, setSavingStatus] = useState({});
+  const [expandedBookingId, setExpandedBookingId] = useState(null);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -1687,20 +1688,20 @@ function Reservations() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-border-cream bg-cream/10">
-                {['Booking Ref', 'Guest', 'Room', 'Dates', 'Amount', 'Status', 'Actions'].map(h => (
-                  <th key={h} className="px-4 py-3 text-[10px] font-bold text-slate uppercase tracking-wider whitespace-nowrap">{h}</th>
+                {['', 'Booking Ref', 'Guest', 'Room', 'Dates', 'Amount', 'Status', 'Actions'].map((h, i) => (
+                  <th key={i} className={`px-4 py-3 text-[10px] font-bold text-slate uppercase tracking-wider whitespace-nowrap ${i === 0 ? 'w-10 text-center' : ''}`}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border-cream/30">
               {loading ? (
-                <tr><td colSpan={7} className="py-12 text-center">
+                <tr><td colSpan={8} className="py-12 text-center">
                   <div className="flex items-center justify-center gap-2 text-slate text-sm font-semibold">
                     <RefreshCw className="w-4 h-4 animate-spin text-gold" /> Loading reservations...
                   </div>
                 </td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={7} className="py-12 text-center">
+                <tr><td colSpan={8} className="py-12 text-center">
                   <CalendarRange className="w-10 h-10 text-slate/20 mx-auto mb-2" />
                   <p className="text-sm font-semibold text-slate">No reservations found</p>
                   <button onClick={() => setShowWizard(true)} className="mt-2 text-gold text-xs font-bold hover:underline">+ Create first booking</button>
@@ -1710,66 +1711,182 @@ function Reservations() {
                   ? Math.max(0, Math.round((new Date(b.checkOutDate) - new Date(b.checkInDate)) / 86400000)) : 0;
                 const cfg = STATUS_CONFIG[b.status] || { label: b.status, color: 'bg-slate-100 text-slate-600' };
                 const isBusy = savingStatus[b.id];
+                const isExpanded = expandedBookingId === b.id;
                 return (
-                  <tr key={b.id} className="hover:bg-gold-pale/5 transition-colors">
-                    <td className="px-4 py-3">
-                      <span className="font-mono text-[11px] font-bold text-navy bg-navy/5 px-2 py-1 rounded-lg">{b.bookingRef}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="font-semibold text-charcoal text-xs block">{b.guest?.name}</span>
-                      <span className="text-[10px] text-slate">{b.guest?.phone}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="font-semibold text-charcoal text-xs block">Room {b.room?.number}</span>
-                      <span className="text-[10px] text-slate">{b.room?.roomType?.name}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs font-semibold text-charcoal block">
-                        {new Date(b.checkInDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-                        {' → '}
-                        {new Date(b.checkOutDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-                      </span>
-                      <span className="text-[10px] text-slate">{nights} night{nights !== 1 ? 's' : ''} · {b.adults}A {b.children}C</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="font-bold text-navy text-xs block">₹{(b.totalAmount || 0).toLocaleString('en-IN')}</span>
-                      {(b.advancePaid || 0) > 0 && (
-                        <span className="text-[10px] text-emerald-600 font-medium">Adv: ₹{b.advancePaid.toLocaleString('en-IN')}</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase border ${cfg.color}`}>{cfg.label}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5">
-                        {b.status === 'CONFIRMED' && (
-                          <button onClick={() => handleStatusChange(b.id, 'CHECKED_IN')} disabled={isBusy}
-                            className="px-2.5 py-1 bg-blue-600 text-white rounded-lg text-[10px] font-bold hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 whitespace-nowrap">
-                            Check In
-                          </button>
+                  <React.Fragment key={b.id}>
+                    <tr className={`hover:bg-gold-pale/5 transition-colors ${isExpanded ? 'bg-gold-pale/5' : ''}`}>
+                      <td className="px-4 py-3 text-center">
+                        <button onClick={() => setExpandedBookingId(isExpanded ? null : b.id)}
+                          className="p-1 hover:bg-navy/5 text-slate hover:text-navy rounded-lg transition-all active:scale-90">
+                          <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-gold' : ''}`} />
+                        </button>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-mono text-[11px] font-bold text-navy bg-navy/5 px-2 py-1 rounded-lg">{b.bookingRef}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-semibold text-charcoal text-xs block">{b.guest?.name}</span>
+                        <span className="text-[10px] text-slate">{b.guest?.phone}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-semibold text-charcoal text-xs block">Room {b.room?.number}</span>
+                        <span className="text-[10px] text-slate">{b.room?.roomType?.name}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-xs font-semibold text-charcoal block">
+                          {new Date(b.checkInDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                          {' → '}
+                          {new Date(b.checkOutDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                        </span>
+                        <span className="text-[10px] text-slate">{nights} night{nights !== 1 ? 's' : ''} · {b.adults}A {b.children}C</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-bold text-navy text-xs block">₹{(b.totalAmount || 0).toLocaleString('en-IN')}</span>
+                        {(b.advancePaid || 0) > 0 && (
+                          <span className="text-[10px] text-emerald-600 font-medium">Adv: ₹{b.advancePaid.toLocaleString('en-IN')}</span>
                         )}
-                        {b.status === 'CHECKED_IN' && (
-                          <button onClick={() => handleStatusChange(b.id, 'CHECKED_OUT')} disabled={isBusy}
-                            className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-bold hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50 whitespace-nowrap">
-                            Check Out
-                          </button>
-                        )}
-                        {b.status === 'PENDING' && (
-                          <button onClick={() => handleStatusChange(b.id, 'CONFIRMED')} disabled={isBusy}
-                            className="px-2.5 py-1 bg-navy text-white rounded-lg text-[10px] font-bold hover:bg-navy/80 active:scale-95 transition-all disabled:opacity-50">
-                            Confirm
-                          </button>
-                        )}
-                        {!['CANCELLED', 'CHECKED_OUT', 'NO_SHOW'].includes(b.status) && (
-                          <button onClick={() => handleCancel(b.id)} disabled={isBusy}
-                            className="p-1.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-lg transition-all disabled:opacity-50">
-                            <XCircle className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        {isBusy && <RefreshCw className="w-3.5 h-3.5 text-gold animate-spin" />}
-                      </div>
-                    </td>
-                  </tr>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase border ${cfg.color}`}>{cfg.label}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5">
+                          {b.status === 'CONFIRMED' && (
+                            <button onClick={() => handleStatusChange(b.id, 'CHECKED_IN')} disabled={isBusy}
+                              className="px-2.5 py-1 bg-blue-600 text-white rounded-lg text-[10px] font-bold hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 whitespace-nowrap">
+                              Check In
+                            </button>
+                          )}
+                          {b.status === 'CHECKED_IN' && (
+                            <button onClick={() => handleStatusChange(b.id, 'CHECKED_OUT')} disabled={isBusy}
+                              className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-bold hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50 whitespace-nowrap">
+                              Check Out
+                            </button>
+                          )}
+                          {b.status === 'PENDING' && (
+                            <button onClick={() => handleStatusChange(b.id, 'CONFIRMED')} disabled={isBusy}
+                              className="px-2.5 py-1 bg-navy text-white rounded-lg text-[10px] font-bold hover:bg-navy/80 active:scale-95 transition-all disabled:opacity-50">
+                              Confirm
+                            </button>
+                          )}
+                          {!['CANCELLED', 'CHECKED_OUT', 'NO_SHOW'].includes(b.status) && (
+                            <button onClick={() => handleCancel(b.id)} disabled={isBusy}
+                              className="p-1.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-lg transition-all disabled:opacity-50">
+                              <XCircle className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {isBusy && <RefreshCw className="w-3.5 h-3.5 text-gold animate-spin" />}
+                        </div>
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr className="bg-cream/5 border-b border-border-cream/40">
+                        <td colSpan={8} className="px-6 py-5">
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-xs animate-fadeIn">
+                            {/* Guest Profile */}
+                            <div className="space-y-3">
+                              <h4 className="font-bold text-navy uppercase tracking-wider text-[10px] flex items-center gap-1.5 border-b border-border-cream/30 pb-1.5">
+                                <User className="w-3.5 h-3.5 text-gold" /> Guest Profile
+                              </h4>
+                              <div className="space-y-1.5 text-slate">
+                                <p><strong className="text-charcoal font-semibold">Email:</strong> {b.guest?.email || 'N/A'}</p>
+                                <p><strong className="text-charcoal font-semibold">DOB:</strong> {b.guest?.dateOfBirth ? new Date(b.guest.dateOfBirth).toLocaleDateString('en-IN') : 'N/A'}</p>
+                                <p><strong className="text-charcoal font-semibold">Gender:</strong> {b.guest?.gender || 'N/A'}</p>
+                                <p><strong className="text-charcoal font-semibold">Nationality:</strong> {b.guest?.nationality || 'N/A'}</p>
+                                <p><strong className="text-charcoal font-semibold">Address:</strong> {[b.guest?.address, b.guest?.city, b.guest?.state, b.guest?.postalCode, b.guest?.country].filter(Boolean).join(', ') || 'N/A'}</p>
+                              </div>
+                            </div>
+
+                            {/* ID Document Details */}
+                            <div className="space-y-3">
+                              <h4 className="font-bold text-navy uppercase tracking-wider text-[10px] flex items-center gap-1.5 border-b border-border-cream/30 pb-1.5">
+                                <Shield className="w-3.5 h-3.5 text-gold" /> Identity Verification
+                              </h4>
+                              <div className="space-y-2">
+                                <div className="space-y-1 text-slate">
+                                  <p><strong className="text-charcoal font-semibold">Type:</strong> {b.guest?.idType || 'N/A'}</p>
+                                  <p><strong className="text-charcoal font-semibold">Number:</strong> {b.guest?.idNumber || 'N/A'}</p>
+                                </div>
+                                {b.guest?.idProofUrl ? (
+                                  <div className="space-y-1">
+                                    <span className="text-[9px] font-bold text-slate uppercase block">Stitched ID Card</span>
+                                    <a href={`http://localhost:5000${b.guest.idProofUrl}`} target="_blank" rel="noreferrer"
+                                      className="group block relative w-full h-24 border border-border-cream rounded-xl overflow-hidden shadow-sm hover:border-gold transition-all bg-white">
+                                      <img src={`http://localhost:5000${b.guest.idProofUrl}`} alt="Guest ID"
+                                        className="w-full h-full object-contain group-hover:scale-105 transition-all duration-300" />
+                                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all text-white font-bold text-[10px] gap-1">
+                                        <Search className="w-3 h-3" /> View Large
+                                      </div>
+                                    </a>
+                                  </div>
+                                ) : (
+                                  <p className="text-slate italic">No ID image uploaded</p>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Stay Details */}
+                            <div className="space-y-3">
+                              <h4 className="font-bold text-navy uppercase tracking-wider text-[10px] flex items-center gap-1.5 border-b border-border-cream/30 pb-1.5">
+                                <Info className="w-3.5 h-3.5 text-gold" /> Stay & Booking Info
+                              </h4>
+                              <div className="space-y-1.5 text-slate">
+                                <p><strong className="text-charcoal font-semibold">Rate Plan:</strong> {b.ratePlan || 'EP'}</p>
+                                <p><strong className="text-charcoal font-semibold">Source:</strong> {SOURCE_LABELS[b.source] || b.source}</p>
+                                <p><strong className="text-charcoal font-semibold">Arrival Time:</strong> {b.expectedArrival || 'N/A'}</p>
+                                <p><strong className="text-charcoal font-semibold">Purpose:</strong> {b.purposeOfVisit || 'N/A'}</p>
+                                {b.vehicleNumber && <p><strong className="text-charcoal font-semibold">Vehicle No:</strong> {b.vehicleNumber}</p>}
+                                {b.companyName && <p><strong className="text-charcoal font-semibold">Company:</strong> {b.companyName} {b.gstNumber ? `(GST: ${b.gstNumber})` : ''}</p>}
+                                {b.specialRequest && (
+                                  <div className="mt-2 p-2 bg-cream/20 border border-border-cream/40 rounded-xl space-y-1">
+                                    <span className="text-[9px] font-bold text-navy uppercase tracking-wider block">Special Requests / Co-Guests</span>
+                                    <span className="text-[10px] font-semibold text-slate block leading-relaxed">{b.specialRequest}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Stay Bill Details */}
+                            <div className="space-y-3">
+                              <h4 className="font-bold text-navy uppercase tracking-wider text-[10px] flex items-center gap-1.5 border-b border-border-cream/30 pb-1.5">
+                                <DollarSign className="w-3.5 h-3.5 text-gold" /> Financial Summary
+                              </h4>
+                              <div className="space-y-1.5 text-xs text-slate">
+                                <div className="flex justify-between">
+                                  <span>Room Charges ({nights} nights)</span>
+                                  <span className="font-semibold text-charcoal">₹{((b.ratePerNight || 0) * nights).toLocaleString('en-IN')}</span>
+                                </div>
+                                {b.extraCharges > 0 && (
+                                  <div className="flex justify-between text-rose-600">
+                                    <span>Extra Charges</span>
+                                    <span className="font-semibold">₹{b.extraCharges.toLocaleString('en-IN')}</span>
+                                  </div>
+                                )}
+                                {b.discount > 0 && (
+                                  <div className="flex justify-between text-emerald-600">
+                                    <span>Discount</span>
+                                    <span className="font-semibold">-₹{b.discount.toLocaleString('en-IN')}</span>
+                                  </div>
+                                )}
+                                <div className="flex justify-between border-t border-border-cream/40 pt-1.5 font-bold text-navy">
+                                  <span>Total Amount</span>
+                                  <span>₹{(b.totalAmount || 0).toLocaleString('en-IN')}</span>
+                                </div>
+                                <div className="flex justify-between text-emerald-600 font-medium">
+                                  <span>Advance Paid</span>
+                                  <span>₹{(b.advancePaid || 0).toLocaleString('en-IN')} {b.advanceMethod ? `(${b.advanceMethod})` : ''}</span>
+                                </div>
+                                <div className={`flex justify-between border-t border-border-cream/40 pt-1.5 font-bold ${b.totalAmount - (b.advancePaid || 0) > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                                  <span>Balance Due</span>
+                                  <span>₹{(Math.max(0, b.totalAmount - (b.advancePaid || 0))).toLocaleString('en-IN')}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 );
               })}
             </tbody>
