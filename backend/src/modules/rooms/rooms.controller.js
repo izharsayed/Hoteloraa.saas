@@ -17,7 +17,7 @@ var _roomsservice = require('./rooms.service'); var roomsService = _interopRequi
 
  const getAvailableRooms = async (req, res, next) => {
   try {
-    const { checkIn, checkOut } = req.query ;
+    const { checkIn, checkOut, roomTypeId } = req.query ;
 
     if (!checkIn || !checkOut) {
       throw _errormiddleware.createError.call(void 0, 'Query parameters checkIn and checkOut are required (ISO date strings)', 400);
@@ -30,7 +30,7 @@ var _roomsservice = require('./rooms.service'); var roomsService = _interopRequi
       throw _errormiddleware.createError.call(void 0, 'checkIn and checkOut must be valid ISO date strings', 400);
     }
 
-    const data = await roomsService.getAvailableRooms(req.user.tenantId, checkInDate, checkOutDate);
+    const data = await roomsService.getAvailableRooms(req.user.tenantId, checkInDate, checkOutDate, roomTypeId);
     _helpers.sendSuccess.call(void 0, res, data, 'Available rooms retrieved successfully');
   } catch (err) {
     next(err);

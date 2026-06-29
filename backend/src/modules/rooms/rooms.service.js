@@ -192,7 +192,8 @@ var _errormiddleware = require('../../middleware/error.middleware');
  const getAvailableRooms = async (
   tenantId,
   checkIn,
-  checkOut
+  checkOut,
+  roomTypeId
 ) => {
   if (checkOut <= checkIn) {
     throw _errormiddleware.createError.call(void 0, 'Check-out date must be after check-in date', 400);
@@ -219,6 +220,7 @@ var _errormiddleware = require('../../middleware/error.middleware');
       isActive: true,
       status: { not: 'MAINTENANCE' },
       id: { notIn: bookedIds },
+      ...(roomTypeId && { roomTypeId }),
     },
     include: {
       roomType: {

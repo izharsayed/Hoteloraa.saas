@@ -13,11 +13,17 @@ const reservationIncludes = {
       phone: true,
       email: true,
       nationality: true,
+      gender: true,
+      idType: true,
+      idNumber: true,
+      idProofUrl: true,
+      totalStays: true,
+      totalSpent: true,
     },
   },
   room: {
     include: {
-      roomType: { select: { id: true, name: true } },
+      roomType: { select: { id: true, name: true, basePrice: true, maxOccupancy: true } },
     },
   },
   payment: {
@@ -120,16 +126,26 @@ const reservationIncludes = {
       checkOutDate: dto.checkOutDate,
       adults: dto.adults,
       children: dto.children,
+      numberOfRooms: _nullishCoalesce(dto.numberOfRooms, () => ( 1)),
       ratePerNight: dto.ratePerNight,
+      ratePlan: dto.ratePlan,
       totalNights: dto.totalNights,
       roomCharges: dto.roomCharges,
       extraCharges: _nullishCoalesce(dto.extraCharges, () => ( 0)),
+      taxAmount: _nullishCoalesce(dto.taxAmount, () => ( 0)),
       discount: _nullishCoalesce(dto.discount, () => ( 0)),
       totalAmount: dto.totalAmount,
+      advancePaid: _nullishCoalesce(dto.advancePaid, () => ( 0)),
+      advanceMethod: dto.advanceMethod,
       specialRequest: dto.specialRequest,
       notes: dto.notes,
       source: dto.source,
-      status: 'PENDING',
+      expectedArrival: dto.expectedArrival,
+      vehicleNumber: dto.vehicleNumber,
+      companyName: dto.companyName,
+      gstNumber: dto.gstNumber,
+      purposeOfVisit: dto.purposeOfVisit,
+      status: 'CONFIRMED',
     },
     include: reservationIncludes,
   });
@@ -157,8 +173,9 @@ const reservationIncludes = {
 
   // Recalculate totalAmount if financial fields change
   const extraCharges = _nullishCoalesce(dto.extraCharges, () => ( reservation.extraCharges));
+  const taxAmount = _nullishCoalesce(dto.taxAmount, () => ( reservation.taxAmount));
   const discount = _nullishCoalesce(dto.discount, () => ( reservation.discount));
-  const totalAmount = Math.max(0, reservation.roomCharges + extraCharges - discount);
+  const totalAmount = Math.max(0, reservation.roomCharges + extraCharges + taxAmount - discount);
 
   const updated = await _database2.default.reservation.update({
     where: { id },
@@ -168,7 +185,14 @@ const reservationIncludes = {
       ...(dto.adults !== undefined && { adults: dto.adults }),
       ...(dto.children !== undefined && { children: dto.children }),
       ...(dto.extraCharges !== undefined && { extraCharges: dto.extraCharges }),
+      ...(dto.taxAmount !== undefined && { taxAmount: dto.taxAmount }),
       ...(dto.discount !== undefined && { discount: dto.discount }),
+      ...(dto.advancePaid !== undefined && { advancePaid: dto.advancePaid }),
+      ...(dto.advanceMethod !== undefined && { advanceMethod: dto.advanceMethod }),
+      ...(dto.vehicleNumber !== undefined && { vehicleNumber: dto.vehicleNumber }),
+      ...(dto.companyName !== undefined && { companyName: dto.companyName }),
+      ...(dto.gstNumber !== undefined && { gstNumber: dto.gstNumber }),
+      ...(dto.purposeOfVisit !== undefined && { purposeOfVisit: dto.purposeOfVisit }),
       totalAmount,
     },
     include: reservationIncludes,
