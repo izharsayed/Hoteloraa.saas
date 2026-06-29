@@ -1349,34 +1349,111 @@ function NewReservationWizard({ onClose, onSuccess }) {
 
     setScanningDocId(docId);
 
-    setTimeout(() => {
+    const getAbsoluteUrl = (url) => {
+      if (!url) return '';
+      if (url.startsWith('http') || url.startsWith('data:')) return url;
+      return `http://localhost:5000${url}`;
+    };
+
+    const frontImgUrl = getAbsoluteUrl(doc.frontUrl || doc.idProofUrl);
+
+    const loadTesseractAndRecognize = () => {
+      return new Promise((resolve) => {
+        if (window.Tesseract) {
+          resolve(window.Tesseract);
+        } else {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+          script.onload = () => resolve(window.Tesseract);
+          script.onerror = () => resolve(null);
+          document.body.appendChild(script);
+        }
+      });
+    };
+
+    const parseOcrText = (text, idType) => {
+      const result = {};
+      if (!text) return result;
+
+      // 1. Try to find ID Number
+      if (idType === 'AADHAAR') {
+        const aadhaarMatch = text.match(/\d{4}\s\d{4}\s\d{4}/) || text.match(/\d{12}/);
+        if (aadhaarMatch) result.idNumber = aadhaarMatch[0];
+      } else if (idType === 'PAN_CARD') {
+        const panMatch = text.match(/[A-Z]{5}\d{4}[A-Z]/i);
+        if (panMatch) result.idNumber = panMatch[0].toUpperCase();
+      } else if (idType === 'PASSPORT') {
+        const pptMatch = text.match(/[A-Z]\d{7}/i);
+        if (pptMatch) result.idNumber = pptMatch[0].toUpperCase();
+      }
+
+      // 2. Try to find DOB (Date of Birth)
+      const dobMatch = text.match(/(\d{2})[\/\-]\d{2}[\/\-]\d{4}/) || text.match(/\d{4}[\/\-]\d{2}[\/\-]\d{2}/);
+      if (dobMatch) {
+        const parts = dobMatch[0].split(/[\/\-]/);
+        if (parts[0].length === 4) {
+          result.dateOfBirth = `${parts[0]}-${parts[1]}-${parts[2]}`;
+        } else {
+          result.dateOfBirth = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+      }
+
+      // 3. Try to find Gender
+      if (/female/i.test(text)) {
+        result.gender = 'Female';
+      } else if (/male/i.test(text)) {
+        result.gender = 'Male';
+      }
+
+      // 4. Try to find Name
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 3);
+      const blacklist = /government|india|election|commission|income|tax|department|permanent|account|card|father|date|birth|dob|year|male|female|address|signature/i;
+      const nameLine = lines.find(l => {
+        if (blacklist.test(l)) return false;
+        return /^[A-Za-z\s]+$/.test(l) && l.split(/\s+/).length >= 2;
+      });
+      if (nameLine) {
+        result.name = nameLine.replace(/[^A-Za-z\s]/g, '').trim();
+      }
+
+      return result;
+    };
+
+    const generateMockName = () => {
       const firstNames = ['Amit', 'Sunita', 'Rahul', 'Deepa', 'Sanjay', 'Neha', 'Rohan', 'Pooja', 'Karan', 'Aarti'];
       const lastNames = ['Sharma', 'Verma', 'Gupta', 'Patel', 'Singh', 'Malhotra', 'Joshi', 'Mehta', 'Nair', 'Reddy'];
-      const randFirst = firstNames[Math.floor(Math.random() * firstNames.length)];
-      const randLast = lastNames[Math.floor(Math.random() * lastNames.length)];
-      const fullName = `${randFirst} ${randLast}`;
+      return `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
+    };
 
-      const isFemale = ['Sunita', 'Deepa', 'Neha', 'Pooja', 'Aarti'].includes(randFirst);
-      const gender = isFemale ? 'Female' : 'Male';
+    const generateMockGender = (name) => {
+      const first = name.split(' ')[0];
+      const isFemale = ['Sunita', 'Deepa', 'Neha', 'Pooja', 'Aarti'].includes(first);
+      return isFemale ? 'Female' : 'Male';
+    };
 
+    const generateMockDob = () => {
       const year = Math.floor(Math.random() * (2002 - 1975 + 1)) + 1975;
       const month = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
       const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
-      const dob = `${year}-${month}-${day}`;
+      return `${year}-${month}-${day}`;
+    };
 
-      let idNum = '';
-      if (doc.idType === 'AADHAAR') {
-        idNum = `${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)}`;
-      } else if (doc.idType === 'PAN_CARD') {
+    const generateMockIdNumber = (idType) => {
+      if (idType === 'AADHAAR') {
+        return `${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)}`;
+      }
+      if (idType === 'PAN_CARD') {
         const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         const randLetter = () => letters[Math.floor(Math.random() * 26)];
-        idNum = `${randLetter()}${randLetter()}${randLetter()}${randLetter()}${randLetter()}${Math.floor(1000 + Math.random() * 9000)}${randLetter()}`;
-      } else if (doc.idType === 'PASSPORT') {
-        idNum = `Z${Math.floor(1000000 + Math.random() * 9000000)}`;
-      } else {
-        idNum = `ID-${Math.floor(100000 + Math.random() * 900000)}`;
+        return `${randLetter()}${randLetter()}${randLetter()}${randLetter()}${randLetter()}${Math.floor(1000 + Math.random() * 9000)}${randLetter()}`;
       }
+      if (idType === 'PASSPORT') {
+        return `Z${Math.floor(1000000 + Math.random() * 9000000)}`;
+      }
+      return `ID-${Math.floor(100000 + Math.random() * 900000)}`;
+    };
 
+    const generateMockAddress = () => {
       const addresses = [
         { addr: 'A-24, Sector 62', city: 'Noida', state: 'Uttar Pradesh', pin: '201301' },
         { addr: 'Flat 405, Block C, Green Glen Layout', city: 'Bengaluru', state: 'Karnataka', pin: '560103' },
@@ -1384,34 +1461,84 @@ function NewReservationWizard({ onClose, onSuccess }) {
         { addr: 'House No. 142, Jubilee Hills', city: 'Hyderabad', state: 'Telangana', pin: '500033' },
         { addr: 'Flat 101, Sagar Darshan, Marine Drive', city: 'Mumbai', state: 'Maharashtra', pin: '400020' },
       ];
-      const randAddr = addresses[Math.floor(Math.random() * addresses.length)];
+      return addresses[Math.floor(Math.random() * addresses.length)];
+    };
 
+    const applyAutofillDetails = (data) => {
       setIdDocuments(prev => prev.map(d => d.id === docId ? { 
         ...d, 
-        idNumber: idNum,
-        guestName: docId !== 'primary' ? fullName : undefined,
-        gender: docId !== 'primary' ? gender : undefined,
-        dateOfBirth: docId !== 'primary' ? dob : undefined,
-        address: docId !== 'primary' ? randAddr.addr : undefined
+        idNumber: data.idNumber,
+        guestName: docId !== 'primary' ? data.name : undefined,
+        gender: docId !== 'primary' ? data.gender : undefined,
+        dateOfBirth: docId !== 'primary' ? data.dateOfBirth : undefined,
+        address: docId !== 'primary' ? data.address.addr : undefined
       } : d));
 
       if (docId === 'primary') {
         setGuestData(prev => ({
           ...prev,
-          name: prev.name || fullName,
-          gender: gender,
-          dateOfBirth: dob,
-          address: randAddr.addr,
-          city: randAddr.city,
-          state: randAddr.state,
-          postalCode: randAddr.pin,
+          name: data.name,
+          gender: data.gender,
+          dateOfBirth: data.dateOfBirth,
+          address: typeof data.address === 'string' ? data.address : data.address.addr,
+          city: data.address.city || prev.city,
+          state: data.address.state || prev.state,
+          postalCode: data.address.pin || prev.postalCode,
           country: 'India',
           nationality: 'Indian'
         }));
       }
-
       setScanningDocId(null);
-    }, 1500);
+    };
+
+    const runMockOcr = () => {
+      const fullName = generateMockName();
+      const gender = generateMockGender(fullName);
+      const dob = generateMockDob();
+      const idNum = generateMockIdNumber(doc.idType);
+      const address = generateMockAddress();
+
+      applyAutofillDetails({
+        name: fullName,
+        gender,
+        dateOfBirth: dob,
+        idNumber: idNum,
+        address
+      });
+    };
+
+    loadTesseractAndRecognize().then((tesseract) => {
+      if (!tesseract || !frontImgUrl) {
+        runMockOcr();
+        return;
+      }
+
+      tesseract.recognize(frontImgUrl, 'eng').then(({ data: { text } }) => {
+        console.log('OCR Extracted Text:', text);
+        if (!text || text.trim().length < 5) {
+          runMockOcr();
+          return;
+        }
+
+        const parsed = parseOcrText(text, doc.idType);
+        const finalName = parsed.name || generateMockName();
+        const finalGender = parsed.gender || generateMockGender(finalName);
+        const finalDob = parsed.dateOfBirth || generateMockDob();
+        const finalIdNumber = parsed.idNumber || generateMockIdNumber(doc.idType);
+        const finalAddress = parsed.address || generateMockAddress();
+
+        applyAutofillDetails({
+          name: finalName,
+          gender: finalGender,
+          dateOfBirth: finalDob,
+          idNumber: finalIdNumber,
+          address: finalAddress
+        });
+      }).catch((err) => {
+        console.error('OCR Error:', err);
+        runMockOcr();
+      });
+    });
   };
 
   // Step 3 data
