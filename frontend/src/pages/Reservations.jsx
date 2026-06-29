@@ -7,6 +7,7 @@ import {
   Shield, Globe, Hash, ChevronDown, Filter, Hotel, Info, XCircle
 } from 'lucide-react';
 import api from '../utils/api';
+import { createPortal } from 'react-dom';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -1472,7 +1473,7 @@ function NewReservationWizard({ onClose, onSuccess }) {
     }
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[60] bg-navy/20 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
       <div className="bg-white w-full max-w-2xl rounded-3xl shadow-[0_20px_60px_-5px_rgba(0,0,0,0.25)] border border-border-cream flex flex-col max-h-[90vh]">
         {/* Header */}
@@ -1527,7 +1528,8 @@ function NewReservationWizard({ onClose, onSuccess }) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
