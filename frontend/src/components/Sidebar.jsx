@@ -60,7 +60,7 @@ function Sidebar({ collapsed, onToggle }) {
     },
     {
       category: 'Lodging Operations',
-      businessTypes: ['HOTEL', 'HOTEL_RESTAURANT'],
+      businessTypes: ['LODGING', 'HOTEL_RESTAURANT'],
       items: [
         { name: 'Rooms Directory',      path: '/rooms',        icon: Bed,            module: 'rooms' },
         { name: 'Reservations',         path: '/reservations', icon: CalendarRange,  module: 'reservations' },

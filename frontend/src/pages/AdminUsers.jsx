@@ -4,7 +4,23 @@ import api from '../utils/api.js';
 
 function AdminUsers() {
   const [users, setUsers] = useState([]);
-  const [roles] = useState(['MANAGER', 'RECEPTIONIST', 'CAPTAIN', 'CHEF', 'HOUSEKEEPING', 'ACCOUNTANT', 'CASHIER']);
+
+  // Get business type to filter roles
+  const userJson = localStorage.getItem('user');
+  let currentUser = { businessType: 'HOTEL_RESTAURANT' };
+  try {
+    if (userJson) currentUser = JSON.parse(userJson);
+  } catch (e) {}
+  const businessType = currentUser.businessType || 'HOTEL_RESTAURANT';
+
+  let availableRoles = ['MANAGER', 'RECEPTIONIST', 'CAPTAIN', 'CHEF', 'HOUSEKEEPING', 'ACCOUNTANT', 'CASHIER'];
+  if (businessType === 'LODGING') {
+    availableRoles = ['MANAGER', 'RECEPTIONIST', 'HOUSEKEEPING', 'ACCOUNTANT', 'CASHIER'];
+  } else if (businessType === 'RESTAURANT') {
+    availableRoles = ['MANAGER', 'CAPTAIN', 'CHEF', 'ACCOUNTANT', 'CASHIER'];
+  }
+
+  const [roles] = useState(availableRoles);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -14,7 +30,7 @@ function AdminUsers() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [userRole, setUserRole] = useState('CAPTAIN');
+  const [userRole, setUserRole] = useState(availableRoles[0] || 'MANAGER');
   const [password, setPassword] = useState('');
 
   // Password reset state
@@ -53,7 +69,7 @@ function AdminUsers() {
       setName('');
       setEmail('');
       setPhone('');
-      setUserRole('CAPTAIN');
+      setUserRole(roles[0] || 'MANAGER');
       setPassword('');
       fetchUsers();
     } catch (err) {
