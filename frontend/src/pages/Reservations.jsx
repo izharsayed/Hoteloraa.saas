@@ -178,9 +178,7 @@ function Reservations() {
         try {
           const formData = new FormData();
           formData.append('file', blob, 'guest_id.jpg');
-          const response = await api.post('/guests/upload-id', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-          });
+          const response = await api.upload('/guests/upload-id', formData);
           setGuestIdProofUrl(response.url);
           stopCamera();
         } catch (err) {
@@ -204,9 +202,7 @@ function Reservations() {
       setUploadingImage(true);
       const formData = new FormData();
       formData.append('file', file);
-      const response = await api.post('/guests/upload-id', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const response = await api.upload('/guests/upload-id', formData);
       setGuestIdProofUrl(response.url);
     } catch (err) {
       console.error(err);
