@@ -22,6 +22,8 @@ var _errormiddleware = require('../../middleware/error.middleware');
       phone: true,
       email: true,
       idType: true,
+      idNumber: true,
+      idProofUrl: true,
       city: true,
       country: true,
       nationality: true,
@@ -77,6 +79,7 @@ var _errormiddleware = require('../../middleware/error.middleware');
       nationality: dto.nationality,
       dateOfBirth: dto.dateOfBirth,
       notes: dto.notes,
+      idProofUrl: dto.idProofUrl,
     },
   });
 
@@ -109,6 +112,7 @@ var _errormiddleware = require('../../middleware/error.middleware');
       ...(dto.nationality !== undefined && { nationality: dto.nationality }),
       ...(dto.dateOfBirth !== undefined && { dateOfBirth: dto.dateOfBirth }),
       ...(dto.notes !== undefined && { notes: dto.notes }),
+      ...(dto.idProofUrl !== undefined && { idProofUrl: dto.idProofUrl }),
     },
   });
 

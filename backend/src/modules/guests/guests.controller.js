@@ -56,3 +56,17 @@ var _guestsservice = require('./guests.service'); var guestsService = _interopRe
     next(err);
   }
 }; exports.getGuestHistory = getGuestHistory;
+
+ const uploadGuestIdProof = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      const err = new Error('No file uploaded');
+      err.statusCode = 400;
+      throw err;
+    }
+    const fileUrl = `/uploads/${req.file.filename}`;
+    _helpers.sendSuccess.call(void 0, res, { url: fileUrl }, 'ID Proof uploaded successfully');
+  } catch (err) {
+    next(err);
+  }
+}; exports.uploadGuestIdProof = uploadGuestIdProof;

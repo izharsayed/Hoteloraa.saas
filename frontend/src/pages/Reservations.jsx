@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { CalendarRange, Plus, Search, Calendar, ChevronRight, UserPlus, X, Info, User, Phone, Mail, Bed, FileText, Users, DollarSign } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { CalendarRange, Plus, Search, Calendar, ChevronRight, UserPlus, X, Info, User, Phone, Mail, Bed, FileText, Users, DollarSign, Camera, Upload, Trash2, Image } from 'lucide-react';
 import api from '../utils/api';
 
 function Reservations() {
@@ -20,6 +20,15 @@ function Reservations() {
   const [guestName, setGuestName] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
+
+  // Guest ID and Document capture states
+  const [guestIdType, setGuestIdType] = useState('NATIONAL_ID');
+  const [guestIdNumber, setGuestIdNumber] = useState('');
+  const [guestIdProofUrl, setGuestIdProofUrl] = useState('');
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [stream, setStream] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const videoRef = useRef(null);
 
   // Booking details state
   const [checkInDate, setCheckInDate] = useState('');
@@ -108,6 +117,10 @@ function Reservations() {
     setGuestName('');
     setGuestPhone('');
     setGuestEmail('');
+    setGuestIdType('NATIONAL_ID');
+    setGuestIdNumber('');
+    setGuestIdProofUrl('');
+    stopCamera();
     setCheckInDate('');
     setCheckOutDate('');
     setAvailableRooms([]);
@@ -118,6 +131,89 @@ function Reservations() {
     setSpecialRequest('');
     setNotes('');
     setSource('WALK_IN');
+  };
+
+  const startCamera = async () => {
+    try {
+      setIsCapturing(true);
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+      setStream(mediaStream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+        videoRef.current.play();
+      }
+    } catch (err) {
+      console.error('Failed to open camera:', err);
+      alert('Could not access camera. Please check permissions or upload an image instead.');
+      setIsCapturing(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setIsCapturing(false);
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current) return;
+    try {
+      setUploadingImage(true);
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth || 640;
+      canvas.height = videoRef.current.videoHeight || 480;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          alert('Failed to capture photo');
+          setUploadingImage(false);
+          return;
+        }
+        try {
+          const formData = new FormData();
+          formData.append('file', blob, 'guest_id.jpg');
+          const response = await api.post('/guests/upload-id', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          setGuestIdProofUrl(response.url);
+          stopCamera();
+        } catch (err) {
+          console.error(err);
+          alert(err.message || 'Failed to upload captured image');
+        } finally {
+          setUploadingImage(false);
+        }
+      }, 'image/jpeg', 0.95);
+    } catch (err) {
+      console.error(err);
+      alert('Capture failed');
+      setUploadingImage(false);
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setUploadingImage(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await api.post('/guests/upload-id', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setGuestIdProofUrl(response.url);
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Failed to upload file');
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleCreateBooking = async (e) => {
@@ -143,7 +239,9 @@ function Reservations() {
           name: guestName,
           phone: guestPhone,
           email: guestEmail || undefined,
-          idType: 'OTHER',
+          idType: guestIdType,
+          idNumber: guestIdNumber || undefined,
+          idProofUrl: guestIdProofUrl || undefined,
           address: 'Not Provided',
           city: 'Not Provided',
           country: 'India'
@@ -468,6 +566,124 @@ function Reservations() {
                               />
                             </div>
                           </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label htmlFor="guestIdTypeSelect" className="block text-[10px] font-bold uppercase tracking-wider text-slate">ID Proof Type *</label>
+                            <select
+                              id="guestIdTypeSelect"
+                              value={guestIdType}
+                              onChange={(e) => setGuestIdType(e.target.value)}
+                              className="w-full px-3 py-2 border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold focus:bg-white text-xs font-semibold bg-cream/20 transition-all duration-200"
+                            >
+                              <option value="NATIONAL_ID">National ID / Aadhaar</option>
+                              <option value="PASSPORT">Passport</option>
+                              <option value="DRIVING_LICENSE">Driving License</option>
+                              <option value="AADHAAR">Aadhaar Card</option>
+                              <option value="OTHER">Other ID</option>
+                            </select>
+                          </div>
+                          <div className="space-y-1">
+                            <label htmlFor="guestIdNumberInput" className="block text-[10px] font-bold uppercase tracking-wider text-slate">ID Number</label>
+                            <input 
+                              id="guestIdNumberInput"
+                              type="text"
+                              placeholder="e.g. ID-483920"
+                              value={guestIdNumber}
+                              onChange={(e) => setGuestIdNumber(e.target.value)}
+                              className="w-full px-3 py-2 border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold focus:bg-white text-xs font-semibold bg-cream/20 transition-all duration-200 shadow-inner"
+                            />
+                          </div>
+                        </div>
+
+                        {/* ID Photo Uploader & Camera Capture */}
+                        <div className="space-y-2">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate">ID Document Image</label>
+                          
+                          {isCapturing ? (
+                            <div className="relative border border-dashed border-gold/40 rounded-2xl overflow-hidden bg-navy/5 flex flex-col items-center p-3 gap-3">
+                              <video 
+                                ref={videoRef} 
+                                className="w-full max-h-56 object-cover rounded-xl bg-black"
+                                playsInline 
+                                muted
+                              />
+                              <div className="flex gap-2 w-full">
+                                <button 
+                                  type="button"
+                                  onClick={capturePhoto}
+                                  disabled={uploadingImage}
+                                  className="w-1/2 btn-primary flex items-center justify-center gap-1 text-[11px] py-2"
+                                >
+                                  <Camera className="w-3.5 h-3.5" />
+                                  {uploadingImage ? 'Uploading...' : 'Take Photo'}
+                                </button>
+                                <button 
+                                  type="button"
+                                  onClick={stopCamera}
+                                  className="w-1/2 btn-secondary text-[11px] py-2"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : guestIdProofUrl ? (
+                            <div className="relative border border-border-cream rounded-2xl p-2 bg-cream/5 flex items-center justify-between gap-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-12 h-12 rounded-lg bg-cream/30 overflow-hidden border border-border-cream/60 flex items-center justify-center">
+                                  <img 
+                                    src={`http://localhost:5000${guestIdProofUrl}`} 
+                                    alt="ID Proof" 
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <div>
+                                  <span className="text-[10px] font-bold text-navy block">Document Uploaded</span>
+                                  <span className="text-[9px] text-slate font-mono block truncate max-w-44">{guestIdProofUrl}</span>
+                                </div>
+                              </div>
+                              <button 
+                                type="button"
+                                onClick={() => setGuestIdProofUrl('')}
+                                className="p-1.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                                title="Remove photo"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="border border-dashed border-border-cream rounded-2xl p-5 bg-cream/5 flex flex-col items-center justify-center text-center gap-3">
+                              <div className="p-3 bg-white border border-border-cream rounded-2xl shadow-sm text-slate">
+                                <Image className="w-6 h-6 text-slate/60" />
+                              </div>
+                              <div>
+                                <span className="text-xs font-bold text-navy block">Add ID Document Photo</span>
+                                <span className="text-[10px] text-slate font-medium block mt-0.5">Upload a copy or take a photo with your device camera</span>
+                              </div>
+                              <div className="flex gap-2 w-full mt-1">
+                                <label className="w-1/2 flex items-center justify-center gap-1.5 border border-border-cream hover:bg-cream/10 bg-white text-navy font-bold rounded-xl text-xs py-2 px-3 cursor-pointer shadow-sm active:scale-95 transition-all text-center">
+                                  <Upload className="w-3.5 h-3.5" />
+                                  Upload File
+                                  <input 
+                                    type="file" 
+                                    accept="image/*"
+                                    onChange={handleFileUpload}
+                                    disabled={uploadingImage}
+                                    className="hidden"
+                                  />
+                                </label>
+                                <button 
+                                  type="button"
+                                  onClick={startCamera}
+                                  className="w-1/2 flex items-center justify-center gap-1.5 border border-border-cream hover:bg-cream/10 bg-white text-navy font-bold rounded-xl text-xs py-2 px-3 shadow-sm active:scale-95 transition-all"
+                                >
+                                  <Camera className="w-3.5 h-3.5" />
+                                  Use Camera
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}

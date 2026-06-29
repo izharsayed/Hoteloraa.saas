@@ -610,6 +610,7 @@ model Guest {
   nationality  String?
   dateOfBirth  DateTime?
   notes        String?
+  idProofUrl   String?
   totalStays   Int         @default(0)
   totalSpent   Float       @default(0)
   createdAt    DateTime    @default(now())
