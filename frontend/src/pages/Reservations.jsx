@@ -1305,7 +1305,7 @@ function Step6({ bookingData, guestData, selectedGuest, selectedRoom, nights, id
 function NewReservationWizard({ onClose, onSuccess }) {
   const [currentStep, setCurrentStep] = useState(1);
   const TOTAL_STEPS = 6;
-  const STEP_LABELS = ['Details', 'Guest', 'Room', 'Payment', 'Extra', 'Confirm'];
+  const STEP_LABELS = ['Details', 'Guest', 'Room', 'Extra', 'Payment', 'Confirm'];
 
   // Step 1 data
   const [bookingData, setBookingData] = useState({
@@ -1404,7 +1404,7 @@ function NewReservationWizard({ onClose, onSuccess }) {
     if (currentStep === 3) {
       if (!selectedRoom) errs.push('Please select a room');
     }
-    if (currentStep === 4) {
+    if (currentStep === 5) {
       if (!bookingData.ratePerNight || Number(bookingData.ratePerNight) <= 0) errs.push('Rate per night must be positive');
     }
     setErrors(errs);
@@ -1526,8 +1526,8 @@ function NewReservationWizard({ onClose, onSuccess }) {
           {currentStep === 1 && <Step1 data={bookingData} onChange={changeBooking} roomTypes={roomTypes} />}
           {currentStep === 2 && <Step2 guestData={guestData} onChange={changeGuest} selectedGuest={selectedGuest} onSelectGuest={setSelectedGuest} onClearGuest={() => { setSelectedGuest(null); setIdDocuments([{ id: 'primary', idType: 'AADHAAR', idNumber: '', frontUrl: '', backUrl: '', idProofUrl: '', label: 'Primary Guest ID' }]); }} idDocuments={idDocuments} setIdDocuments={setIdDocuments} />}
           {currentStep === 3 && <Step3 availableRooms={availableRooms} selectedRoomId={selectedRoom?.id} onSelectRoom={room => { setSelectedRoom(room); if (!bookingData.ratePerNight) changeBooking('ratePerNight', room.roomType?.basePrice || ''); }} loading={roomsLoading} roomTypes={roomTypes} filterTypeId={filterTypeId} onFilterType={setFilterTypeId} />}
-          {currentStep === 4 && <Step4 data={bookingData} onChange={changeBooking} selectedRoom={selectedRoom} nights={nights} />}
-          {currentStep === 5 && <Step5 data={bookingData} onChange={changeBooking} />}
+          {currentStep === 4 && <Step5 data={bookingData} onChange={changeBooking} />}
+          {currentStep === 5 && <Step4 data={bookingData} onChange={changeBooking} selectedRoom={selectedRoom} nights={nights} />}
           {currentStep === 6 && <Step6 bookingData={bookingData} guestData={guestData} selectedGuest={selectedGuest} selectedRoom={selectedRoom} nights={nights} idDocuments={idDocuments} onSave={() => submitReservation('PENDING')} onConfirm={() => submitReservation('CONFIRMED')} saving={saving} />}
         </div>
 
