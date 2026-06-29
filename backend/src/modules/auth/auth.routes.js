@@ -13,8 +13,11 @@ router.get('/profile', _authmiddleware.authenticate, authController.getProfile);
 router.put('/change-password', _authmiddleware.authenticate, _validatemiddleware.validate.call(void 0, _authdto.changePasswordSchema), authController.changePassword);
 
 // Password reset (public — no auth required)
+router.get('/verify-email', authController.verifyEmail);
+router.post('/verify-email', authController.verifyEmail);
 router.post('/forgot-password', _validatemiddleware.validate.call(void 0, _authdto.forgotPasswordSchema), authController.forgotPassword);
 router.post('/reset-password', _validatemiddleware.validate.call(void 0, _authdto.resetPasswordSchema), authController.resetPassword);
+
 
 exports. default = router;
 

@@ -7,6 +7,7 @@ import api from './utils/api.js';
 
 // Core Pages
 import Login from './pages/Login.jsx';
+import VerifyEmail from './pages/VerifyEmail.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Reports from './pages/Reports.jsx';
 import Settings from './pages/Settings.jsx';
@@ -278,6 +279,7 @@ function App() {
       <Routes>
         {/* ---- Auth ---- */}
         <Route path="/login" element={<Login />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
 
         {/* ========================================================
             OPERATIONAL STAFF SHELL — all tenant users except SUPER_ADMIN

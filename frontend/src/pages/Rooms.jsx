@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bed, CheckCircle2, AlertCircle, Wrench, Ban, RefreshCw, Filter, SlidersHorizontal, X } from 'lucide-react';
+import { Bed, CheckCircle2, AlertCircle, Wrench, Ban, RefreshCw, Filter, SlidersHorizontal, X, Plus, Trash2 } from 'lucide-react';
 import api from '../utils/api';
 
 function Rooms() {
@@ -9,6 +9,25 @@ function Rooms() {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // New room and delete states
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newRoomNumber, setNewRoomNumber] = useState('');
+  const [newRoomFloor, setNewRoomFloor] = useState('');
+  const [newRoomTypeId, setNewRoomTypeId] = useState('');
+  const [newRoomDesc, setNewRoomDesc] = useState('');
+  const [roomTypes, setRoomTypes] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  // New room type creation states
+  const [showAddTypeModal, setShowAddTypeModal] = useState(false);
+  const [newTypeName, setNewTypeName] = useState('');
+  const [newTypePrice, setNewTypePrice] = useState('');
+  const [newTypeOccupancy, setNewTypeOccupancy] = useState(2);
+  const [newTypeAmenities, setNewTypeAmenities] = useState('');
+  const [newTypeDesc, setNewTypeDesc] = useState('');
+  const [submittingType, setSubmittingType] = useState(false);
 
   const mapDbStatusToUi = (dbStatus) => {
     switch (dbStatus) {
@@ -77,9 +96,99 @@ function Rooms() {
     }
   };
 
+  const fetchRoomTypes = async () => {
+    try {
+      const data = await api.get('/room-types');
+      setRoomTypes(data || []);
+    } catch (err) {
+      console.error('Failed to fetch room types:', err);
+    }
+  };
+
   useEffect(() => {
     fetchRooms();
+    fetchRoomTypes();
   }, []);
+
+  const resetAddForm = () => {
+    setNewRoomNumber('');
+    setNewRoomFloor('');
+    setNewRoomTypeId('');
+    setNewRoomDesc('');
+  };
+
+  const handleAddRoom = async (e) => {
+    e.preventDefault();
+    if (!newRoomNumber || !newRoomFloor || !newRoomTypeId) return;
+    try {
+      setSubmitting(true);
+      await api.post('/rooms', {
+        number: newRoomNumber,
+        floor: newRoomFloor,
+        roomTypeId: newRoomTypeId,
+        description: newRoomDesc || undefined
+      });
+      fetchRooms();
+      setShowAddModal(false);
+      resetAddForm();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Failed to create room');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteRoom = async (id) => {
+    if (!window.confirm(`Are you sure you want to delete Room ${editingRoom.number}?`)) return;
+    try {
+      setDeleting(true);
+      await api.delete(`/rooms/${id}`);
+      fetchRooms();
+      setEditingRoom(null);
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Failed to delete room');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const resetAddTypeForm = () => {
+    setNewTypeName('');
+    setNewTypePrice('');
+    setNewTypeOccupancy(2);
+    setNewTypeAmenities('');
+    setNewTypeDesc('');
+  };
+
+  const handleAddRoomType = async (e) => {
+    e.preventDefault();
+    if (!newTypeName || !newTypePrice || !newTypeOccupancy) return;
+    try {
+      setSubmittingType(true);
+      const amenitiesArr = newTypeAmenities
+        ? newTypeAmenities.split(',').map(a => a.trim()).filter(Boolean)
+        : [];
+      
+      await api.post('/room-types', {
+        name: newTypeName,
+        basePrice: parseFloat(newTypePrice) || 0,
+        maxOccupancy: parseInt(newTypeOccupancy, 10) || 2,
+        amenities: amenitiesArr,
+        description: newTypeDesc || undefined
+      });
+      
+      await fetchRoomTypes();
+      setShowAddTypeModal(false);
+      resetAddTypeForm();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Failed to create room type');
+    } finally {
+      setSubmittingType(false);
+    }
+  };
 
   const handleStatusChange = async (number, newStatus) => {
     try {
@@ -143,13 +252,29 @@ function Rooms() {
           <h1 className="font-display font-bold text-3xl text-navy">Rooms Directory</h1>
           <p className="text-slate text-sm font-medium mt-1">Real-time room occupancy status, nightly rates, and maintenance scheduling</p>
         </div>
-        <button 
-          onClick={fetchRooms}
-          className="flex items-center gap-2 text-xs font-bold text-navy bg-white border border-border-cream px-4 py-2 rounded-xl hover:bg-cream/10 active:scale-95 transition-all shadow-sm self-start md:self-auto"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          Refresh Directory
-        </button>
+        <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 text-xs font-bold text-white bg-navy border border-navy px-4 py-2 rounded-xl hover:bg-navy/90 active:scale-95 transition-all shadow-sm"
+          >
+            <Plus className="w-3.5 h-3.5" strokeWidth={3} />
+            Add Room
+          </button>
+          <button 
+            onClick={() => setShowAddTypeModal(true)}
+            className="flex items-center gap-2 text-xs font-bold text-navy bg-white border border-border-cream px-4 py-2 rounded-xl hover:bg-cream/10 active:scale-95 transition-all shadow-sm"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Add Room Type
+          </button>
+          <button 
+            onClick={fetchRooms}
+            className="flex items-center gap-2 text-xs font-bold text-navy bg-white border border-border-cream px-4 py-2 rounded-xl hover:bg-cream/10 active:scale-95 transition-all shadow-sm"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            Refresh Directory
+          </button>
+        </div>
       </div>
 
       {/* Filters bar */}
@@ -165,9 +290,9 @@ function Rooms() {
             className="px-3 py-1.5 border border-border-cream rounded-xl text-xs font-semibold text-charcoal focus:outline-none bg-cream/10"
           >
             <option value="All">All Room Types</option>
-            <option value="Standard">Standard</option>
-            <option value="Deluxe">Deluxe</option>
-            <option value="Suite">Suites</option>
+            {roomTypes.map(type => (
+              <option key={type.id} value={type.name}>{type.name}</option>
+            ))}
           </select>
 
           {/* Status Filter */}
@@ -285,12 +410,225 @@ function Rooms() {
 
             <div className="flex gap-3 mt-8 pt-4 border-t border-border-cream">
               <button 
+                type="button"
+                onClick={() => handleDeleteRoom(editingRoom.id)}
+                disabled={deleting}
+                className="w-1/2 flex items-center justify-center gap-2 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold py-2.5 transition-all active:scale-95 disabled:opacity-50"
+              >
+                <Trash2 className="w-4 h-4" />
+                {deleting ? 'Deleting...' : 'Delete Room'}
+              </button>
+              <button 
                 onClick={() => setEditingRoom(null)}
-                className="w-full btn-secondary"
+                className="w-1/2 btn-secondary"
               >
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Room Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-navy/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-white border border-border-cream rounded-[2rem] w-full max-w-md p-8 shadow-xl relative">
+            <button 
+              onClick={() => {
+                setShowAddModal(false);
+                resetAddForm();
+              }}
+              className="absolute top-6 right-6 text-slate hover:text-navy transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <div className="border-b border-border-cream pb-4 mb-6">
+              <span className="text-[10px] text-slate font-bold uppercase tracking-wider">ROOMS</span>
+              <h3 className="font-display font-bold text-xl text-navy mt-1">Add New Room</h3>
+              <p className="text-xs text-slate mt-1">Configure room number, floor allocation, and type</p>
+            </div>
+
+            <form onSubmit={handleAddRoom} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Room Number *</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="e.g. 104 or 205"
+                  value={newRoomNumber}
+                  onChange={(e) => setNewRoomNumber(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Floor *</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="e.g. 1 or Ground Floor"
+                  value={newRoomFloor}
+                  onChange={(e) => setNewRoomFloor(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Room Type *</label>
+                <select 
+                  required
+                  value={newRoomTypeId}
+                  onChange={(e) => setNewRoomTypeId(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                >
+                  <option value="">Select Room Type</option>
+                  {roomTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name} (₹{type.basePrice.toLocaleString()} / night)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Description (Optional)</label>
+                <textarea 
+                  placeholder="Additional features, bed configuration, views, etc."
+                  value={newRoomDesc}
+                  onChange={(e) => setNewRoomDesc(e.target.value)}
+                  rows="3"
+                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t border-border-cream">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    resetAddForm();
+                  }}
+                  className="w-1/2 btn-secondary"
+                  disabled={submitting}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="w-1/2 btn-primary flex items-center justify-center gap-1.5"
+                  disabled={submitting}
+                >
+                  {submitting ? 'Creating...' : 'Create Room'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Room Type Modal */}
+      {showAddTypeModal && (
+        <div className="fixed inset-0 bg-navy/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-white border border-border-cream rounded-[2rem] w-full max-w-md p-8 shadow-xl relative">
+            <button 
+              onClick={() => {
+                setShowAddTypeModal(false);
+                resetAddTypeForm();
+              }}
+              className="absolute top-6 right-6 text-slate hover:text-navy transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <div className="border-b border-border-cream pb-4 mb-6">
+              <span className="text-[10px] text-slate font-bold uppercase tracking-wider">ROOMS</span>
+              <h3 className="font-display font-bold text-xl text-navy mt-1">Add Room Type</h3>
+              <p className="text-xs text-slate mt-1">Define pricing, occupancy rules, and amenities</p>
+            </div>
+
+            <form onSubmit={handleAddRoomType} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Room Type Name *</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="e.g. Executive Suite or Deluxe Double"
+                  value={newTypeName}
+                  onChange={(e) => setNewTypeName(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Base Price Per Night (₹) *</label>
+                <input 
+                  type="number" 
+                  required
+                  min="0"
+                  placeholder="e.g. 4500"
+                  value={newTypePrice}
+                  onChange={(e) => setNewTypePrice(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Max Occupancy *</label>
+                <input 
+                  type="number" 
+                  required
+                  min="1"
+                  placeholder="e.g. 2"
+                  value={newTypeOccupancy}
+                  onChange={(e) => setNewTypeOccupancy(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Amenities (Comma separated)</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. AC, Free Wi-Fi, Smart TV, Mini Fridge"
+                  value={newTypeAmenities}
+                  onChange={(e) => setNewTypeAmenities(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Description (Optional)</label>
+                <textarea 
+                  placeholder="Describe properties, views, layout or specific amenities..."
+                  value={newTypeDesc}
+                  onChange={(e) => setNewTypeDesc(e.target.value)}
+                  rows="3"
+                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t border-border-cream">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setShowAddTypeModal(false);
+                    resetAddTypeForm();
+                  }}
+                  className="w-1/2 btn-secondary"
+                  disabled={submittingType}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="w-1/2 btn-primary flex items-center justify-center gap-1.5"
+                  disabled={submittingType}
+                >
+                  {submittingType ? 'Creating...' : 'Create Type'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -75,12 +75,19 @@ const SALT_ROUNDS = 12;
   }));
 }; exports.getAllTenants = getAllTenants;
 
+var _crypto = require('crypto');
+var _crypto2 = _interopRequireDefault(_crypto);
+var _env = require('../../config/env');
+var _env2 = _interopRequireDefault(_env);
+var _emailService = require('../../shared/email.service');
+
  const createTenant = async (dto) => {
   const existing = await _database2.default.tenant.findUnique({ where: { slug: dto.slug } });
   if (existing) throw _errormiddleware.createError.call(void 0, 'Tenant slug already exists on cluster', 400);
 
   const password = Math.random().toString(36).slice(-8);
   const passwordHash = await _bcryptjs2.default.hash(password, SALT_ROUNDS);
+  const verificationToken = _crypto2.default.randomBytes(32).toString('hex');
 
   // Default features based on business type
   const defaultFeaturesMap = {
@@ -127,7 +134,9 @@ const SALT_ROUNDS = 12;
           email: dto.adminEmail,
           passwordHash,
           userRole: 'TENANT_ADMIN',
-          isActive: true
+          isActive: true,
+          isEmailVerified: false,
+          verificationToken
         }
       },
       settings: {
@@ -145,6 +154,43 @@ const SALT_ROUNDS = 12;
       previousValue: 'None',
       newValue: `Type: ${dto.businessType} | Plan: ${dto.plan} | Admin: ${dto.adminEmail}`
     }
+  });
+
+  // Send email with details and verification link
+  const clientUrl = _env2.default.clientUrl || 'http://localhost:5173';
+  const verificationLink = `${clientUrl}/verify-email?token=${verificationToken}`;
+  await _emailService.sendMail({
+    to: dto.adminEmail,
+    subject: `Hoteloraa Property Workspace Created: ${dto.name}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e5e5; border-radius: 12px; background-color: #ffffff;">
+        <h2 style="color: #0c2340; text-align: center;">Your Hoteloraa Property Workspace is Ready!</h2>
+        <p>Hello,</p>
+        <p>A new property workspace, <strong>${dto.name}</strong>, has been successfully registered and provisioned for you by the Platform Super Administrator.</p>
+        
+        <div style="background-color: #f7f9fa; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e5e5;">
+          <h3 style="margin-top: 0; color: #0c2340;">Your Account & Workspace Details</h3>
+          <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+            <tr><td style="width: 150px; font-weight: bold; padding: 4px 0;">Property Name:</td><td>${dto.name}</td></tr>
+            <tr><td style="font-weight: bold; padding: 4px 0;">Portal URL:</td><td><a href="${clientUrl}/t/${dto.slug}" style="color: #d4af37; text-decoration: none; font-weight: bold;">${clientUrl}/t/${dto.slug}</a></td></tr>
+            <tr><td style="font-weight: bold; padding: 4px 0;">Business Type:</td><td>${dto.businessType}</td></tr>
+            <tr><td style="font-weight: bold; padding: 4px 0;">Admin Email:</td><td>${dto.adminEmail}</td></tr>
+            <tr><td style="font-weight: bold; padding: 4px 0;">Temporary Password:</td><td style="font-family: monospace; font-weight: bold; color: #d4af37;">${password}</td></tr>
+          </table>
+        </div>
+
+        <p>Please click the button below to verify your email address and activate your administrator account. Once verified, you can log in using your email and the temporary password listed above.</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${verificationLink}" style="background-color: #d4af37; color: #0c2340; text-decoration: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">Verify & Activate Account</a>
+        </div>
+
+        <p style="font-size: 12px; color: #666; text-align: center; margin-top: 20px;">
+          If the button doesn't work, copy and paste this link in your browser:<br>
+          <a href="${verificationLink}" style="color: #d4af37;">${verificationLink}</a>
+        </p>
+      </div>
+    `
   });
 
   return {

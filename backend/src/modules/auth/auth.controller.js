@@ -99,3 +99,16 @@ const logout = (_req, res) => {
   _helpers.sendSuccess.call(void 0, res, null, 'Logged out successfully');
 };
 exports.logout = logout;
+
+const verifyEmail = async (req, res, next) => {
+  try {
+    const token = req.query.token || req.body.token;
+    if (!token) {
+      throw _errormiddleware.createError.call(void 0, 'Verification token is required', 400);
+    }
+    const result = await authService.verifyEmail(token);
+    _helpers.sendSuccess.call(void 0, res, result, result.message);
+  } catch (err) { next(err); }
+};
+exports.verifyEmail = verifyEmail;
+

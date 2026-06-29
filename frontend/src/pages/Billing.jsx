@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { 
   CreditCard, 
@@ -35,6 +35,8 @@ function Billing() {
     : '';
 
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const selectedInvoiceRef = useRef(selectedInvoice);
+  useEffect(() => { selectedInvoiceRef.current = selectedInvoice; }, [selectedInvoice]);
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -98,15 +100,16 @@ function Billing() {
       setInvoices(mappedInvoices);
 
       // Optionally update selected invoice if it's currently open
-      if (selectedInvoice) {
-        const updatedSelected = mappedInvoices.find(inv => inv.orderId === selectedInvoice.orderId);
+      const currentSelected = selectedInvoiceRef.current;
+      if (currentSelected) {
+        const updatedSelected = mappedInvoices.find(inv => inv.orderId === currentSelected.orderId);
         if (updatedSelected) {
           // Keep local discount if user hasn't saved it yet
           setSelectedInvoice({
             ...updatedSelected,
-            discount: selectedInvoice.discount,
-            gstRate: selectedInvoice.gstRate,
-            serviceChargeRate: selectedInvoice.serviceChargeRate
+            discount: currentSelected.discount,
+            gstRate: currentSelected.gstRate,
+            serviceChargeRate: currentSelected.serviceChargeRate
           });
         }
       }
@@ -121,7 +124,7 @@ function Billing() {
     loadOrders();
     const timer = setInterval(() => loadOrders(true), 10000);
     return () => clearInterval(timer);
-  }, [selectedInvoice]);
+  }, []);
 
   const handleSelectInvoice = (inv) => {
     setSelectedInvoice(inv);
@@ -539,7 +542,7 @@ function Billing() {
         {selectedInvoice && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 print:static print:block print:p-0">
             <div 
-              className="absolute inset-0 bg-navy/60 backdrop-blur-sm transition-opacity print:hidden"
+              className="absolute inset-0 transition-opacity print:hidden"
               onClick={() => setSelectedInvoice(null)}
             />
             <div className="relative bg-white rounded-3xl w-full max-w-[500px] max-h-[90vh] shadow-2xl flex flex-col overflow-hidden animate-fadeIn print:w-full print:border-none print:shadow-none print:max-h-none print:rounded-none print:block">
