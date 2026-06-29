@@ -1190,8 +1190,8 @@ function NewReservationWizard({ onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-navy/20 backdrop-blur-sm flex items-center justify-center overflow-y-auto p-4 animate-fadeIn">
-      <div className="bg-white w-full max-w-2xl rounded-3xl shadow-[0_20px_60px_-5px_rgba(0,0,0,0.18)] border border-border-cream mx-4 my-auto overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-[60] bg-navy/20 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+      <div className="bg-white w-full max-w-2xl rounded-3xl shadow-[0_20px_60px_-5px_rgba(0,0,0,0.25)] border border-border-cream flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="bg-navy px-6 py-4 flex items-center justify-between flex-shrink-0">
           <div>
@@ -1209,7 +1209,7 @@ function NewReservationWizard({ onClose, onSuccess }) {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-5" style={{ maxHeight: '65vh' }}>
+        <div className="flex-1 overflow-y-auto px-6 py-5">
           {errors.length > 0 && (
             <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-rose-600 mt-0.5 flex-shrink-0" />
