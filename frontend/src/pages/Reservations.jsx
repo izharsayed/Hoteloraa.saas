@@ -234,12 +234,14 @@ function Step1({ data, onChange, roomTypes }) {
 
 // ─── Step 2: Guest Information ────────────────────────────────────────────────
 
-function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest }) {
+// ─── Step 2: Guest Information ────────────────────────────────────────────────
+
+function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest, idDocuments, setIdDocuments }) {
   const [guestTab, setGuestTab] = useState(selectedGuest ? 'existing' : 'new');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
-  const [isCapturing, setIsCapturing] = useState(false);
+  const [capturingState, setCapturingState] = useState(null); // { docId, side }
   const [stream, setStream] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const videoRef = useRef(null);
@@ -259,24 +261,125 @@ function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest
     return () => clearTimeout(timer);
   }, [searchQuery, searchGuests]);
 
-  const startCamera = async () => {
+  const startCamera = async (docId, side) => {
+    if (stream) {
+      stopCamera();
+    }
     try {
-      setIsCapturing(true);
+      setCapturingState({ docId, side });
       const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       setStream(mediaStream);
-      if (videoRef.current) { videoRef.current.srcObject = mediaStream; videoRef.current.play(); }
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+          videoRef.current.play();
+        }
+      }, 100);
     } catch {
       alert('Could not access camera. Please upload an image instead.');
-      setIsCapturing(false);
+      setCapturingState(null);
     }
   };
 
   const stopCamera = () => {
     stream?.getTracks().forEach(t => t.stop());
-    setStream(null); setIsCapturing(false);
+    setStream(null);
+    setCapturingState(null);
   };
 
-  const capturePhoto = () => {
+  const stitchFrontAndBack = async (frontUrl, backUrl) => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const imgFront = new window.Image();
+      const imgBack = new window.Image();
+      imgFront.crossOrigin = 'anonymous';
+      imgBack.crossOrigin = 'anonymous';
+
+      let loaded = 0;
+      const checkLoaded = () => {
+        loaded++;
+        if (loaded === 2) {
+          const targetHeight = 400;
+          const frontWidth = imgFront.height ? (imgFront.width / imgFront.height) * targetHeight : 400;
+          const backWidth = imgBack.height ? (imgBack.width / imgBack.height) * targetHeight : 400;
+
+          canvas.width = frontWidth + backWidth + 20; // 20px gap
+          canvas.height = targetHeight + 20; // padding
+
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          ctx.drawImage(imgFront, 10, 10, frontWidth, targetHeight);
+          ctx.drawImage(imgBack, 10 + frontWidth + 10, 10, backWidth, targetHeight);
+
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Stitching failed'));
+            }
+          }, 'image/jpeg', 0.9);
+        }
+      };
+
+      imgFront.onload = checkLoaded;
+      imgBack.onload = checkLoaded;
+      imgFront.onerror = () => reject(new Error('Failed to load front image'));
+      imgBack.onerror = () => reject(new Error('Failed to load back image'));
+
+      const getAbsoluteUrl = (url) => {
+        if (!url) return '';
+        if (url.startsWith('http') || url.startsWith('data:')) return url;
+        return `http://localhost:5000${url}`;
+      };
+
+      imgFront.src = getAbsoluteUrl(frontUrl);
+      imgBack.src = getAbsoluteUrl(backUrl);
+    });
+  };
+
+  const handleDocumentChange = async (docId, side, file) => {
+    setUploadingImage(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await api.upload('/guests/upload-id', fd);
+
+      const updatedDocs = await Promise.all(idDocuments.map(async (doc) => {
+        if (doc.id === docId) {
+          const newDoc = { ...doc, [`${side}Url`]: res.url };
+          if (newDoc.frontUrl && newDoc.backUrl) {
+            try {
+              const stitchedBlob = await stitchFrontAndBack(newDoc.frontUrl, newDoc.backUrl);
+              const stitchedFd = new FormData();
+              stitchedFd.append('file', stitchedBlob, `stitched_${docId}.jpg`);
+              const stitchedRes = await api.upload('/guests/upload-id', stitchedFd);
+              newDoc.idProofUrl = stitchedRes.url;
+            } catch (mergeErr) {
+              console.error('Stitching failed:', mergeErr);
+            }
+          }
+          return newDoc;
+        }
+        return doc;
+      }));
+
+      setIdDocuments(updatedDocs);
+    } catch (e) {
+      alert(e.message || 'Upload failed');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleFileUpload = async (docId, side, e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await handleDocumentChange(docId, side, file);
+  };
+
+  const capturePhoto = (docId, side) => {
     if (!videoRef.current) return;
     setUploadingImage(true);
     const canvas = document.createElement('canvas');
@@ -286,23 +389,52 @@ function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest
     canvas.toBlob(async (blob) => {
       if (!blob) { setUploadingImage(false); return; }
       try {
-        const fd = new FormData(); fd.append('file', blob, 'id.jpg');
+        const fd = new FormData();
+        fd.append('file', blob, `${side}_${docId}.jpg`);
         const res = await api.upload('/guests/upload-id', fd);
-        onChange('idProofUrl', res.url); stopCamera();
-      } catch (e) { alert(e.message || 'Upload failed'); }
-      finally { setUploadingImage(false); }
+
+        const updatedDocs = await Promise.all(idDocuments.map(async (doc) => {
+          if (doc.id === docId) {
+            const newDoc = { ...doc, [`${side}Url`]: res.url };
+            if (newDoc.frontUrl && newDoc.backUrl) {
+              try {
+                const stitchedBlob = await stitchFrontAndBack(newDoc.frontUrl, newDoc.backUrl);
+                const stitchedFd = new FormData();
+                stitchedFd.append('file', stitchedBlob, `stitched_${docId}.jpg`);
+                const stitchedRes = await api.upload('/guests/upload-id', stitchedFd);
+                newDoc.idProofUrl = stitchedRes.url;
+              } catch (mergeErr) {
+                console.error('Stitching failed:', mergeErr);
+              }
+            }
+            return newDoc;
+          }
+          return doc;
+        }));
+
+        setIdDocuments(updatedDocs);
+        stopCamera();
+      } catch (e) {
+        alert(e.message || 'Upload failed');
+      } finally {
+        setUploadingImage(false);
+      }
     }, 'image/jpeg', 0.92);
   };
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0]; if (!file) return;
-    setUploadingImage(true);
-    try {
-      const fd = new FormData(); fd.append('file', file);
-      const res = await api.upload('/guests/upload-id', fd);
-      onChange('idProofUrl', res.url);
-    } catch (e) { alert(e.message || 'Upload failed'); }
-    finally { setUploadingImage(false); }
+  const addIdDocument = () => {
+    setIdDocuments(prev => [
+      ...prev,
+      { id: Date.now(), idType: 'AADHAAR', idNumber: '', frontUrl: '', backUrl: '', idProofUrl: '', label: `Co-Guest ID Document` }
+    ]);
+  };
+
+  const removeIdDocument = (docId) => {
+    setIdDocuments(prev => prev.filter(d => d.id !== docId));
+  };
+
+  const updateDocField = (docId, key, val) => {
+    setIdDocuments(prev => prev.map(d => d.id === docId ? { ...d, [key]: val } : d));
   };
 
   const getGuestTier = (stays) => {
@@ -500,80 +632,162 @@ function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest
           </div>
 
           {/* ID Verification */}
-          <div className="pt-2 border-t border-border-cream/40">
-            <div className="flex items-center gap-2 mb-3">
-              <Shield className="w-4 h-4 text-gold" />
-              <span className="text-xs font-bold text-navy uppercase tracking-wider">Identity Verification</span>
-            </div>
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <div className="space-y-1">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate">ID Proof Type *</label>
-                <select value={guestData.idType} onChange={e => onChange('idType', e.target.value)}
-                  className="w-full px-3 py-2 border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold bg-cream/20 text-xs font-semibold transition-all">
-                  {ID_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
+          <div className="pt-4 border-t border-border-cream/40 space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-gold" />
+                <span className="text-xs font-bold text-navy uppercase tracking-wider">Identity Verification</span>
               </div>
-              <div className="space-y-1">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate">ID Number *</label>
-                <div className="relative"><Hash className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate/40" />
-                  <input type="text" placeholder="Enter ID number" value={guestData.idNumber}
-                    onChange={e => onChange('idNumber', e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold bg-cream/20 text-xs font-semibold transition-all" />
-                </div>
-              </div>
+              <button type="button" onClick={addIdDocument}
+                className="flex items-center gap-1.5 px-3 py-1 bg-navy/5 text-navy hover:bg-navy/10 border border-navy/20 rounded-xl text-xs font-bold transition-all active:scale-95">
+                <Plus className="w-3.5 h-3.5" /> Add Co-Guest ID
+              </button>
             </div>
 
-            {/* Document Upload Zone */}
-            <div className="space-y-1">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate">ID Document Photo</label>
-              {isCapturing ? (
-                <div className="border border-dashed border-gold/40 rounded-2xl overflow-hidden bg-navy/5 flex flex-col items-center p-3 gap-3">
-                  <video ref={videoRef} className="w-full max-h-48 object-cover rounded-xl bg-black" playsInline muted />
-                  <div className="flex gap-2 w-full">
-                    <button type="button" onClick={capturePhoto} disabled={uploadingImage}
-                      className="w-1/2 flex items-center justify-center gap-1 bg-navy text-white font-bold rounded-xl text-xs py-2 active:scale-95 transition-all">
-                      <Camera className="w-3.5 h-3.5" />{uploadingImage ? 'Uploading...' : 'Capture'}
+            {idDocuments.map((doc, idx) => {
+              const isCapFront = capturingState?.docId === doc.id && capturingState?.side === 'front';
+              const isCapBack = capturingState?.docId === doc.id && capturingState?.side === 'back';
+
+              return (
+                <div key={doc.id} className="p-4 bg-cream/5 border border-border-cream/60 rounded-2xl space-y-4 relative">
+                  {idx > 0 && (
+                    <button type="button" onClick={() => removeIdDocument(doc.id)}
+                      className="absolute top-3 right-3 text-slate hover:text-rose-600 p-1.5 bg-white border border-border-cream hover:bg-rose-50 rounded-xl transition-all shadow-sm">
+                      <Trash2 className="w-4 h-4" />
                     </button>
-                    <button type="button" onClick={stopCamera}
-                      className="w-1/2 border border-border-cream text-slate font-bold rounded-xl text-xs py-2 hover:bg-cream/20 active:scale-95 transition-all">Cancel</button>
-                  </div>
-                </div>
-              ) : guestData.idProofUrl ? (
-                <div className="border border-border-cream rounded-2xl p-2 bg-cream/5 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <img src={`http://localhost:5000${guestData.idProofUrl}`} alt="ID"
-                      className="w-12 h-12 object-cover rounded-lg border border-border-cream/60" />
-                    <div>
-                      <span className="text-[10px] font-bold text-navy block">Document Uploaded ✓</span>
-                      <span className="text-[9px] text-slate font-mono block truncate max-w-40">{guestData.idProofUrl}</span>
+                  )}
+                  <h4 className="text-xs font-bold text-navy flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-navy/10 text-navy flex items-center justify-center text-[10px] font-mono">{idx + 1}</span>
+                    {doc.label} {idx > 0 && <span className="text-[10px] text-slate font-normal">(Co-Guest)</span>}
+                  </h4>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate">ID Proof Type *</label>
+                      <select value={doc.idType} onChange={e => updateDocField(doc.id, 'idType', e.target.value)}
+                        className="w-full px-3 py-2 border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold bg-cream/20 text-xs font-semibold transition-all">
+                        {ID_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate">ID Number *</label>
+                      <div className="relative"><Hash className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate/40" />
+                        <input type="text" placeholder="Enter ID number" value={doc.idNumber}
+                          onChange={e => updateDocField(doc.id, 'idNumber', e.target.value)}
+                          className="w-full pl-9 pr-3 py-2 border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold bg-cream/20 text-xs font-semibold transition-all" />
+                      </div>
                     </div>
                   </div>
-                  <button type="button" onClick={() => onChange('idProofUrl', '')}
-                    className="p-1.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
-                </div>
-              ) : (
-                <div className="border border-dashed border-border-cream rounded-2xl p-4 bg-cream/5 flex flex-col items-center gap-3">
-                  <Image className="w-6 h-6 text-slate/40" />
-                  <span className="text-[10px] text-slate font-medium text-center">Upload a photo or scan of the ID document</span>
-                  <div className="flex gap-2 w-full">
-                    <label className="w-1/2 flex items-center justify-center gap-1.5 border border-border-cream hover:bg-cream/10 bg-white text-navy font-bold rounded-xl text-xs py-2 cursor-pointer active:scale-95 transition-all">
-                      <Upload className="w-3.5 h-3.5" /> Upload
-                      <input type="file" accept="image/*" onChange={handleFileUpload} disabled={uploadingImage} className="hidden" />
-                    </label>
-                    <button type="button" onClick={startCamera}
-                      className="w-1/2 flex items-center justify-center gap-1.5 border border-border-cream hover:bg-cream/10 bg-white text-navy font-bold rounded-xl text-xs py-2 active:scale-95 transition-all">
-                      <Camera className="w-3.5 h-3.5" /> Camera
-                    </button>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Front Side */}
+                    <div className="space-y-1.5">
+                      <label className="block text-[9px] font-bold uppercase tracking-wider text-slate text-center">Front Side</label>
+                      {isCapFront ? (
+                        <div className="border border-dashed border-gold/50 rounded-xl overflow-hidden bg-black/5 flex flex-col items-center p-2 gap-2 h-44 justify-center">
+                          <video ref={videoRef} className="w-full h-28 object-cover rounded-lg bg-black" playsInline muted />
+                          <div className="flex gap-1.5 w-full">
+                            <button type="button" onClick={() => capturePhoto(doc.id, 'front')} disabled={uploadingImage}
+                              className="w-1/2 flex items-center justify-center gap-1 bg-navy text-white font-bold rounded-lg text-[10px] py-1.5 transition-all">
+                              <Camera className="w-3 h-3" /> Capture
+                            </button>
+                            <button type="button" onClick={stopCamera}
+                              className="w-1/2 border border-border-cream text-slate font-bold rounded-lg text-[10px] py-1.5 hover:bg-cream/20 transition-all">Cancel</button>
+                          </div>
+                        </div>
+                      ) : doc.frontUrl ? (
+                        <div className="border border-border-cream rounded-xl p-2 bg-white flex flex-col items-center justify-center gap-2 h-44 relative">
+                          <img src={`http://localhost:5000${doc.frontUrl}`} alt="Front" className="w-full h-28 object-contain rounded-lg border" />
+                          <button type="button" onClick={() => updateDocField(doc.id, 'frontUrl', '')}
+                            className="absolute top-3 right-3 p-1 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-lg shadow-sm transition-all">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                          <span className="text-[9px] text-slate font-medium truncate w-full text-center">Front side uploaded ✓</span>
+                        </div>
+                      ) : (
+                        <div className="border border-dashed border-border-cream rounded-xl p-4 bg-white/40 flex flex-col items-center justify-center gap-2 h-44">
+                          <Image className="w-5 h-5 text-slate/30" />
+                          <span className="text-[9px] text-slate font-medium text-center">Front side preview</span>
+                          <div className="flex gap-1.5 w-full mt-2">
+                            <label className="w-1/2 flex items-center justify-center gap-1 border border-border-cream hover:bg-cream/10 bg-white text-navy font-bold rounded-lg text-[10px] py-1.5 cursor-pointer transition-all">
+                              <Upload className="w-3 h-3" /> Upload
+                              <input type="file" accept="image/*" onChange={(e) => handleFileUpload(doc.id, 'front', e)} disabled={uploadingImage} className="hidden" />
+                            </label>
+                            <button type="button" onClick={() => startCamera(doc.id, 'front')}
+                              className="w-1/2 flex items-center justify-center gap-1 border border-border-cream hover:bg-cream/10 bg-white text-navy font-bold rounded-lg text-[10px] py-1.5 transition-all">
+                              <Camera className="w-3 h-3" /> Camera
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Back Side */}
+                    <div className="space-y-1.5">
+                      <label className="block text-[9px] font-bold uppercase tracking-wider text-slate text-center">Back Side</label>
+                      {isCapBack ? (
+                        <div className="border border-dashed border-gold/50 rounded-xl overflow-hidden bg-black/5 flex flex-col items-center p-2 gap-2 h-44 justify-center">
+                          <video ref={videoRef} className="w-full h-28 object-cover rounded-lg bg-black" playsInline muted />
+                          <div className="flex gap-1.5 w-full">
+                            <button type="button" onClick={() => capturePhoto(doc.id, 'back')} disabled={uploadingImage}
+                              className="w-1/2 flex items-center justify-center gap-1 bg-navy text-white font-bold rounded-lg text-[10px] py-1.5 transition-all">
+                              <Camera className="w-3 h-3" /> Capture
+                            </button>
+                            <button type="button" onClick={stopCamera}
+                              className="w-1/2 border border-border-cream text-slate font-bold rounded-lg text-[10px] py-1.5 hover:bg-cream/20 transition-all">Cancel</button>
+                          </div>
+                        </div>
+                      ) : doc.backUrl ? (
+                        <div className="border border-border-cream rounded-xl p-2 bg-white flex flex-col items-center justify-center gap-2 h-44 relative">
+                          <img src={`http://localhost:5000${doc.backUrl}`} alt="Back" className="w-full h-28 object-contain rounded-lg border" />
+                          <button type="button" onClick={() => updateDocField(doc.id, 'backUrl', '')}
+                            className="absolute top-3 right-3 p-1 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-lg shadow-sm transition-all">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                          <span className="text-[9px] text-slate font-medium truncate w-full text-center">Back side uploaded ✓</span>
+                        </div>
+                      ) : (
+                        <div className="border border-dashed border-border-cream rounded-xl p-4 bg-white/40 flex flex-col items-center justify-center gap-2 h-44">
+                          <Image className="w-5 h-5 text-slate/30" />
+                          <span className="text-[9px] text-slate font-medium text-center">Back side preview</span>
+                          <div className="flex gap-1.5 w-full mt-2">
+                            <label className="w-1/2 flex items-center justify-center gap-1 border border-border-cream hover:bg-cream/10 bg-white text-navy font-bold rounded-lg text-[10px] py-1.5 cursor-pointer transition-all">
+                              <Upload className="w-3 h-3" /> Upload
+                              <input type="file" accept="image/*" onChange={(e) => handleFileUpload(doc.id, 'back', e)} disabled={uploadingImage} className="hidden" />
+                            </label>
+                            <button type="button" onClick={() => startCamera(doc.id, 'back')}
+                              className="w-1/2 flex items-center justify-center gap-1 border border-border-cream hover:bg-cream/10 bg-white text-navy font-bold rounded-lg text-[10px] py-1.5 transition-all">
+                              <Camera className="w-3 h-3" /> Camera
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {doc.idProofUrl && (
+                    <div className="mt-3 p-2 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-3 animate-fadeIn">
+                      <div className="flex items-center gap-2.5">
+                        <img src={`http://localhost:5000${doc.idProofUrl}`} alt="Stitched ID"
+                          className="w-16 h-10 object-cover rounded-lg border border-emerald-200 shadow-sm" />
+                        <div>
+                          <span className="text-[10px] font-bold text-emerald-800 block">Stitched & Merged ID ✓</span>
+                          <span className="text-[8px] text-slate font-mono block truncate max-w-56">{doc.idProofUrl}</span>
+                        </div>
+                      </div>
+                      <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              );
+            })}
           </div>
         </div>
       )}
     </div>
   );
 }
+
 
 // ─── Step 3: Room Allocation ──────────────────────────────────────────────────
 
@@ -919,7 +1133,7 @@ function Step5({ data, onChange }) {
 
 // ─── Step 6: Review & Confirm ─────────────────────────────────────────────────
 
-function Step6({ bookingData, guestData, selectedGuest, selectedRoom, nights, onSave, onConfirm, saving }) {
+function Step6({ bookingData, guestData, selectedGuest, selectedRoom, nights, idDocuments, onSave, onConfirm, saving }) {
   const guest = selectedGuest || guestData;
   const roomCharges = nights * (bookingData.ratePerNight || 0);
   const extra = Number(bookingData.extraCharges) || 0;
@@ -953,11 +1167,24 @@ function Step6({ bookingData, guestData, selectedGuest, selectedRoom, nights, on
         <div className="p-4 space-y-4">
           {/* Guest */}
           <div>
-            <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate mb-2">Guest Details</h4>
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate mb-2">Guest & ID Details</h4>
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
               <div><span className="text-slate">Name</span><span className="float-right font-semibold text-navy">{guest?.name || '—'}</span></div>
               <div><span className="text-slate">Mobile</span><span className="float-right font-semibold text-navy">{guest?.phone || '—'}</span></div>
               {guest?.email && <div className="col-span-2"><span className="text-slate">Email</span><span className="float-right font-semibold text-navy">{guest.email}</span></div>}
+            </div>
+
+            {/* Show ID documents summary */}
+            <div className="bg-cream/10 border border-border-cream/40 rounded-xl p-2.5 space-y-1.5 mt-2.5">
+              <span className="text-[9px] font-bold text-slate uppercase block">Documents Verified:</span>
+              {idDocuments.map((doc, idx) => (
+                <div key={doc.id} className="flex justify-between items-center text-[10px] text-charcoal">
+                  <span>{idx + 1}. {doc.idType} ({doc.idNumber || 'No Number'})</span>
+                  <span className={doc.idProofUrl ? 'text-emerald-600 font-bold' : doc.frontUrl || doc.backUrl ? 'text-slate font-medium' : 'text-slate/40'}>
+                    {doc.idProofUrl ? '✓ Stitched Image' : doc.frontUrl || doc.backUrl ? '✓ Part Photo' : 'No Photo'}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -1051,6 +1278,23 @@ function NewReservationWizard({ onClose, onSuccess }) {
   });
   const changeGuest = (key, val) => setGuestData(p => ({ ...p, [key]: val }));
   const [selectedGuest, setSelectedGuest] = useState(null);
+
+  const [idDocuments, setIdDocuments] = useState([
+    { id: 'primary', idType: 'AADHAAR', idNumber: '', frontUrl: '', backUrl: '', idProofUrl: '', label: 'Primary Guest ID' }
+  ]);
+
+  useEffect(() => {
+    const primaryDoc = idDocuments.find(d => d.id === 'primary');
+    if (primaryDoc) {
+      setGuestData(prev => ({
+        ...prev,
+        idType: primaryDoc.idType,
+        idNumber: primaryDoc.idNumber,
+        idProofUrl: primaryDoc.idProofUrl
+      }));
+    }
+  }, [idDocuments]);
+
 
   // Step 3 data
   const [availableRooms, setAvailableRooms] = useState([]);
@@ -1150,10 +1394,19 @@ function NewReservationWizard({ onClose, onSuccess }) {
         guestId = createdGuest.id;
       }
 
-      const specialRequestText = [
+      let specialRequestText = [
         ...(bookingData.specialRequests || []),
         ...(bookingData.internalFlags || []).map(f => `[${f}]`),
       ].join(', ');
+
+      const coGuestInfos = idDocuments.slice(1).map((doc, idx) => {
+        return `[Co-Guest ${idx + 1} ID: ${doc.idType} - ${doc.idNumber || 'N/A'} (Img: ${doc.idProofUrl || 'N/A'})]`;
+      });
+      if (coGuestInfos.length > 0) {
+        specialRequestText = specialRequestText 
+          ? `${specialRequestText}, ${coGuestInfos.join(', ')}`
+          : coGuestInfos.join(', ');
+      }
 
       const payload = {
         roomId: selectedRoom.id,
@@ -1220,11 +1473,11 @@ function NewReservationWizard({ onClose, onSuccess }) {
           )}
 
           {currentStep === 1 && <Step1 data={bookingData} onChange={changeBooking} roomTypes={roomTypes} />}
-          {currentStep === 2 && <Step2 guestData={guestData} onChange={changeGuest} selectedGuest={selectedGuest} onSelectGuest={setSelectedGuest} onClearGuest={() => setSelectedGuest(null)} />}
+          {currentStep === 2 && <Step2 guestData={guestData} onChange={changeGuest} selectedGuest={selectedGuest} onSelectGuest={setSelectedGuest} onClearGuest={() => { setSelectedGuest(null); setIdDocuments([{ id: 'primary', idType: 'AADHAAR', idNumber: '', frontUrl: '', backUrl: '', idProofUrl: '', label: 'Primary Guest ID' }]); }} idDocuments={idDocuments} setIdDocuments={setIdDocuments} />}
           {currentStep === 3 && <Step3 availableRooms={availableRooms} selectedRoomId={selectedRoom?.id} onSelectRoom={room => { setSelectedRoom(room); if (!bookingData.ratePerNight) changeBooking('ratePerNight', room.roomType?.basePrice || ''); }} loading={roomsLoading} roomTypes={roomTypes} filterTypeId={filterTypeId} onFilterType={setFilterTypeId} />}
           {currentStep === 4 && <Step4 data={bookingData} onChange={changeBooking} selectedRoom={selectedRoom} nights={nights} />}
           {currentStep === 5 && <Step5 data={bookingData} onChange={changeBooking} />}
-          {currentStep === 6 && <Step6 bookingData={bookingData} guestData={guestData} selectedGuest={selectedGuest} selectedRoom={selectedRoom} nights={nights} onSave={() => submitReservation('PENDING')} onConfirm={() => submitReservation('CONFIRMED')} saving={saving} />}
+          {currentStep === 6 && <Step6 bookingData={bookingData} guestData={guestData} selectedGuest={selectedGuest} selectedRoom={selectedRoom} nights={nights} idDocuments={idDocuments} onSave={() => submitReservation('PENDING')} onConfirm={() => submitReservation('CONFIRMED')} saving={saving} />}
         </div>
 
         {/* Footer Navigation */}
