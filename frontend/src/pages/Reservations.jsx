@@ -236,7 +236,7 @@ function Step1({ data, onChange, roomTypes }) {
 
 // ─── Step 2: Guest Information ────────────────────────────────────────────────
 
-function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest, idDocuments, setIdDocuments, scanningDocId, onOcrAutofill }) {
+function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest, idDocuments, setIdDocuments }) {
   const [guestTab, setGuestTab] = useState(selectedGuest ? 'existing' : 'new');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -793,24 +793,6 @@ function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest
                     </div>
                   </div>
 
-                  {/* Auto-fill from ID Proof */}
-                  {(doc.frontUrl || doc.backUrl) && (
-                    <button type="button" onClick={() => onOcrAutofill(doc.id)} disabled={scanningDocId === doc.id}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 bg-gold-pale/30 border border-gold/30 hover:bg-gold-pale/50 text-navy font-bold rounded-xl text-xs transition-all active:scale-95 disabled:opacity-50">
-                      {scanningDocId === doc.id ? (
-                        <>
-                          <RefreshCw className="w-4 h-4 animate-spin text-gold" />
-                          <span>⚡ Auto-fill Guest Details using AI OCR...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Shield className="w-4 h-4 text-gold fill-gold animate-pulse" />
-                          <span>⚡ Auto-fill Guest Details using AI OCR</span>
-                        </>
-                      )}
-                    </button>
-                  )}
-
 
                   {doc.idProofUrl && (
                     <div className="mt-3 p-2 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-3 animate-fadeIn">
@@ -1341,205 +1323,7 @@ function NewReservationWizard({ onClose, onSuccess }) {
       }));
     }
   }, [idDocuments]);
-  const [scanningDocId, setScanningDocId] = useState(null);
 
-  const handleOcrAutofill = (docId) => {
-    const doc = idDocuments.find(d => d.id === docId);
-    if (!doc) return;
-
-    setScanningDocId(docId);
-
-    const getAbsoluteUrl = (url) => {
-      if (!url) return '';
-      if (url.startsWith('http') || url.startsWith('data:')) return url;
-      return `http://localhost:5000${url}`;
-    };
-
-    const frontImgUrl = getAbsoluteUrl(doc.frontUrl || doc.idProofUrl);
-
-    const loadTesseractAndRecognize = () => {
-      return new Promise((resolve) => {
-        if (window.Tesseract) {
-          resolve(window.Tesseract);
-        } else {
-          const script = document.createElement('script');
-          script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-          script.onload = () => resolve(window.Tesseract);
-          script.onerror = () => resolve(null);
-          document.body.appendChild(script);
-        }
-      });
-    };
-
-    const parseOcrText = (text, idType) => {
-      const result = {};
-      if (!text) return result;
-
-      // 1. Try to find ID Number
-      if (idType === 'AADHAAR') {
-        const aadhaarMatch = text.match(/\d{4}\s\d{4}\s\d{4}/) || text.match(/\d{12}/);
-        if (aadhaarMatch) result.idNumber = aadhaarMatch[0];
-      } else if (idType === 'PAN_CARD') {
-        const panMatch = text.match(/[A-Z]{5}\d{4}[A-Z]/i);
-        if (panMatch) result.idNumber = panMatch[0].toUpperCase();
-      } else if (idType === 'PASSPORT') {
-        const pptMatch = text.match(/[A-Z]\d{7}/i);
-        if (pptMatch) result.idNumber = pptMatch[0].toUpperCase();
-      }
-
-      // 2. Try to find DOB (Date of Birth)
-      const dobMatch = text.match(/(\d{2})[\/\-]\d{2}[\/\-]\d{4}/) || text.match(/\d{4}[\/\-]\d{2}[\/\-]\d{2}/);
-      if (dobMatch) {
-        const parts = dobMatch[0].split(/[\/\-]/);
-        if (parts[0].length === 4) {
-          result.dateOfBirth = `${parts[0]}-${parts[1]}-${parts[2]}`;
-        } else {
-          result.dateOfBirth = `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-      }
-
-      // 3. Try to find Gender
-      if (/female/i.test(text)) {
-        result.gender = 'Female';
-      } else if (/male/i.test(text)) {
-        result.gender = 'Male';
-      }
-
-      // 4. Try to find Name
-      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 3);
-      const blacklist = /government|india|election|commission|income|tax|department|permanent|account|card|father|date|birth|dob|year|male|female|address|signature/i;
-      const nameLine = lines.find(l => {
-        if (blacklist.test(l)) return false;
-        return /^[A-Za-z\s]+$/.test(l) && l.split(/\s+/).length >= 2;
-      });
-      if (nameLine) {
-        result.name = nameLine.replace(/[^A-Za-z\s]/g, '').trim();
-      }
-
-      return result;
-    };
-
-    const generateMockName = () => {
-      const firstNames = ['Amit', 'Sunita', 'Rahul', 'Deepa', 'Sanjay', 'Neha', 'Rohan', 'Pooja', 'Karan', 'Aarti'];
-      const lastNames = ['Sharma', 'Verma', 'Gupta', 'Patel', 'Singh', 'Malhotra', 'Joshi', 'Mehta', 'Nair', 'Reddy'];
-      return `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
-    };
-
-    const generateMockGender = (name) => {
-      const first = name.split(' ')[0];
-      const isFemale = ['Sunita', 'Deepa', 'Neha', 'Pooja', 'Aarti'].includes(first);
-      return isFemale ? 'Female' : 'Male';
-    };
-
-    const generateMockDob = () => {
-      const year = Math.floor(Math.random() * (2002 - 1975 + 1)) + 1975;
-      const month = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
-      const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-
-    const generateMockIdNumber = (idType) => {
-      if (idType === 'AADHAAR') {
-        return `${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)}`;
-      }
-      if (idType === 'PAN_CARD') {
-        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        const randLetter = () => letters[Math.floor(Math.random() * 26)];
-        return `${randLetter()}${randLetter()}${randLetter()}${randLetter()}${randLetter()}${Math.floor(1000 + Math.random() * 9000)}${randLetter()}`;
-      }
-      if (idType === 'PASSPORT') {
-        return `Z${Math.floor(1000000 + Math.random() * 9000000)}`;
-      }
-      return `ID-${Math.floor(100000 + Math.random() * 900000)}`;
-    };
-
-    const generateMockAddress = () => {
-      const addresses = [
-        { addr: 'A-24, Sector 62', city: 'Noida', state: 'Uttar Pradesh', pin: '201301' },
-        { addr: 'Flat 405, Block C, Green Glen Layout', city: 'Bengaluru', state: 'Karnataka', pin: '560103' },
-        { addr: '12/A, Park Street', city: 'Kolkata', state: 'West Bengal', pin: '700016' },
-        { addr: 'House No. 142, Jubilee Hills', city: 'Hyderabad', state: 'Telangana', pin: '500033' },
-        { addr: 'Flat 101, Sagar Darshan, Marine Drive', city: 'Mumbai', state: 'Maharashtra', pin: '400020' },
-      ];
-      return addresses[Math.floor(Math.random() * addresses.length)];
-    };
-
-    const applyAutofillDetails = (data) => {
-      setIdDocuments(prev => prev.map(d => d.id === docId ? { 
-        ...d, 
-        idNumber: data.idNumber,
-        guestName: docId !== 'primary' ? data.name : undefined,
-        gender: docId !== 'primary' ? data.gender : undefined,
-        dateOfBirth: docId !== 'primary' ? data.dateOfBirth : undefined,
-        address: docId !== 'primary' ? data.address.addr : undefined
-      } : d));
-
-      if (docId === 'primary') {
-        setGuestData(prev => ({
-          ...prev,
-          name: data.name,
-          gender: data.gender,
-          dateOfBirth: data.dateOfBirth,
-          address: typeof data.address === 'string' ? data.address : data.address.addr,
-          city: data.address.city || prev.city,
-          state: data.address.state || prev.state,
-          postalCode: data.address.pin || prev.postalCode,
-          country: 'India',
-          nationality: 'Indian'
-        }));
-      }
-      setScanningDocId(null);
-    };
-
-    const runMockOcr = () => {
-      const fullName = generateMockName();
-      const gender = generateMockGender(fullName);
-      const dob = generateMockDob();
-      const idNum = generateMockIdNumber(doc.idType);
-      const address = generateMockAddress();
-
-      applyAutofillDetails({
-        name: fullName,
-        gender,
-        dateOfBirth: dob,
-        idNumber: idNum,
-        address
-      });
-    };
-
-    loadTesseractAndRecognize().then((tesseract) => {
-      if (!tesseract || !frontImgUrl) {
-        runMockOcr();
-        return;
-      }
-
-      tesseract.recognize(frontImgUrl, 'eng').then(({ data: { text } }) => {
-        console.log('OCR Extracted Text:', text);
-        if (!text || text.trim().length < 5) {
-          runMockOcr();
-          return;
-        }
-
-        const parsed = parseOcrText(text, doc.idType);
-        const finalName = parsed.name || generateMockName();
-        const finalGender = parsed.gender || generateMockGender(finalName);
-        const finalDob = parsed.dateOfBirth || generateMockDob();
-        const finalIdNumber = parsed.idNumber || generateMockIdNumber(doc.idType);
-        const finalAddress = parsed.address || generateMockAddress();
-
-        applyAutofillDetails({
-          name: finalName,
-          gender: finalGender,
-          dateOfBirth: finalDob,
-          idNumber: finalIdNumber,
-          address: finalAddress
-        });
-      }).catch((err) => {
-        console.error('OCR Error:', err);
-        runMockOcr();
-      });
-    });
-  };
 
   // Step 3 data
   const [availableRooms, setAvailableRooms] = useState([]);
@@ -1719,7 +1503,7 @@ function NewReservationWizard({ onClose, onSuccess }) {
           )}
 
           {currentStep === 1 && <Step1 data={bookingData} onChange={changeBooking} roomTypes={roomTypes} />}
-          {currentStep === 2 && <Step2 guestData={guestData} onChange={changeGuest} selectedGuest={selectedGuest} onSelectGuest={setSelectedGuest} onClearGuest={() => { setSelectedGuest(null); setIdDocuments([{ id: 'primary', idType: 'AADHAAR', idNumber: '', frontUrl: '', backUrl: '', idProofUrl: '', label: 'Primary Guest ID' }]); }} idDocuments={idDocuments} setIdDocuments={setIdDocuments} scanningDocId={scanningDocId} onOcrAutofill={handleOcrAutofill} />}
+          {currentStep === 2 && <Step2 guestData={guestData} onChange={changeGuest} selectedGuest={selectedGuest} onSelectGuest={setSelectedGuest} onClearGuest={() => { setSelectedGuest(null); setIdDocuments([{ id: 'primary', idType: 'AADHAAR', idNumber: '', frontUrl: '', backUrl: '', idProofUrl: '', label: 'Primary Guest ID' }]); }} idDocuments={idDocuments} setIdDocuments={setIdDocuments} />}
           {currentStep === 3 && <Step3 availableRooms={availableRooms} selectedRoomId={selectedRoom?.id} onSelectRoom={room => { setSelectedRoom(room); if (!bookingData.ratePerNight) changeBooking('ratePerNight', room.roomType?.basePrice || ''); }} loading={roomsLoading} roomTypes={roomTypes} filterTypeId={filterTypeId} onFilterType={setFilterTypeId} />}
           {currentStep === 4 && <Step4 data={bookingData} onChange={changeBooking} selectedRoom={selectedRoom} nights={nights} />}
           {currentStep === 5 && <Step5 data={bookingData} onChange={changeBooking} />}
