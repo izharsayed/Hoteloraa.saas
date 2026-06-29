@@ -11,6 +11,7 @@ import VerifyEmail from './pages/VerifyEmail.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Reports from './pages/Reports.jsx';
 import Settings from './pages/Settings.jsx';
+import AttendanceEmployee from './pages/AttendanceEmployee.jsx';
 
 // Lodging Pages
 import Rooms from './pages/Rooms.jsx';
@@ -39,6 +40,7 @@ import AdminUsers from './pages/AdminUsers.jsx';
 import AdminRBAC from './pages/AdminRBAC.jsx';
 import AdminFeatures from './pages/AdminFeatures.jsx';
 import AdminSettings from './pages/AdminSettings.jsx';
+import AttendanceSettings from './pages/AttendanceSettings.jsx';
 
 // Captain Panel
 import Captain from './pages/Captain.jsx';
@@ -54,6 +56,8 @@ import SuperAdminLogs from './pages/SuperAdminLogs.jsx';
 
 // Manager Panel
 import Manager from './pages/Manager.jsx';
+import AttendanceManager from './pages/AttendanceManager.jsx';
+import ShiftManagement from './pages/ShiftManagement.jsx';
 
 // Permissions utility
 import { MODULE_ACCESS } from './utils/permissions.js';
@@ -311,6 +315,10 @@ function App() {
               <Route path="/" element={<Dashboard />} />
             </Route>
 
+            <Route element={<ProtectedRoute module="attendance" />}>
+              <Route path="/attendance" element={<AttendanceEmployee />} />
+            </Route>
+
             <Route element={<ProtectedRoute module="reports" />}>
               <Route path="/reports" element={<Reports />} />
             </Route>
@@ -373,6 +381,15 @@ function App() {
             {/* Manager panel (accessible to admin + manager) */}
             <Route element={<ProtectedRoute allowedRoles={['TENANT_ADMIN', 'MANAGER']} />}>
               <Route path="/manager" element={<Manager />} />
+            </Route>
+
+            <Route element={<ProtectedRoute module="attendance_manager" />}>
+              <Route path="/attendance/manager" element={<AttendanceManager />} />
+              <Route path="/attendance/settings" element={<AttendanceSettings />} />
+            </Route>
+
+            <Route element={<ProtectedRoute module="shifts" />}>
+              <Route path="/shifts" element={<ShiftManagement />} />
             </Route>
 
           </Route>

@@ -28,6 +28,8 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
+  Clock,
+  MapPin,
 } from 'lucide-react';
 import { MODULE_ACCESS } from '../utils/permissions';
 import api from '../utils/api.js';
@@ -55,6 +57,7 @@ function Sidebar({ collapsed, onToggle }) {
       category: 'General',
       items: [
         { name: 'Dashboard',          path: '/',        icon: LayoutDashboard, module: 'dashboard' },
+        { name: 'My Attendance',      path: '/attendance', icon: Clock,           module: 'attendance' },
         { name: 'Reports & Analytics', path: '/reports', icon: TrendingUp,      module: 'reports' },
       ]
     },
@@ -99,6 +102,9 @@ function Sidebar({ collapsed, onToggle }) {
     {
       category: 'Administration',
       items: [
+        { name: 'Staff Attendance',    path: '/attendance/manager', icon: UserCheck, module: 'attendance_manager' },
+        { name: 'Shift Management',    path: '/shifts',      icon: CalendarRange, module: 'shifts' },
+        { name: 'Attendance Settings', path: '/attendance/settings', icon: MapPin, module: 'attendance_manager' },
         { name: 'Platform Settings',   path: '/settings',    icon: Settings,    module: 'settings' },
         { name: 'User Management',     path: '/admin/users', icon: UserCog,     module: 'users' },
         { name: 'Roles & Permissions', path: '/admin/rbac',  icon: Shield,      module: 'roles' },
