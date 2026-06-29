@@ -1069,11 +1069,28 @@ function Step4({ data, onChange, selectedRoom, nights }) {
 
 // ─── Step 5: Additional Information ──────────────────────────────────────────
 
+const SERVICE_CHARGES = {
+  'Extra Bed': 1000,
+  'Airport Pickup': 1500,
+  'Anniversary Decoration': 2000,
+  'Birthday Decoration': 1500,
+  'Early Check-in': 500,
+  'Late Check-in': 500,
+  'Sea View': 1000,
+};
+
 function Step5({ data, onChange }) {
   const toggleRequest = (req) => {
     const current = data.specialRequests || [];
     const next = current.includes(req) ? current.filter(r => r !== req) : [...current, req];
     onChange('specialRequests', next);
+
+    // Calculate sum of extra service charges
+    let extraSum = 0;
+    next.forEach(r => {
+      extraSum += SERVICE_CHARGES[r] || 0;
+    });
+    onChange('extraCharges', extraSum);
   };
 
   return (
@@ -1089,11 +1106,14 @@ function Step5({ data, onChange }) {
         <div className="flex flex-wrap gap-2">
           {SPECIAL_REQUESTS.map(req => {
             const active = (data.specialRequests || []).includes(req);
+            const charge = SERVICE_CHARGES[req] || 0;
             return (
               <button key={req} type="button" onClick={() => toggleRequest(req)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all active:scale-95
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all active:scale-95 flex items-center gap-1
                   ${active ? 'bg-navy text-white border-navy' : 'bg-white border-border-cream text-slate hover:border-gold/50 hover:text-navy'}`}>
-                {active && <span className="mr-1">✓</span>}{req}
+                {active && <span>✓</span>}
+                <span>{req}</span>
+                {charge > 0 && <span className={`text-[10px] font-bold ${active ? 'text-gold' : 'text-slate/60'}`}>(+₹{charge})</span>}
               </button>
             );
           })}
