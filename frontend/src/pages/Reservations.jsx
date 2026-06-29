@@ -641,7 +641,7 @@ function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest
               </div>
               <button type="button" onClick={addIdDocument}
                 className="flex items-center gap-1.5 px-3 py-1 bg-navy/5 text-navy hover:bg-navy/10 border border-navy/20 rounded-xl text-xs font-bold transition-all active:scale-95">
-                <Plus className="w-3.5 h-3.5" /> Add Co-Guest ID
+                <UserPlus className="w-3.5 h-3.5 text-gold" /> Add Co-Guest
               </button>
             </div>
 
@@ -681,14 +681,31 @@ function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest
                   </div>
 
                   {idx > 0 && (
-                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border-cream/40">
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate">Co-Guest Name *</label>
-                        <input type="text" placeholder="Co-guest full name" value={doc.guestName || ''}
-                          onChange={e => updateDocField(doc.id, 'guestName', e.target.value)}
-                          className="w-full px-3 py-2 border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold bg-cream/20 text-xs font-semibold transition-all" />
+                    <div className="space-y-3 pt-3 border-t border-border-cream/40">
+                      {/* Name & Phone */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate">Full Name *</label>
+                          <input type="text" placeholder="Co-guest full name" value={doc.guestName || ''}
+                            onChange={e => updateDocField(doc.id, 'guestName', e.target.value)}
+                            className="w-full px-3 py-2 border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold bg-cream/20 text-xs font-semibold transition-all" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate">Mobile Number *</label>
+                          <input type="tel" placeholder="Co-guest phone number" value={doc.phone || ''}
+                            onChange={e => updateDocField(doc.id, 'phone', e.target.value)}
+                            className="w-full px-3 py-2 border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold bg-cream/20 text-xs font-semibold transition-all" />
+                        </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
+
+                      {/* Email, Gender, DOB */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="space-y-1 col-span-1">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate">Email</label>
+                          <input type="email" placeholder="Email address" value={doc.email || ''}
+                            onChange={e => updateDocField(doc.id, 'email', e.target.value)}
+                            className="w-full px-3 py-2 border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold bg-cream/20 text-xs font-semibold transition-all" />
+                        </div>
                         <div className="space-y-1">
                           <label className="block text-[10px] font-bold uppercase tracking-wider text-slate">Gender</label>
                           <select value={doc.gender || ''} onChange={e => updateDocField(doc.id, 'gender', e.target.value)}
@@ -1430,7 +1447,10 @@ function NewReservationWizard({ onClose, onSuccess }) {
       ].join(', ');
 
       const coGuestInfos = idDocuments.slice(1).map((doc, idx) => {
-        const profile = doc.guestName ? `${doc.guestName} (${doc.gender || 'N/A'}, DOB: ${doc.dateOfBirth || 'N/A'})` : 'Unnamed';
+        const contact = [doc.phone && `Ph: ${doc.phone}`, doc.email && `Em: ${doc.email}`].filter(Boolean).join(', ');
+        const profile = doc.guestName 
+          ? `${doc.guestName} (${doc.gender || 'N/A'}, DOB: ${doc.dateOfBirth || 'N/A'}${contact ? `, ${contact}` : ''})` 
+          : 'Unnamed';
         return `[Co-Guest ${idx + 1}: ${profile} - ID: ${doc.idType} ${doc.idNumber || 'N/A'} (Img: ${doc.idProofUrl || 'N/A'})]`;
       });
       if (coGuestInfos.length > 0) {
