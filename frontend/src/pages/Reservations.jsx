@@ -1553,6 +1553,65 @@ function NewReservationWizard({ onClose, onSuccess }) {
   );
 }
 
+// ─── Parsers for Co-Guest Info in Special Request ─────────────────────────────
+
+const parseCoGuestsFromSpecialRequest = (specialRequestStr) => {
+  if (!specialRequestStr) return [];
+  const coGuests = [];
+  const regex = /\[Co-Guest (\d+):\s*([^\(]+)\s*\(([^\)]+)\)\s*-\s*ID:\s*([^\s]+)\s*([^(\[]*)(?:\(Img:\s*([^\)]+)\))?\]/g;
+  let match;
+  
+  while ((match = regex.exec(specialRequestStr)) !== null) {
+    const num = match[1];
+    const name = match[2].trim();
+    const detailsPart = match[3];
+    const idType = match[4].trim();
+    const idNumber = match[5].trim();
+    const idProofUrl = match[6] ? match[6].trim() : '';
+    
+    let gender = 'N/A';
+    let dob = 'N/A';
+    let phone = 'N/A';
+    let email = 'N/A';
+    
+    const details = detailsPart.split(',').map(d => d.trim());
+    if (details.length > 0) {
+      if (details[0] === 'Male' || details[0] === 'Female' || details[0] === 'Other') {
+        gender = details[0];
+      }
+      
+      details.forEach(item => {
+        if (item.startsWith('DOB:')) {
+          dob = item.replace('DOB:', '').trim();
+        } else if (item.startsWith('Ph:')) {
+          phone = item.replace('Ph:', '').trim();
+        } else if (item.startsWith('Em:')) {
+          email = item.replace('Em:', '').trim();
+        }
+      });
+    }
+    
+    coGuests.push({
+      num,
+      name: name === 'N/A' || name === 'Unnamed' ? '' : name,
+      gender,
+      dob: dob === 'N/A' ? '' : dob,
+      phone: phone === 'N/A' ? '' : phone,
+      email: email === 'N/A' ? '' : email,
+      idType,
+      idNumber: idNumber.trim() === 'N/A' ? '' : idNumber.trim(),
+      idProofUrl
+    });
+  }
+  
+  return coGuests;
+};
+
+const cleanSpecialRequests = (text) => {
+  if (!text) return '';
+  return text.replace(/\[Co-Guest[^\]]+\]/g, '').replace(/^[,\s]+|[,\s]+$/g, '').trim();
+};
+
 // ─── Main Reservations Page ───────────────────────────────────────────────────
 
 function Reservations() {
@@ -1857,10 +1916,10 @@ function Reservations() {
                                 <p><strong className="text-charcoal font-semibold">Purpose:</strong> {b.purposeOfVisit || 'N/A'}</p>
                                 {b.vehicleNumber && <p><strong className="text-charcoal font-semibold">Vehicle No:</strong> {b.vehicleNumber}</p>}
                                 {b.companyName && <p><strong className="text-charcoal font-semibold">Company:</strong> {b.companyName} {b.gstNumber ? `(GST: ${b.gstNumber})` : ''}</p>}
-                                {b.specialRequest && (
+                                {cleanSpecialRequests(b.specialRequest) && (
                                   <div className="mt-2 p-2 bg-cream/20 border border-border-cream/40 rounded-xl space-y-1">
-                                    <span className="text-[9px] font-bold text-navy uppercase tracking-wider block">Special Requests / Co-Guests</span>
-                                    <span className="text-[10px] font-semibold text-slate block leading-relaxed">{b.specialRequest}</span>
+                                    <span className="text-[9px] font-bold text-navy uppercase tracking-wider block">Special Requests</span>
+                                    <span className="text-[10px] font-semibold text-slate block leading-relaxed">{cleanSpecialRequests(b.specialRequest)}</span>
                                   </div>
                                 )}
                               </div>
@@ -1903,6 +1962,48 @@ function Reservations() {
                               </div>
                             </div>
                           </div>
+
+                          {/* Co-Guests Dedicated Section */}
+                          {(() => {
+                            const coGuests = parseCoGuestsFromSpecialRequest(b.specialRequest);
+                            if (coGuests.length === 0) return null;
+                            return (
+                              <div className="mt-5 pt-4 border-t border-border-cream/40 space-y-3">
+                                <h4 className="font-bold text-navy uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                                  <Users className="w-3.5 h-3.5 text-gold" /> Co-Guests Information ({coGuests.length})
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  {coGuests.map(cg => (
+                                    <div key={cg.num} className="bg-cream/10 border border-border-cream/50 rounded-2xl p-4 flex gap-4 items-start shadow-sm hover:border-gold/45 transition-colors">
+                                      <div className="w-9 h-9 rounded-full bg-navy/10 text-navy flex items-center justify-center font-bold text-xs flex-shrink-0">
+                                        {cg.name?.[0]?.toUpperCase() || 'C'}
+                                      </div>
+                                      <div className="flex-1 min-w-0 space-y-1">
+                                        <h5 className="font-bold text-navy text-xs truncate">{cg.name || 'Unnamed Co-Guest'}</h5>
+                                        <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] text-slate">
+                                          <p><span className="font-semibold text-charcoal">Phone:</span> {cg.phone || 'N/A'}</p>
+                                          <p><span className="font-semibold text-charcoal">Email:</span> {cg.email || 'N/A'}</p>
+                                          <p><span className="font-semibold text-charcoal">Gender:</span> {cg.gender || 'N/A'}</p>
+                                          <p><span className="font-semibold text-charcoal">DOB:</span> {cg.dob || 'N/A'}</p>
+                                          <p className="col-span-2"><span className="font-semibold text-charcoal">ID:</span> {cg.idType} - {cg.idNumber || 'N/A'}</p>
+                                        </div>
+                                      </div>
+                                      {cg.idProofUrl && cg.idProofUrl !== 'N/A' && (
+                                        <a href={`http://localhost:5000${cg.idProofUrl}`} target="_blank" rel="noreferrer"
+                                          className="group relative w-20 h-14 border border-border-cream rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm hover:border-gold transition-all">
+                                          <img src={`http://localhost:5000${cg.idProofUrl}`} alt="Co-guest ID"
+                                            className="w-full h-full object-contain group-hover:scale-105 transition-all duration-300" />
+                                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all text-white text-[8px] font-bold">
+                                            View
+                                          </div>
+                                        </a>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </td>
                       </tr>
                     )}
