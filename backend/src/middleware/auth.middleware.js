@@ -109,17 +109,23 @@ const checkStaticRoleFallback = (role, module, action) => {
     KOT: ['CREATE', 'READ', 'UPDATE'],
     TABLES: ['READ', 'UPDATE'],
     POS: ['CREATE', 'READ'],
+    ATTENDANCE: ['CREATE', 'READ'],
+    SHIFTS: ['READ'],
   };
 
   const chefPerms = {
     MENU: ['READ'],
     KOT: ['READ', 'UPDATE'],
     ORDERS: ['READ'],
+    ATTENDANCE: ['CREATE', 'READ'],
+    SHIFTS: ['READ'],
   };
 
   const housekeeperPerms = {
     ROOMS: ['READ'],
     HOUSEKEEPING: ['CREATE', 'READ', 'UPDATE'],
+    ATTENDANCE: ['CREATE', 'READ'],
+    SHIFTS: ['READ'],
   };
 
   const receptionistPerms = {
@@ -132,6 +138,8 @@ const checkStaticRoleFallback = (role, module, action) => {
     CHECKOUT: ['CREATE', 'READ', 'UPDATE'],
     PAYMENTS: ['CREATE', 'READ'],
     FOLIO: ['CREATE', 'READ', 'UPDATE'],
+    ATTENDANCE: ['CREATE', 'READ'],
+    SHIFTS: ['READ'],
   };
 
   const cashierPerms = {
@@ -141,6 +149,8 @@ const checkStaticRoleFallback = (role, module, action) => {
     BILLING: ['CREATE', 'READ', 'UPDATE'],
     PAYMENTS: ['CREATE', 'READ'],
     POS: ['CREATE', 'READ', 'UPDATE'],
+    ATTENDANCE: ['CREATE', 'READ'],
+    SHIFTS: ['READ'],
   };
 
   const accountantPerms = {
@@ -152,6 +162,8 @@ const checkStaticRoleFallback = (role, module, action) => {
     BILLING: ['READ'],
     PAYMENTS: ['READ'],
     FOLIO: ['READ'],
+    ATTENDANCE: ['CREATE', 'READ'],
+    SHIFTS: ['READ'],
   };
 
   const managerPerms = {
@@ -177,6 +189,8 @@ const checkStaticRoleFallback = (role, module, action) => {
     PURCHASES: ['CREATE', 'READ', 'UPDATE', 'DELETE'],
     POS: ['CREATE', 'READ', 'UPDATE', 'DELETE'],
     USERS: ['READ'],
+    ATTENDANCE: ['CREATE', 'READ', 'UPDATE', 'DELETE'],
+    SHIFTS: ['CREATE', 'READ', 'UPDATE', 'DELETE'],
   };
 
   let allowedActions = [];

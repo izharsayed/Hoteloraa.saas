@@ -191,6 +191,12 @@ model Tenant {
   notifications Notification[]
   floors        Floor[]
 
+  // Attendance relations (new)
+  shifts             Shift[]
+  attendanceSettings AttendanceSettings?
+  attendance         Attendance[]
+  attendanceLogs     AttendanceLog[]
+
   @@map("tenants")
 }
 
@@ -306,6 +312,10 @@ model User {
   payments     Payment[]
   passwordResetTokens PasswordResetToken[]
   notifications Notification[]
+
+  // Attendance relations (new)
+  attendance      Attendance[]    @relation("AttendanceEmployee")
+  employeeShifts  EmployeeShift[] @relation("ShiftEmployee")
 
   @@unique([tenantId, email])
   @@map("users")
@@ -867,4 +877,187 @@ model Notification {
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
+}
+
+// ============================================================
+// ATTENDANCE ENUMS
+// ============================================================
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  HALF_DAY
+  EARLY_LEAVE
+  OVERTIME
+  MISSED_CHECKOUT
+  ON_LEAVE
+  HOLIDAY
+  WEEK_OFF
+}
+
+enum AttendanceMethod {
+  GPS
+  MANUAL
+  AUTO_CHECKOUT
+}
+
+enum ShiftStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum WeekDay {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+  SUN
+}
+
+// ============================================================
+// SHIFTS
+// ============================================================
+
+model Shift {
+  id                    String      @id @default(uuid())
+  tenantId              String
+  name                  String
+  startTime             String      // "09:00" HH:mm
+  endTime               String      // "18:00" HH:mm
+  gracePeriodMinutes    Int         @default(15)
+  breakDurationMinutes  Int         @default(60)
+  totalWorkingHours     Float       @default(8)
+  autoCheckoutTime      String?     // "23:00" HH:mm — auto checkout if employee forgets
+  weeklyOffDays         WeekDay[]   @default([])
+  description           String?
+  status                ShiftStatus @default(ACTIVE)
+  createdById           String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employeeShifts  EmployeeShift[]
+  attendance      Attendance[]
+
+  @@map("shifts")
+}
+
+// ============================================================
+// EMPLOYEE SHIFT ASSIGNMENTS
+// ============================================================
+
+model EmployeeShift {
+  id            String    @id @default(uuid())
+  tenantId      String
+  userId        String
+  shiftId       String
+  effectiveFrom DateTime  @default(now())
+  effectiveTo   DateTime?
+  assignedById  String?
+  createdAt     DateTime  @default(now())
+
+  user       User  @relation("ShiftEmployee", fields: [userId], references: [id], onDelete: Cascade)
+  shift      Shift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+
+  @@index([userId, tenantId])
+  @@index([shiftId])
+  @@map("employee_shifts")
+}
+
+// ============================================================
+// ATTENDANCE SETTINGS (Per Tenant)
+// ============================================================
+
+model AttendanceSettings {
+  id                      String  @id @default(uuid())
+  tenantId                String  @unique
+  locationName            String? // e.g. "Main Branch"
+  latitude                Float?  // Branch GPS latitude
+  longitude               Float?  // Branch GPS longitude
+  allowedRadiusMeters     Int     @default(200)
+  isGeoFenceEnabled       Boolean @default(true)
+  isAutoCheckoutEnabled   Boolean @default(true)
+  allowManualAttendance   Boolean @default(false)
+  updatedAt               DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("attendance_settings")
+}
+
+// ============================================================
+// ATTENDANCE RECORDS
+// ============================================================
+
+model Attendance {
+  id                  String           @id @default(uuid())
+  tenantId            String
+  userId              String
+  shiftId             String?
+  date                DateTime         // Date only (stored at 00:00:00 UTC)
+  checkInTime         DateTime?
+  checkOutTime        DateTime?
+  checkInLat          Float?
+  checkInLng          Float?
+  checkInAccuracy     Float?           // GPS accuracy in meters
+  checkOutLat         Float?
+  checkOutLng         Float?
+  checkOutAccuracy    Float?
+  checkInIp           String?
+  checkInDevice       String?          // JSON: { browser, os, device }
+  method              AttendanceMethod @default(GPS)
+  status              AttendanceStatus @default(PRESENT)
+  workingHoursMinutes Int?             // Computed at checkout
+  overtimeMinutes     Int?             // Computed at checkout
+  lateMinutes         Int?             // Computed at check-in
+  isManual            Boolean          @default(false)
+  manualReason        String?          // Required when isManual=true
+  manuallyById        String?          // Who added/edited manually
+  isApproved          Boolean?         // null=pending, true=approved, false=rejected
+  approvedById        String?
+  approvedAt          DateTime?
+  notes               String?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user    User    @relation("AttendanceEmployee", fields: [userId], references: [id], onDelete: Cascade)
+  shift   Shift?  @relation(fields: [shiftId], references: [id])
+  logs    AttendanceLog[]
+
+  @@unique([userId, date])  // One attendance record per employee per day
+  @@index([tenantId, date])
+  @@index([tenantId, userId])
+  @@index([status])
+  @@map("attendance")
+}
+
+// ============================================================
+// ATTENDANCE AUDIT LOGS
+// ============================================================
+
+model AttendanceLog {
+  id           String    @id @default(uuid())
+  tenantId     String
+  attendanceId String?
+  userId       String    // Who performed the action
+  action       String    // CHECKIN | CHECKOUT | MANUAL_ADD | MANUAL_EDIT | APPROVED | REJECTED | AUTO_CHECKOUT | GEOFENCE_VIOLATION | GPS_FAILURE | SHIFT_ASSIGNED | SHIFT_REMOVED
+  description  String
+  previousData Json?
+  newData      Json?
+  ipAddress    String?
+  deviceInfo   String?
+  lat          Float?
+  lng          Float?
+  createdAt    DateTime  @default(now())
+
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  attendance Attendance? @relation(fields: [attendanceId], references: [id])
+
+  @@index([attendanceId])
+  @@index([tenantId, userId])
+  @@map("attendance_logs")
 }
