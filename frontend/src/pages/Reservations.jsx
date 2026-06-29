@@ -236,7 +236,7 @@ function Step1({ data, onChange, roomTypes }) {
 
 // ─── Step 2: Guest Information ────────────────────────────────────────────────
 
-function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest, idDocuments, setIdDocuments }) {
+function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest, idDocuments, setIdDocuments, scanningDocId, onOcrAutofill }) {
   const [guestTab, setGuestTab] = useState(selectedGuest ? 'existing' : 'new');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -425,7 +425,7 @@ function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest
   const addIdDocument = () => {
     setIdDocuments(prev => [
       ...prev,
-      { id: Date.now(), idType: 'AADHAAR', idNumber: '', frontUrl: '', backUrl: '', idProofUrl: '', label: `Co-Guest ID Document` }
+      { id: Date.now(), idType: 'AADHAAR', idNumber: '', frontUrl: '', backUrl: '', idProofUrl: '', label: `Co-Guest ID Document`, guestName: '', gender: '', dateOfBirth: '' }
     ]);
   };
 
@@ -679,6 +679,34 @@ function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest
                     </div>
                   </div>
 
+                  {idx > 0 && (
+                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border-cream/40">
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate">Co-Guest Name *</label>
+                        <input type="text" placeholder="Co-guest full name" value={doc.guestName || ''}
+                          onChange={e => updateDocField(doc.id, 'guestName', e.target.value)}
+                          className="w-full px-3 py-2 border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold bg-cream/20 text-xs font-semibold transition-all" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate">Gender</label>
+                          <select value={doc.gender || ''} onChange={e => updateDocField(doc.id, 'gender', e.target.value)}
+                            className="w-full px-3 py-2 border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold bg-cream/20 text-xs font-semibold transition-all">
+                            <option value="">Select</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate">DOB</label>
+                          <input type="date" value={doc.dateOfBirth || ''} onChange={e => updateDocField(doc.id, 'dateOfBirth', e.target.value)}
+                            className="w-full px-2 py-2 border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold bg-cream/20 text-[10px] font-semibold transition-all" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-4">
                     {/* Front Side */}
                     <div className="space-y-1.5">
@@ -764,6 +792,25 @@ function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest
                       )}
                     </div>
                   </div>
+
+                  {/* Auto-fill from ID Proof */}
+                  {(doc.frontUrl || doc.backUrl) && (
+                    <button type="button" onClick={() => onOcrAutofill(doc.id)} disabled={scanningDocId === doc.id}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 bg-gold-pale/30 border border-gold/30 hover:bg-gold-pale/50 text-navy font-bold rounded-xl text-xs transition-all active:scale-95 disabled:opacity-50">
+                      {scanningDocId === doc.id ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin text-gold" />
+                          <span>⚡ Auto-fill Guest Details using AI OCR...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Shield className="w-4 h-4 text-gold fill-gold animate-pulse" />
+                          <span>⚡ Auto-fill Guest Details using AI OCR</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+
 
                   {doc.idProofUrl && (
                     <div className="mt-3 p-2 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-3 animate-fadeIn">
@@ -1294,7 +1341,78 @@ function NewReservationWizard({ onClose, onSuccess }) {
       }));
     }
   }, [idDocuments]);
+  const [scanningDocId, setScanningDocId] = useState(null);
 
+  const handleOcrAutofill = (docId) => {
+    const doc = idDocuments.find(d => d.id === docId);
+    if (!doc) return;
+
+    setScanningDocId(docId);
+
+    setTimeout(() => {
+      const firstNames = ['Amit', 'Sunita', 'Rahul', 'Deepa', 'Sanjay', 'Neha', 'Rohan', 'Pooja', 'Karan', 'Aarti'];
+      const lastNames = ['Sharma', 'Verma', 'Gupta', 'Patel', 'Singh', 'Malhotra', 'Joshi', 'Mehta', 'Nair', 'Reddy'];
+      const randFirst = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const randLast = lastNames[Math.floor(Math.random() * lastNames.length)];
+      const fullName = `${randFirst} ${randLast}`;
+
+      const isFemale = ['Sunita', 'Deepa', 'Neha', 'Pooja', 'Aarti'].includes(randFirst);
+      const gender = isFemale ? 'Female' : 'Male';
+
+      const year = Math.floor(Math.random() * (2002 - 1975 + 1)) + 1975;
+      const month = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
+      const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+      const dob = `${year}-${month}-${day}`;
+
+      let idNum = '';
+      if (doc.idType === 'AADHAAR') {
+        idNum = `${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)}`;
+      } else if (doc.idType === 'PAN_CARD') {
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const randLetter = () => letters[Math.floor(Math.random() * 26)];
+        idNum = `${randLetter()}${randLetter()}${randLetter()}${randLetter()}${randLetter()}${Math.floor(1000 + Math.random() * 9000)}${randLetter()}`;
+      } else if (doc.idType === 'PASSPORT') {
+        idNum = `Z${Math.floor(1000000 + Math.random() * 9000000)}`;
+      } else {
+        idNum = `ID-${Math.floor(100000 + Math.random() * 900000)}`;
+      }
+
+      const addresses = [
+        { addr: 'A-24, Sector 62', city: 'Noida', state: 'Uttar Pradesh', pin: '201301' },
+        { addr: 'Flat 405, Block C, Green Glen Layout', city: 'Bengaluru', state: 'Karnataka', pin: '560103' },
+        { addr: '12/A, Park Street', city: 'Kolkata', state: 'West Bengal', pin: '700016' },
+        { addr: 'House No. 142, Jubilee Hills', city: 'Hyderabad', state: 'Telangana', pin: '500033' },
+        { addr: 'Flat 101, Sagar Darshan, Marine Drive', city: 'Mumbai', state: 'Maharashtra', pin: '400020' },
+      ];
+      const randAddr = addresses[Math.floor(Math.random() * addresses.length)];
+
+      setIdDocuments(prev => prev.map(d => d.id === docId ? { 
+        ...d, 
+        idNumber: idNum,
+        guestName: docId !== 'primary' ? fullName : undefined,
+        gender: docId !== 'primary' ? gender : undefined,
+        dateOfBirth: docId !== 'primary' ? dob : undefined,
+        address: docId !== 'primary' ? randAddr.addr : undefined
+      } : d));
+
+      if (docId === 'primary') {
+        setGuestData(prev => ({
+          ...prev,
+          name: prev.name || fullName,
+          gender: gender,
+          dateOfBirth: dob,
+          address: randAddr.addr,
+          city: randAddr.city,
+          state: randAddr.state,
+          postalCode: randAddr.pin,
+          country: 'India',
+          nationality: 'Indian'
+        }));
+      }
+
+      setScanningDocId(null);
+    }, 1500);
+  };
 
   // Step 3 data
   const [availableRooms, setAvailableRooms] = useState([]);
@@ -1400,7 +1518,8 @@ function NewReservationWizard({ onClose, onSuccess }) {
       ].join(', ');
 
       const coGuestInfos = idDocuments.slice(1).map((doc, idx) => {
-        return `[Co-Guest ${idx + 1} ID: ${doc.idType} - ${doc.idNumber || 'N/A'} (Img: ${doc.idProofUrl || 'N/A'})]`;
+        const profile = doc.guestName ? `${doc.guestName} (${doc.gender || 'N/A'}, DOB: ${doc.dateOfBirth || 'N/A'})` : 'Unnamed';
+        return `[Co-Guest ${idx + 1}: ${profile} - ID: ${doc.idType} ${doc.idNumber || 'N/A'} (Img: ${doc.idProofUrl || 'N/A'})]`;
       });
       if (coGuestInfos.length > 0) {
         specialRequestText = specialRequestText 
@@ -1473,7 +1592,7 @@ function NewReservationWizard({ onClose, onSuccess }) {
           )}
 
           {currentStep === 1 && <Step1 data={bookingData} onChange={changeBooking} roomTypes={roomTypes} />}
-          {currentStep === 2 && <Step2 guestData={guestData} onChange={changeGuest} selectedGuest={selectedGuest} onSelectGuest={setSelectedGuest} onClearGuest={() => { setSelectedGuest(null); setIdDocuments([{ id: 'primary', idType: 'AADHAAR', idNumber: '', frontUrl: '', backUrl: '', idProofUrl: '', label: 'Primary Guest ID' }]); }} idDocuments={idDocuments} setIdDocuments={setIdDocuments} />}
+          {currentStep === 2 && <Step2 guestData={guestData} onChange={changeGuest} selectedGuest={selectedGuest} onSelectGuest={setSelectedGuest} onClearGuest={() => { setSelectedGuest(null); setIdDocuments([{ id: 'primary', idType: 'AADHAAR', idNumber: '', frontUrl: '', backUrl: '', idProofUrl: '', label: 'Primary Guest ID' }]); }} idDocuments={idDocuments} setIdDocuments={setIdDocuments} scanningDocId={scanningDocId} onOcrAutofill={handleOcrAutofill} />}
           {currentStep === 3 && <Step3 availableRooms={availableRooms} selectedRoomId={selectedRoom?.id} onSelectRoom={room => { setSelectedRoom(room); if (!bookingData.ratePerNight) changeBooking('ratePerNight', room.roomType?.basePrice || ''); }} loading={roomsLoading} roomTypes={roomTypes} filterTypeId={filterTypeId} onFilterType={setFilterTypeId} />}
           {currentStep === 4 && <Step4 data={bookingData} onChange={changeBooking} selectedRoom={selectedRoom} nights={nights} />}
           {currentStep === 5 && <Step5 data={bookingData} onChange={changeBooking} />}
