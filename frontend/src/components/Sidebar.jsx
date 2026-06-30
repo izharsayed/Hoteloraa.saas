@@ -86,6 +86,7 @@ function Sidebar({ collapsed, onToggle }) {
     },
     {
       category: 'Captain Dashboard',
+      businessTypes: ['RESTAURANT', 'HOTEL_RESTAURANT'],
       items: [
         { name: 'New Order (POS)',          path: '/captain',         icon: UtensilsCrossed, roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
         { name: 'Active Orders & History',  path: '/captain/history', icon: ClipboardList,   roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },

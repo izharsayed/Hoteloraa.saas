@@ -25,70 +25,6 @@ const demoRoles = [
     badge: 'SA',
     desc: 'Full SaaS control',
   },
-  {
-    name: 'Tenant Admin',
-    email: 'admin@royalpalace.com',
-    password: 'password123',
-    color: 'from-amber-500 to-yellow-600',
-    badge: 'TA',
-    desc: 'Property owner',
-  },
-  {
-    name: 'Manager',
-    email: 'faisal@royalpalace.com',
-    password: 'password123',
-    color: 'from-blue-600 to-cyan-600',
-    badge: 'MG',
-    desc: 'All operations',
-  },
-  {
-    name: 'Receptionist',
-    email: 'priya@royalpalace.com',
-    password: 'password123',
-    color: 'from-teal-500 to-emerald-600',
-    badge: 'RC',
-    desc: 'Front desk & rooms',
-  },
-  {
-    name: 'Cashier',
-    email: 'mustkim@caferoma.com',
-    password: 'password123',
-    color: 'from-green-500 to-lime-600',
-    badge: 'CA',
-    desc: 'POS & billing',
-  },
-  {
-    name: 'Captain',
-    email: 'ravi@royalpalace.com',
-    password: 'password123',
-    color: 'from-orange-500 to-amber-500',
-    badge: 'WT',
-    desc: 'Tables & orders',
-  },
-  {
-    name: 'Kitchen Staff',
-    email: 'tanvir@royalpalace.com',
-    password: 'password123',
-    color: 'from-red-500 to-orange-600',
-    badge: 'KS',
-    desc: 'KOT monitor',
-  },
-  {
-    name: 'Housekeeping',
-    email: 'sunita@royalpalace.com',
-    password: 'password123',
-    color: 'from-sky-500 to-blue-500',
-    badge: 'HK',
-    desc: 'Room cleaning',
-  },
-  {
-    name: 'Accountant',
-    email: 'rahul@royalpalace.com',
-    password: 'password123',
-    color: 'from-violet-500 to-purple-600',
-    badge: 'AC',
-    desc: 'Reports & inventory',
-  },
 ];
 
 // ─── Sub-component: Step 2 — Request Reset Code ──────────────────────────────
@@ -705,7 +641,7 @@ function Login() {
               </div>
 
               <p className="text-[9px] text-slate-800 font-bold text-center mt-3">
-                Select a role to instantly log in · All passwords: <span className="font-mono font-extrabold text-navy">password123</span>
+                Select Super Admin to instantly log in
               </p>
             </>
           )}
