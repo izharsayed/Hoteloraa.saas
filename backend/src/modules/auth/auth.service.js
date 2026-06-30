@@ -149,9 +149,9 @@ const login = async (dto) => {
   if (!isValid) throw _errormiddleware.createError.call(void 0, 'Invalid credentials', 401);
 
   // Check if email is verified
-  if (!user.isEmailVerified) {
-    throw _errormiddleware.createError.call(void 0, 'Please verify your email address to log in.', 403);
-  }
+  // if (!user.isEmailVerified) {
+  //   throw _errormiddleware.createError.call(void 0, 'Please verify your email address to log in.', 403);
+  // }
 
   await _database2.default.user.update({ where: { id: user.id }, data: { lastLogin: new Date() } });
 
