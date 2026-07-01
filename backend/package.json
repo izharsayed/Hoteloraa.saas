@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "build": "prisma generate",
+    "postinstall": "prisma generate",
     "seed": "node prisma/seed.js",
+    "seed:prod": "node prisma/prod-seed.js",
     "seed:reset": "cross-env FORCE_RESET=true node prisma/seed.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

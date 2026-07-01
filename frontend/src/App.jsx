@@ -293,7 +293,7 @@ function ProtectedRoute({ allowedRoles, module: moduleKey }) {
 // --------------------------------------------------------------------------
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         {/* ---- Auth ---- */}
         <Route path="/login" element={<Login />} />

@@ -6,7 +6,7 @@ var _helpers = require('../../shared/helpers');
  const generateReport = async (req, res, next) => {
   try {
     const tenantId = req.user.tenantId;
-    const result = await reportsService.generateReport(tenantId, req.query );
+    const result = await reportsService.generateReport(tenantId, req.query);
     _helpers.sendSuccess.call(void 0, res, result, 'Report generated and saved successfully');
   } catch (err) {
     next(err);
@@ -22,3 +22,25 @@ var _helpers = require('../../shared/helpers');
     next(err);
   }
 }; exports.getSavedReports = getSavedReports;
+
+// GET /reports/dashboard — read-only, no DB write, returns all KPIs in one shot
+ const getDashboard = async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenantId;
+    const today = new Date();
+    const endDateStr = today.toISOString().split('T')[0];
+    const startDate = new Date();
+    startDate.setDate(today.getDate() - 6);
+    const startDateStr = startDate.toISOString().split('T')[0];
+
+    const [occupancy, revenue, sales] = await Promise.all([
+      reportsService.getOccupancyReport(tenantId, startDateStr, endDateStr),
+      reportsService.getRevenueReport(tenantId, startDateStr, endDateStr),
+      reportsService.getDailySalesReport(tenantId, startDateStr, endDateStr),
+    ]);
+
+    _helpers.sendSuccess.call(void 0, res, { occupancy, revenue, sales }, 'Dashboard data loaded');
+  } catch (err) {
+    next(err);
+  }
+}; exports.getDashboard = getDashboard;

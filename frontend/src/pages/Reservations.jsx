@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import api from '../utils/api';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -1635,6 +1636,7 @@ const cleanSpecialRequests = (text) => {
 // ─── Main Reservations Page ───────────────────────────────────────────────────
 
 function Reservations() {
+  const navigate = useNavigate();
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [bookings, setBookings] = useState([]);
@@ -1857,7 +1859,7 @@ function Reservations() {
                             </button>
                           )}
                           {b.status === 'CHECKED_IN' && (
-                            <button onClick={() => handleStatusChange(b.id, 'CHECKED_OUT')} disabled={isBusy}
+                            <button onClick={() => navigate('/checkout', { state: { roomId: b.room?.id } })} disabled={isBusy}
                               className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-bold hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50 whitespace-nowrap">
                               Check Out
                             </button>
