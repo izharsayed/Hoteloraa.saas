@@ -21,7 +21,8 @@ const validateQuery = (schema) => (req, res, next) => {
   next();
 };
 
-router.get('/',      _authmiddleware.checkPermission.call(void 0, 'REPORTS', 'READ'), validateQuery(_reportsdto.reportQuerySchema), reportsController.generateReport);
-router.get('/saved', _authmiddleware.checkPermission.call(void 0, 'REPORTS', 'READ'), reportsController.getSavedReports);
+router.get('/',          _authmiddleware.checkPermission.call(void 0, 'REPORTS', 'READ'), validateQuery(_reportsdto.reportQuerySchema), reportsController.generateReport);
+router.get('/saved',     _authmiddleware.checkPermission.call(void 0, 'REPORTS', 'READ'), reportsController.getSavedReports);
+router.get('/dashboard', _authmiddleware.checkPermission.call(void 0, 'REPORTS', 'READ'), reportsController.getDashboard);
 
 exports. default = router;

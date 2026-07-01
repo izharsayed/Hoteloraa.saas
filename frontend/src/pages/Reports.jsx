@@ -15,27 +15,22 @@ function Reports() {
       setLoading(true);
       setError('');
       const today = new Date();
-      const endDateStr = today.toISOString().split('T')[0];
       const startDate = new Date();
       startDate.setDate(today.getDate() - 6);
-      const startDateStr = startDate.toISOString().split('T')[0];
 
       setDatesRange({
         start: startDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
         end: today.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
       });
 
-      // Fetch reports from backend
-      const occResult = await api.get(`/reports?type=OCCUPANCY&startDate=${startDateStr}&endDate=${endDateStr}`);
-      const revResult = await api.get(`/reports?type=REVENUE&startDate=${startDateStr}&endDate=${endDateStr}`);
-      const salesResult = await api.get(`/reports?type=DAILY_SALES&startDate=${startDateStr}&endDate=${endDateStr}`);
-
-      setOccupancy(occResult);
-      setRevenue(revResult);
-      setSales(salesResult || []);
+      // Single call — backend fetches all KPI data in parallel, no DB writes
+      const result = await api.get('/reports/dashboard');
+      setOccupancy(result?.occupancy || null);
+      setRevenue(result?.revenue || null);
+      setSales(result?.sales || []);
     } catch (err) {
       console.error('Error loading reports:', err);
-      setError('Failed to load reports from backend.');
+      setError('Failed to load reports. Please try again.');
     } finally {
       setLoading(false);
     }
