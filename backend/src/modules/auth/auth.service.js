@@ -149,7 +149,7 @@ const login = async (dto) => {
   if (!isValid) throw _errormiddleware.createError.call(void 0, 'Invalid credentials', 401);
 
   // Check if email is verified
-  if (!user.isEmailVerified) {
+  if (!user.isEmailVerified && _env2.default.nodeEnv !== 'development') {
     throw _errormiddleware.createError.call(void 0, 'Please verify your email address to log in.', 403);
   }
 

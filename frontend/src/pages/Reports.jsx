@@ -45,19 +45,50 @@ function Reports() {
             <span className="text-slate text-[10px] font-bold uppercase tracking-wider flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> June 13 - June 19</span>
           </div>
 
-          <div className="h-48 flex items-end justify-between gap-3 pt-6 border-b border-border-cream">
-            {[62, 68, 70, 75, 78, 82, 78].map((rate, idx) => (
-              <div key={idx} className="flex-1 flex flex-col items-center gap-2 group">
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-navy text-gold text-[9px] font-mono font-bold px-1.5 py-0.5 rounded absolute -translate-y-8">
-                  {rate}%
-                </span>
-                <div 
-                  className="w-full bg-gold/20 hover:bg-gold rounded-t-lg transition-all duration-300"
-                  style={{ height: `${rate}%` }}
-                ></div>
-                <span className="text-[10px] text-slate font-bold font-mono pb-2">Day {idx+1}</span>
+          <div className="space-y-3">
+            <div className="h-44 relative flex items-end justify-between gap-3 border-b border-border-cream pb-1">
+              {/* Horizontal Grid lines */}
+              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                {[100, 75, 50, 25].map(val => (
+                  <div key={val} className="w-full border-t border-dashed border-slate/10 flex items-center justify-between text-[8px] font-bold text-slate/40">
+                    <span>{val}%</span>
+                    <span>{val}%</span>
+                  </div>
+                ))}
               </div>
-            ))}
+
+              {/* Bars */}
+              {[
+                { date: '13 Jun', rate: 62 },
+                { date: '14 Jun', rate: 68 },
+                { date: '15 Jun', rate: 70 },
+                { date: '16 Jun', rate: 75 },
+                { date: '17 Jun', rate: 78 },
+                { date: '18 Jun', rate: 82 },
+                { date: '19 Jun', rate: 78 }
+              ].map((d, idx) => (
+                <div key={idx} className="relative z-10 flex-1 h-full flex flex-col justify-end items-center group">
+                  {/* Tooltip */}
+                  <div className="absolute opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none bg-navy text-gold text-[9px] font-mono font-bold px-2 py-0.5 rounded shadow-lg whitespace-nowrap z-20"
+                    style={{ bottom: `${d.rate}%`, marginBottom: '4px' }}>
+                    {d.rate}%
+                  </div>
+                  
+                  {/* Bar */}
+                  <div 
+                    className="w-full bg-gold/20 hover:bg-gold rounded-t-lg transition-all duration-300 cursor-pointer origin-bottom hover:scale-x-105 shadow-sm"
+                    style={{ height: `${d.rate}%` }}
+                  ></div>
+                </div>
+              ))}
+            </div>
+
+            {/* Labels under the grid */}
+            <div className="flex justify-between gap-3 text-center">
+              {['13 Jun', '14 Jun', '15 Jun', '16 Jun', '17 Jun', '18 Jun', '19 Jun'].map((date, idx) => (
+                <span key={idx} className="flex-1 text-[10px] text-slate font-bold font-mono select-none">{date}</span>
+              ))}
+            </div>
           </div>
         </div>
 
