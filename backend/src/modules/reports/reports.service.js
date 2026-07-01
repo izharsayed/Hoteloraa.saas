@@ -86,6 +86,29 @@ var _errormiddleware = require('../../middleware/error.middleware');
     ? Number(((occupiedNights / totalRoomNightsAvailable) * 100).toFixed(2))
     : 0;
 
+  const dailyTimeline = [];
+  for (let i = 0; i < daysInRange; i++) {
+    const dayDate = new Date(start.getTime() + i * 24 * 60 * 60 * 1000);
+    const dayStr = dayDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+    
+    let occupiedRoomsCount = 0;
+    reservations.forEach((res) => {
+      const checkIn = new Date(res.checkInDate);
+      checkIn.setHours(0, 0, 0, 0);
+      const checkOut = new Date(res.checkOutDate);
+      checkOut.setHours(0, 0, 0, 0);
+      const current = new Date(dayDate);
+      current.setHours(0, 0, 0, 0);
+      
+      if (current >= checkIn && current < checkOut) {
+        occupiedRoomsCount++;
+      }
+    });
+    
+    const rate = totalRooms > 0 ? Math.min(100, Math.round((occupiedRoomsCount / totalRooms) * 100)) : 0;
+    dailyTimeline.push({ date: dayStr, rate });
+  }
+
   return {
     totalRooms,
     occupiedNights,
@@ -93,6 +116,7 @@ var _errormiddleware = require('../../middleware/error.middleware');
     totalRoomNightsAvailable,
     occupancyRate,
     revenue,
+    dailyTimeline,
   };
 }; exports.getOccupancyReport = getOccupancyReport;
 
