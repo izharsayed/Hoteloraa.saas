@@ -33,6 +33,8 @@ export const getTenantSlugFromEmail = (email) => {
   return undefined;
 };
 
+
+
 const getHeaders = () => {
   return {
     'Content-Type': 'application/json',
@@ -42,6 +44,13 @@ const getHeaders = () => {
 const handleResponse = async (response) => {
   const data = await response.json();
   if (!response.ok) {
+    // On 401, the session is invalid — clear localStorage and redirect to login
+    if (response.status === 401) {
+      localStorage.removeItem('user');
+      const base = import.meta.env.BASE_URL || '/';
+      window.location.href = `${base}login`;
+      throw new Error('Session expired. Please log in again.');
+    }
     if (data.errors && typeof data.errors === 'object') {
       const errorDetails = Object.entries(data.errors)
         .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
