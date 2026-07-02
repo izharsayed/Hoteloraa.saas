@@ -2,19 +2,19 @@ import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import logoIcon from '../assets/logo-icon.png';
 import logo from '../assets/logo.png';
-import { 
-  LayoutDashboard, 
+import {
+  LayoutDashboard,
   Bed,
   CalendarRange,
   UserCheck,
   FileSpreadsheet,
   Sparkles,
-  UtensilsCrossed, 
-  ChefHat, 
+  UtensilsCrossed,
+  ChefHat,
   BookOpen,
-  Receipt, 
-  PackageSearch, 
-  Users, 
+  Receipt,
+  PackageSearch,
+  Users,
   TrendingUp,
   Settings,
   LogOut,
@@ -40,7 +40,7 @@ function Sidebar({ collapsed, onToggle }) {
   let user = { name: 'Staff', userRole: 'CAPTAIN', businessType: 'HOTEL_RESTAURANT' };
   try {
     if (userJson) user = JSON.parse(userJson);
-  } catch (e) {}
+  } catch (e) { }
 
   const businessType = user.businessType || 'HOTEL_RESTAURANT';
   const role = user.userRole;
@@ -56,60 +56,61 @@ function Sidebar({ collapsed, onToggle }) {
     {
       category: 'General',
       items: [
-        { name: 'Dashboard',          path: '/',        icon: LayoutDashboard, module: 'dashboard' },
-        { name: 'My Attendance',      path: '/attendance', icon: Clock,           module: 'attendance' },
-        { name: 'Reports & Analytics', path: '/reports', icon: TrendingUp,      module: 'reports' },
+        { name: 'Dashboard', path: '/', icon: LayoutDashboard, module: 'dashboard' },
+        { name: 'My Attendance', path: '/attendance', icon: Clock, module: 'attendance' },
+        { name: 'Reports & Analytics', path: '/reports', icon: TrendingUp, module: 'reports' },
       ]
     },
     {
       category: 'Lodging Operations',
       businessTypes: ['LODGING', 'HOTEL_RESTAURANT'],
       items: [
-        { name: 'Rooms Directory',      path: '/rooms',        icon: Bed,            module: 'rooms' },
-        { name: 'Reservations',         path: '/reservations', icon: CalendarRange,  module: 'reservations' },
-        { name: 'Front Desk Check-In',  path: '/checkin',      icon: UserCheck,      module: 'rooms' },
-        { name: 'Folios & Check-Out',   path: '/checkout',     icon: FileSpreadsheet,module: 'rooms' },
-        { name: 'Housekeeping',         path: '/housekeeping', icon: Sparkles,       module: 'housekeeping' },
-        { name: 'Guests & CRM',         path: '/crm',          icon: Users,          module: 'guests' },
+        { name: 'Rooms Directory', path: '/rooms', icon: Bed, module: 'rooms' },
+        { name: 'Reservations', path: '/reservations', icon: CalendarRange, module: 'reservations' },
+        { name: 'Front Desk Check-In', path: '/checkin', icon: UserCheck, module: 'rooms' },
+        { name: 'Folios & Check-Out', path: '/checkout', icon: FileSpreadsheet, module: 'rooms' },
+        { name: 'Housekeeping', path: '/housekeeping', icon: Sparkles, module: 'housekeeping' },
+        { name: 'Guests & CRM', path: '/crm', icon: Users, module: 'guests' },
       ]
     },
     {
       category: 'Restaurant & POS',
       businessTypes: ['RESTAURANT', 'HOTEL_RESTAURANT'],
       items: [
-        { name: 'Table Seating',    path: '/tables',   icon: UtensilsCrossed, module: 'tables' },
-        { name: 'Kitchen KOT',      path: '/kitchen',  icon: ChefHat,         module: 'kot' },
-        { name: 'POS Terminal',     path: '/orders',   icon: ClipboardList,   module: 'orders', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
-        { name: 'POS Menu Manager', path: '/menu',     icon: BookOpen,        module: 'pos', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
-        { name: 'POS Billing',      path: '/pos',      icon: Store,           module: 'pos' },
+        { name: 'Table Seating', path: '/tables', icon: UtensilsCrossed, module: 'tables' },
+        { name: 'Kitchen KOT', path: '/kitchen', icon: ChefHat, module: 'kot' },
+        { name: 'POS Terminal', path: '/orders', icon: ClipboardList, module: 'orders', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
+        { name: 'POS Menu Manager', path: '/menu', icon: BookOpen, module: 'pos', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
+        { name: 'POS Billing', path: '/pos', icon: Store, module: 'pos' },
       ]
     },
     {
       category: 'Captain Dashboard',
       businessTypes: ['RESTAURANT', 'HOTEL_RESTAURANT'],
       items: [
-        { name: 'New Order (POS)',          path: '/captain',         icon: UtensilsCrossed, roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
-        { name: 'Active Orders & History',  path: '/captain/history', icon: ClipboardList,   roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
+        { name: 'New Order (POS)', path: '/captain', icon: UtensilsCrossed, roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
+        { name: 'Active Orders & History', path: '/captain/history', icon: ClipboardList, roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
       ]
     },
     {
       category: 'Procurement',
+      businessTypes: ['RESTAURANT', 'HOTEL_RESTAURANT'],
       items: [
         { name: 'Inventory & Stock', path: '/inventory', icon: PackageSearch, module: 'inventory' },
-        { name: 'Vendors',           path: '/vendors',   icon: Truck,         module: 'vendors' },
-        { name: 'Purchase Orders',   path: '/purchases', icon: ShoppingCart,  module: 'purchases' },
+        { name: 'Vendors', path: '/vendors', icon: Truck, module: 'vendors' },
+        { name: 'Purchase Orders', path: '/purchases', icon: ShoppingCart, module: 'purchases' },
       ]
     },
     {
       category: 'Administration',
       items: [
-        { name: 'Staff Attendance',    path: '/attendance/manager', icon: UserCheck, module: 'attendance_manager' },
-        { name: 'Shift Management',    path: '/shifts',      icon: CalendarRange, module: 'shifts' },
+        { name: 'Staff Attendance', path: '/attendance/manager', icon: UserCheck, module: 'attendance_manager' },
+        { name: 'Shift Management', path: '/shifts', icon: CalendarRange, module: 'shifts' },
         { name: 'Attendance Settings', path: '/attendance/settings', icon: MapPin, module: 'attendance_manager' },
-        { name: 'Platform Settings',   path: '/settings',    icon: Settings,    module: 'settings' },
-        { name: 'User Management',     path: '/admin/users', icon: UserCog,     module: 'users' },
-        { name: 'Roles & Permissions', path: '/admin/rbac',  icon: Shield,      module: 'roles' },
-        { name: 'Super Admin Control', path: '/superadmin',  icon: ShieldAlert, roles: ['SUPER_ADMIN'] },
+        { name: 'Platform Settings', path: '/settings', icon: Settings, module: 'settings' },
+        { name: 'User Management', path: '/admin/users', icon: UserCog, module: 'users' },
+        { name: 'Roles & Permissions', path: '/admin/rbac', icon: Shield, module: 'roles' },
+        { name: 'Super Admin Control', path: '/superadmin', icon: ShieldAlert, roles: ['SUPER_ADMIN'] },
       ]
     }
   ];
@@ -148,9 +149,9 @@ function Sidebar({ collapsed, onToggle }) {
       {/* Brand Header */}
       {collapsed ? (
         <div className="hidden md:flex flex-col items-center py-4 border-b border-border-cream bg-white shrink-0 animate-fadeIn">
-          <img 
-            src={logoIcon} 
-            alt="Hoteloraa Logo Icon" 
+          <img
+            src={logoIcon}
+            alt="Hoteloraa Logo Icon"
             className="h-8 w-auto object-contain cursor-pointer hover:scale-105 active:scale-95 transition-transform"
             onClick={onToggle}
             title="Expand sidebar"
@@ -205,8 +206,8 @@ function Sidebar({ collapsed, onToggle }) {
                     title={collapsed ? item.name : undefined}
                     className={({ isActive }) => `
                       flex items-center gap-3 font-medium text-xs transition-all duration-200 group
-                      ${collapsed 
-                        ? 'w-10 h-10 justify-center rounded-xl mx-auto' 
+                      ${collapsed
+                        ? 'w-10 h-10 justify-center rounded-xl mx-auto'
                         : 'px-3 py-2 rounded-xl hover:translate-x-1'
                       }
                       ${isActive
@@ -242,8 +243,8 @@ function Sidebar({ collapsed, onToggle }) {
           className={`
             flex items-center gap-3 text-danger font-medium text-xs
             hover:bg-danger-pale hover:text-danger active:scale-98 transition-all
-            ${collapsed 
-              ? 'w-10 h-10 justify-center rounded-xl mx-auto' 
+            ${collapsed
+              ? 'w-10 h-10 justify-center rounded-xl mx-auto'
               : 'w-full px-3 py-2.5 rounded-xl'
             }
           `}

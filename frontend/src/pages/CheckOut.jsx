@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { LogOut, Receipt, ShieldAlert, CreditCard, CheckCircle2, ChevronRight, RefreshCw, X } from 'lucide-react';
 import api from '../utils/api';
+import { useLocation } from 'react-router-dom';
 
 function CheckOut() {
+  const location = useLocation();
   const [occupiedRooms, setOccupiedRooms] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [checkoutComplete, setCheckoutComplete] = useState(false);
@@ -31,6 +33,18 @@ function CheckOut() {
       setError(null);
       const data = await api.get('/check-out/pending');
       setOccupiedRooms(data || []);
+      
+      if (location.state?.roomId) {
+        const roomToSelect = (data || []).find(r => r.room?.id === location.state.roomId);
+        if (roomToSelect) {
+          setSelectedRoom(roomToSelect);
+          setCheckoutComplete(false);
+          setExtraChargesInput('0');
+          setDiscountInput('0');
+          setPaymentMethod('CASH');
+          setNotes('');
+        }
+      }
     } catch (e) {
       console.error(e);
       setError(e.message || 'Failed to fetch pending departures');
