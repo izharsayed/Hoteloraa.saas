@@ -2,7 +2,30 @@
 var _errormiddleware = require('../../middleware/error.middleware');
 
 
- const getGuests = async (tenantId, search) => {
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 50;
+const MAX_LIMIT = 100;
+
+const toPositiveInt = (value, fallback) => {
+  const parsed = Number.parseInt(String(value || ''), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const parsePagination = (query = {}) => {
+  const page = toPositiveInt(query.page, DEFAULT_PAGE);
+  const requestedLimit = toPositiveInt(query.limit, DEFAULT_LIMIT);
+  const limit = Math.min(requestedLimit, MAX_LIMIT);
+
+  return {
+    skip: (page - 1) * limit,
+    take: limit,
+  };
+};
+
+ const getGuests = async (tenantId, query = {}) => {
+  const { skip, take } = parsePagination(query);
+  const search = query.search;
+
   const where = {
     tenantId,
     ...(search && {
@@ -38,6 +61,8 @@ var _errormiddleware = require('../../middleware/error.middleware');
       },
     },
     orderBy: { createdAt: 'desc' },
+    skip,
+    take,
   });
 
   return guests;
@@ -128,7 +153,8 @@ var _errormiddleware = require('../../middleware/error.middleware');
   return updated;
 }; exports.updateGuest = updateGuest;
 
- const getGuestHistory = async (tenantId, id) => {
+ const getGuestHistory = async (tenantId, id, query = {}) => {
+  const { skip, take } = parsePagination(query);
   const guest = await _database2.default.guest.findFirst({ where: { id, tenantId } });
   if (!guest) throw _errormiddleware.createError.call(void 0, 'Guest not found', 404);
 
@@ -147,6 +173,8 @@ var _errormiddleware = require('../../middleware/error.middleware');
       checkedOutBy: { select: { id: true, name: true } },
     },
     orderBy: { checkInDate: 'desc' },
+    skip,
+    take,
   });
 
   return {

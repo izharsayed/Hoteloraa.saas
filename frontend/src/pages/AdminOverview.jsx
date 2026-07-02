@@ -13,7 +13,11 @@ import {
   BedDouble,
   Utensils,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Download,
+  Database,
+  FileJson,
+  CheckCheck
 } from 'lucide-react';
 import api from '../utils/api.js';
 
@@ -24,6 +28,9 @@ function AdminOverview() {
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const [exportSuccess, setExportSuccess] = useState(false);
+  const [exportError, setExportError] = useState('');
 
   const userJson = localStorage.getItem('user');
   let user = { tenantName: 'Property Node', businessType: 'HOTEL_RESTAURANT' };
@@ -55,6 +62,42 @@ function AdminOverview() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleExport = async () => {
+    setExporting(true);
+    setExportError('');
+    setExportSuccess(false);
+    try {
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '');
+      const response = await fetch(`${API_BASE_URL}/tenant/export`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.message || 'Export failed');
+      }
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get('Content-Disposition') || '';
+      const match = contentDisposition.match(/filename="(.+)"/);
+      const filename = match ? match[1] : 'hotel-export.json';
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setExportSuccess(true);
+      setTimeout(() => setExportSuccess(false), 4000);
+    } catch (err) {
+      setExportError(err.message || 'Export failed. Please try again.');
+      setTimeout(() => setExportError(''), 5000);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -373,6 +416,59 @@ function AdminOverview() {
           <div className="border-t border-white/10 pt-4 mt-6 text-[10px] text-stone-400 font-medium text-center">
             System Node: <span className="text-gold font-semibold uppercase tracking-wider">{businessType.replace('_', ' ')}</span>
           </div>
+        </div>
+      </div>
+
+      {/* Data Export Section */}
+      <div className="soft-card bg-white p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-gold-pale/50 text-gold">
+              <Database className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-display font-bold text-lg text-navy">Data Export</h2>
+              <p className="text-slate text-xs font-medium mt-0.5">Download a complete backup of all your property's data as a JSON file.</p>
+            </div>
+          </div>
+          <button
+            id="btn-export-data"
+            onClick={handleExport}
+            disabled={exporting}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 active:scale-[0.97] shadow-sm ${
+              exportSuccess
+                ? 'bg-success text-white'
+                : 'bg-navy text-white hover:bg-navy/90'
+            } disabled:opacity-60 disabled:cursor-not-allowed`}
+          >
+            {exporting ? (
+              <><Activity className="w-4 h-4 animate-spin" /> Exporting...</>
+            ) : exportSuccess ? (
+              <><CheckCheck className="w-4 h-4" /> Downloaded!</>
+            ) : (
+              <><Download className="w-4 h-4" /> Export All Data</>
+            )}
+          </button>
+        </div>
+
+        {exportError && (
+          <div className="p-3 bg-danger-pale border border-danger/10 text-danger rounded-xl text-xs font-bold animate-fadeIn">
+            {exportError}
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1">
+          {[
+            { label: 'Rooms & Reservations', icon: BedDouble },
+            { label: 'Guests & Payments', icon: Users },
+            { label: 'Menu & Orders', icon: Utensils },
+            { label: 'Staff & Inventory', icon: FileJson },
+          ].map(({ label, icon: Icon }, i) => (
+            <div key={i} className="flex items-center gap-2 p-3 rounded-xl bg-cream/60 border border-border-cream/60">
+              <Icon className="w-4 h-4 text-gold shrink-0" />
+              <span className="text-[10px] font-semibold text-slate leading-tight">{label}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

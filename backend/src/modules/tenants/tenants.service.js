@@ -67,3 +67,74 @@ var _errormiddleware = require('../../middleware/error.middleware');
     },
   });
 }; exports.toggleFeature = toggleFeature;
+
+ const exportTenantData = async (tenantId) => {
+  const tenant = await _database2.default.tenant.findUnique({
+    where: { id: tenantId },
+    select: {
+      id: true, name: true, slug: true, businessType: true,
+      phone: true, email: true, address: true, city: true,
+      state: true, country: true, currency: true, timezone: true,
+      createdAt: true,
+      subscription: {
+        select: { plan: true, status: true, startDate: true, endDate: true, trialEnds: true, amount: true }
+      }
+    }
+  });
+
+  if (!tenant) throw _errormiddleware.createError.call(void 0, 'Tenant not found', 404);
+
+  const [users, rooms, roomTypes, floors, reservations, guests, orders, payments,
+         menuCategories, menuItems, tables, inventory, vendors, purchases,
+         housekeeping, shifts, attendanceRecords] = await Promise.all([
+    _database2.default.user.findMany({
+      where: { tenantId },
+      select: { id: true, name: true, email: true, phone: true, userRole: true,
+                isActive: true, lastLogin: true, createdAt: true }
+    }),
+    _database2.default.room.findMany({ where: { tenantId } }),
+    _database2.default.roomType.findMany({ where: { tenantId } }),
+    _database2.default.floor.findMany({ where: { tenantId } }),
+    _database2.default.reservation.findMany({ where: { tenantId } }),
+    _database2.default.guest.findMany({ where: { tenantId } }),
+    _database2.default.order.findMany({ where: { tenantId } }),
+    _database2.default.payment.findMany({ where: { tenantId } }),
+    _database2.default.menuCategory.findMany({ where: { tenantId } }),
+    _database2.default.menuItem.findMany({ where: { tenantId } }),
+    _database2.default.table.findMany({ where: { tenantId } }),
+    _database2.default.inventoryItem.findMany({ where: { tenantId } }),
+    _database2.default.vendor.findMany({ where: { tenantId } }),
+    _database2.default.purchase.findMany({ where: { tenantId } }),
+    _database2.default.housekeeping.findMany({ where: { tenantId } }),
+    _database2.default.shift.findMany({ where: { tenantId } }),
+    _database2.default.attendance.findMany({ where: { tenantId } }),
+  ]);
+
+  return {
+    _meta: {
+      exportedAt: new Date().toISOString(),
+      exportedBy: 'Hoteloraa SaaS',
+      tenantId: tenant.id,
+      tenantName: tenant.name,
+      version: '1.0',
+    },
+    tenant,
+    users,
+    rooms,
+    roomTypes,
+    floors,
+    reservations,
+    guests,
+    orders,
+    payments,
+    menuCategories,
+    menuItems,
+    tables,
+    inventory,
+    vendors,
+    purchases,
+    housekeeping,
+    shifts,
+    attendanceRecords,
+  };
+}; exports.exportTenantData = exportTenantData;

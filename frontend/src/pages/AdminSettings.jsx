@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, Percent, ShieldCheck } from 'lucide-react';
+import { Settings, Save, Percent, ShieldCheck, Download, Database, Activity, CheckCheck } from 'lucide-react';
 import api from '../utils/api.js';
 
 function AdminSettings() {
@@ -15,6 +15,9 @@ function AdminSettings() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const [exportSuccess, setExportSuccess] = useState(false);
+  const [exportError, setExportError] = useState('');
 
   const fetchSettings = async () => {
     setLoading(true);
@@ -61,6 +64,42 @@ function AdminSettings() {
       setError(err.message || 'Failed to save settings');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    setExportError('');
+    setExportSuccess(false);
+    try {
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '');
+      const response = await fetch(`${API_BASE_URL}/tenant/export`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.message || 'Export failed');
+      }
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get('Content-Disposition') || '';
+      const match = contentDisposition.match(/filename="(.+)"/);
+      const filename = match ? match[1] : 'hotel-export.json';
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setExportSuccess(true);
+      setTimeout(() => setExportSuccess(false), 4000);
+    } catch (err) {
+      setExportError(err.message || 'Export failed. Please try again.');
+      setTimeout(() => setExportError(''), 5000);
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -157,6 +196,51 @@ function AdminSettings() {
           </div>
         </form>
       )}
+
+      {/* Data Management Section */}
+      <div className="soft-card p-6 bg-white space-y-4 max-w-3xl">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-gold-pale/50 text-gold">
+              <Database className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-display font-bold text-base text-navy">Data Management & Export</h2>
+              <p className="text-slate text-xs font-medium mt-0.5">Download a complete JSON backup of all your property data.</p>
+            </div>
+          </div>
+          <button
+            id="btn-export-data-settings"
+            onClick={handleExport}
+            disabled={exporting}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 active:scale-[0.97] shadow-sm ${
+              exportSuccess ? 'bg-success text-white' : 'btn-primary'
+            } disabled:opacity-60 disabled:cursor-not-allowed`}
+          >
+            {exporting ? (
+              <><Activity className="w-4 h-4 animate-spin" /> Exporting...</>
+            ) : exportSuccess ? (
+              <><CheckCheck className="w-4 h-4" /> Downloaded!</>
+            ) : (
+              <><Download className="w-4 h-4" /> Export All Data</>
+            )}
+          </button>
+        </div>
+
+        {exportError && (
+          <div className="p-3 bg-danger-pale border border-danger/10 text-danger rounded-xl text-xs font-bold">
+            {exportError}
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2 pt-1">
+          {['Rooms', 'Reservations', 'Guests', 'Orders', 'Payments', 'Menu', 'Inventory', 'Staff'].map(tag => (
+            <span key={tag} className="px-3 py-1 rounded-full bg-cream text-slate text-[10px] font-bold uppercase tracking-wider border border-border-cream/60">
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

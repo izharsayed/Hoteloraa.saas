@@ -6,8 +6,7 @@ var _reservationsservice = require('./reservations.service'); var reservationsSe
  const getReservations = async (req, res, next) => {
   try {
     const tenantId = req.user.tenantId;
-    const status = req.query.status ;
-    const reservations = await reservationsService.getReservations(tenantId, status);
+    const reservations = await reservationsService.getReservations(tenantId, req.query);
     _helpers.sendSuccess.call(void 0, res, reservations, 'Reservations retrieved successfully');
   } catch (err) {
     next(err);

@@ -6,8 +6,7 @@ var _helpers = require('../../shared/helpers');
  const getPayments = async (req, res, next) => {
   try {
     const tenantId = req.user.tenantId;
-    const { status } = req.query;
-    const result = await paymentsService.getPayments(tenantId, status );
+    const result = await paymentsService.getPayments(tenantId, req.query);
     _helpers.sendSuccess.call(void 0, res, result, 'Payments retrieved successfully');
   } catch (err) {
     next(err);

@@ -13,9 +13,8 @@ var _ordersservice = require('./orders.service'); var OrderService = _interopReq
 ) => {
   try {
     const tenantId = req.user.tenantId;
-    const status = req.query.status ;
 
-    const orders = await OrderService.getOrders(tenantId, status);
+    const orders = await OrderService.getOrders(tenantId, req.query);
     _helpers.sendSuccess.call(void 0, res, orders, 'Orders retrieved successfully');
   } catch (err) {
     next(err);

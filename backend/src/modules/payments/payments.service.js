@@ -2,7 +2,30 @@
 
 var _errormiddleware = require('../../middleware/error.middleware');
 
- const getPayments = async (tenantId, status) => {
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 50;
+const MAX_LIMIT = 100;
+
+const toPositiveInt = (value, fallback) => {
+  const parsed = Number.parseInt(String(value || ''), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const parsePagination = (query = {}) => {
+  const page = toPositiveInt(query.page, DEFAULT_PAGE);
+  const requestedLimit = toPositiveInt(query.limit, DEFAULT_LIMIT);
+  const limit = Math.min(requestedLimit, MAX_LIMIT);
+
+  return {
+    skip: (page - 1) * limit,
+    take: limit,
+  };
+};
+
+ const getPayments = async (tenantId, query = {}) => {
+  const { skip, take } = parsePagination(query);
+  const status = query.status;
+
   return _database2.default.payment.findMany({
     where: {
       tenantId,
@@ -25,6 +48,8 @@ var _errormiddleware = require('../../middleware/error.middleware');
     orderBy: {
       createdAt: 'desc',
     },
+    skip,
+    take,
   });
 }; exports.getPayments = getPayments;
 

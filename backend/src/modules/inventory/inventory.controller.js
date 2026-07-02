@@ -6,8 +6,7 @@ var _helpers = require('../../shared/helpers');
  const getItems = async (req, res, next) => {
   try {
     const tenantId = req.user.tenantId;
-    const search = req.query.search ;
-    const result = await inventoryService.getItems(tenantId, search);
+    const result = await inventoryService.getItems(tenantId, req.query);
     _helpers.sendSuccess.call(void 0, res, result, 'Inventory items retrieved successfully');
   } catch (err) {
     next(err);

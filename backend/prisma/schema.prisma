@@ -318,6 +318,8 @@ model User {
   employeeShifts  EmployeeShift[] @relation("ShiftEmployee")
 
   @@unique([tenantId, email])
+  @@index([tenantId, isActive])
+  @@index([tenantId, userRole])
   @@map("users")
 }
 
@@ -372,6 +374,7 @@ model MenuCategory {
   tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   menuItems MenuItem[]
 
+  @@index([tenantId, isActive, sortOrder])
   @@map("menu_categories")
 }
 
@@ -397,6 +400,8 @@ model MenuItem {
   category     Category?     @relation(fields: [categoryId], references: [id])
   orderItems   OrderItem[]
 
+  @@index([tenantId, isAvailable, sortOrder])
+  @@index([tenantId, menuCategoryId])
   @@map("menu_items")
 }
 
@@ -420,6 +425,7 @@ model Table {
   tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   orders Order[]
 
+  @@index([tenantId, status, isActive])
   @@map("tables")
 }
 
@@ -463,6 +469,10 @@ model Order {
   payment     Payment?
   reservation Reservation? @relation(fields: [reservationId], references: [id])
 
+  @@index([tenantId, createdAt])
+  @@index([tenantId, status, createdAt])
+  @@index([tenantId, tableId])
+  @@index([tenantId, reservationId])
   @@map("orders")
 }
 
@@ -480,6 +490,8 @@ model OrderItem {
   menuItem MenuItem @relation(fields: [menuItemId], references: [id])
   kotItems KOTItem[]
 
+  @@index([orderId])
+  @@index([menuItemId])
   @@map("order_items")
 }
 
@@ -504,6 +516,8 @@ model KOT {
   user   User?    @relation(fields: [userId], references: [id])
   items  KOTItem[]
 
+  @@index([tenantId, status, createdAt])
+  @@index([orderId])
   @@map("kots")
 }
 
@@ -517,6 +531,8 @@ model KOTItem {
   kot       KOT       @relation(fields: [kotId], references: [id], onDelete: Cascade)
   orderItem OrderItem @relation(fields: [orderItemId], references: [id])
 
+  @@index([kotId])
+  @@index([orderItemId])
   @@map("kot_items")
 }
 
@@ -545,6 +561,9 @@ model Payment {
   user        User?        @relation(fields: [userId], references: [id])
   folioItems  FolioItem[]
 
+  @@index([tenantId, createdAt])
+  @@index([tenantId, status, paidAt])
+  @@index([tenantId, userId])
   @@map("payments")
 }
 
@@ -558,6 +577,7 @@ model FolioItem {
 
   payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 
+  @@index([paymentId])
   @@map("folio_items")
 }
 
@@ -580,6 +600,7 @@ model RoomType {
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   rooms  Room[]
 
+  @@index([tenantId, isActive])
   @@map("room_types")
 }
 
@@ -601,6 +622,8 @@ model Room {
   housekeeping Housekeeping[]
 
   @@unique([tenantId, number])
+  @@index([tenantId, status, isActive])
+  @@index([tenantId, roomTypeId])
   @@map("rooms")
 }
 
@@ -634,6 +657,8 @@ model Guest {
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   reservations Reservation[]
 
+  @@index([tenantId, createdAt])
+  @@index([tenantId, phone])
   @@map("guests")
 }
 
@@ -686,6 +711,10 @@ model Reservation {
   orders      Order[]
   payment     Payment?
 
+  @@index([tenantId, createdAt])
+  @@index([tenantId, status, checkInDate, checkOutDate])
+  @@index([tenantId, roomId, status])
+  @@index([tenantId, guestId])
   @@map("reservations")
 }
 
@@ -876,6 +905,8 @@ model Notification {
   tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([tenantId, userId, isRead, createdAt])
+  @@index([tenantId, role, isRead, createdAt])
   @@map("notifications")
 }
 
@@ -942,6 +973,8 @@ model Shift {
   employeeShifts  EmployeeShift[]
   attendance      Attendance[]
 
+  @@index([tenantId, status])
+  @@index([tenantId, autoCheckoutTime])
   @@map("shifts")
 }
 
@@ -963,6 +996,8 @@ model EmployeeShift {
   shift      Shift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
 
   @@index([userId, tenantId])
+  @@index([tenantId, userId, effectiveFrom, effectiveTo])
+  @@index([tenantId, shiftId, effectiveFrom, effectiveTo])
   @@index([shiftId])
   @@map("employee_shifts")
 }
@@ -1031,6 +1066,8 @@ model Attendance {
   @@unique([userId, date])  // One attendance record per employee per day
   @@index([tenantId, date])
   @@index([tenantId, userId])
+  @@index([tenantId, shiftId, date])
+  @@index([tenantId, status, date])
   @@index([status])
   @@map("attendance")
 }
@@ -1059,5 +1096,7 @@ model AttendanceLog {
 
   @@index([attendanceId])
   @@index([tenantId, userId])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, attendanceId])
   @@map("attendance_logs")
 }

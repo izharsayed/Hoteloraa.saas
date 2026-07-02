@@ -5,7 +5,36 @@ var _errormiddleware = require('../../middleware/error.middleware');
 
 const SALT_ROUNDS = 12;
 
- const getUsers = async (tenantId, includeInactive = false) => {
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 50;
+const MAX_LIMIT = 100;
+
+const toPositiveInt = (value, fallback) => {
+  const parsed = Number.parseInt(String(value || ''), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const parsePagination = (query = {}) => {
+  const page = toPositiveInt(query.page, DEFAULT_PAGE);
+  const requestedLimit = toPositiveInt(query.limit, DEFAULT_LIMIT);
+  const limit = Math.min(requestedLimit, MAX_LIMIT);
+
+  return {
+    skip: (page - 1) * limit,
+    take: limit,
+  };
+};
+
+const shouldIncludeInactive = (queryOrFlag) => {
+  if (typeof queryOrFlag === 'boolean') return queryOrFlag;
+  return queryOrFlag && String(queryOrFlag.includeInactive).toLowerCase() === 'true';
+};
+
+ const getUsers = async (tenantId, queryOrFlag = {}) => {
+  const query = typeof queryOrFlag === 'object' && queryOrFlag !== null ? queryOrFlag : {};
+  const { skip, take } = parsePagination(query);
+  const includeInactive = shouldIncludeInactive(queryOrFlag);
+
   return _database2.default.user.findMany({
     where: {
       tenantId,
@@ -36,6 +65,8 @@ const SALT_ROUNDS = 12;
     orderBy: {
       name: 'asc',
     },
+    skip,
+    take,
   });
 }; exports.getUsers = getUsers;
 

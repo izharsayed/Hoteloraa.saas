@@ -11,8 +11,7 @@ var _purchasesservice = require('./purchases.service'); var purchaseService = _i
 ) => {
   try {
     const tenantId = req.user.tenantId;
-    const status = req.query.status ;
-    const purchases = await purchaseService.getPurchases(tenantId, status);
+    const purchases = await purchaseService.getPurchases(tenantId, req.query);
     _helpers.sendSuccess.call(void 0, res, purchases, 'Purchases retrieved successfully');
   } catch (err) {
     next(err);

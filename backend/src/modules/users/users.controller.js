@@ -6,7 +6,7 @@ var _helpers = require('../../shared/helpers');
  const getUsers = async (req, res, next) => {
   try {
     const tenantId = req.user.tenantId;
-    const result = await usersService.getUsers(tenantId);
+    const result = await usersService.getUsers(tenantId, req.query);
     _helpers.sendSuccess.call(void 0, res, result, 'Users retrieved successfully');
   } catch (err) {
     next(err);

@@ -16,7 +16,7 @@ var _helpers = require('../../shared/helpers');
 // Tenants
  const getAllTenants = async (req, res, next) => {
   try {
-    const result = await superadminService.getAllTenants();
+    const result = await superadminService.getAllTenants(req.query);
     _helpers.sendSuccess.call(void 0, res, result, 'All cluster tenants retrieved successfully');
   } catch (err) {
     next(err);
@@ -85,7 +85,7 @@ var _helpers = require('../../shared/helpers');
 // Users
  const getAllUsers = async (req, res, next) => {
   try {
-    const result = await superadminService.getAllUsers();
+    const result = await superadminService.getAllUsers(req.query);
     _helpers.sendSuccess.call(void 0, res, result, 'All system staff users retrieved successfully');
   } catch (err) {
     next(err);
@@ -115,7 +115,7 @@ var _helpers = require('../../shared/helpers');
 // Audit Logs
  const getAuditLogs = async (req, res, next) => {
   try {
-    const result = await superadminService.getAuditLogs();
+    const result = await superadminService.getAuditLogs(req.query);
     _helpers.sendSuccess.call(void 0, res, result, 'Audit logs retrieved successfully');
   } catch (err) {
     next(err);

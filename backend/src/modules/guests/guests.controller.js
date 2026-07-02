@@ -6,8 +6,7 @@ var _guestsservice = require('./guests.service'); var guestsService = _interopRe
  const getGuests = async (req, res, next) => {
   try {
     const tenantId = req.user.tenantId;
-    const search = req.query.search ;
-    const guests = await guestsService.getGuests(tenantId, search);
+    const guests = await guestsService.getGuests(tenantId, req.query);
     _helpers.sendSuccess.call(void 0, res, guests, 'Guests retrieved successfully');
   } catch (err) {
     next(err);
@@ -50,7 +49,7 @@ var _guestsservice = require('./guests.service'); var guestsService = _interopRe
   try {
     const tenantId = req.user.tenantId;
     const { id } = req.params;
-    const history = await guestsService.getGuestHistory(tenantId, id);
+    const history = await guestsService.getGuestHistory(tenantId, id, req.query);
     _helpers.sendSuccess.call(void 0, res, history, 'Guest history retrieved successfully');
   } catch (err) {
     next(err);

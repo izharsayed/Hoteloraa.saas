@@ -2,10 +2,32 @@
 var _database = require('../../config/database'); var _database2 = _interopRequireDefault(_database);
 var _errormiddleware = require('../../middleware/error.middleware');
 
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 50;
+const MAX_LIMIT = 100;
+
+const toPositiveInt = (value, fallback) => {
+  const parsed = Number.parseInt(String(value || ''), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const parsePagination = (query = {}) => {
+  const page = toPositiveInt(query.page, DEFAULT_PAGE);
+  const requestedLimit = toPositiveInt(query.limit, DEFAULT_LIMIT);
+  const limit = Math.min(requestedLimit, MAX_LIMIT);
+
+  return {
+    skip: (page - 1) * limit,
+    take: limit,
+  };
+};
+
 
 // ─── List Rooms ───────────────────────────────────────────────────────────────
 
- const getRooms = async (tenantId, status) => {
+ const getRooms = async (tenantId, query = {}) => {
+  const { skip, take } = parsePagination(query);
+  const status = query.status ;
   const where = { tenantId, isActive: true };
 
   if (status) {
@@ -33,6 +55,8 @@ var _errormiddleware = require('../../middleware/error.middleware');
       },
     },
     orderBy: [{ floor: 'asc' }, { number: 'asc' }],
+    skip,
+    take,
   });
 }; exports.getRooms = getRooms;
 
@@ -193,8 +217,11 @@ var _errormiddleware = require('../../middleware/error.middleware');
   tenantId,
   checkIn,
   checkOut,
-  roomTypeId
+  roomTypeId,
+  query = {}
 ) => {
+  const { skip, take } = parsePagination(query);
+
   if (checkOut <= checkIn) {
     throw _errormiddleware.createError.call(void 0, 'Check-out date must be after check-in date', 400);
   }
@@ -235,5 +262,7 @@ var _errormiddleware = require('../../middleware/error.middleware');
       },
     },
     orderBy: [{ floor: 'asc' }, { number: 'asc' }],
+    skip,
+    take,
   });
 }; exports.getAvailableRooms = getAvailableRooms;

@@ -43,3 +43,18 @@ var _helpers = require('../../shared/helpers');
     next(err);
   }
 }; exports.toggleFeature = toggleFeature;
+
+ const exportTenant = async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenantId;
+    const data = await tenantsService.exportTenantData(tenantId);
+
+    const filename = `${(data.tenant.name || 'hotel').replace(/[^a-z0-9]/gi, '-').toLowerCase()}-export-${new Date().toISOString().slice(0, 10)}.json`;
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.status(200).send(JSON.stringify(data, null, 2));
+  } catch (err) {
+    next(err);
+  }
+}; exports.exportTenant = exportTenant;

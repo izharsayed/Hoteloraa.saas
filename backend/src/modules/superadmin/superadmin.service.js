@@ -4,6 +4,26 @@ var _errormiddleware = require('../../middleware/error.middleware');
 
 const SALT_ROUNDS = 12;
 
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 50;
+const MAX_LIMIT = 100;
+
+const toPositiveInt = (value, fallback) => {
+  const parsed = Number.parseInt(String(value || ''), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const parsePagination = (query = {}) => {
+  const page = toPositiveInt(query.page, DEFAULT_PAGE);
+  const requestedLimit = toPositiveInt(query.limit, DEFAULT_LIMIT);
+  const limit = Math.min(requestedLimit, MAX_LIMIT);
+
+  return {
+    skip: (page - 1) * limit,
+    take: limit,
+  };
+};
+
 // ─── OVERVIEW METRICS ──────────────────────────────────────────
  const getOverviewMetrics = async () => {
   const tenants = await _database2.default.tenant.findMany({
@@ -45,7 +65,9 @@ const SALT_ROUNDS = 12;
 }; exports.getOverviewMetrics = getOverviewMetrics;
 
 // ─── TENANTS REGISTRY ─────────────────────────────────────────
- const getAllTenants = async () => {
+ const getAllTenants = async (query = {}) => {
+  const { skip, take } = parsePagination(query);
+
   const tenants = await _database2.default.tenant.findMany({
     include: {
       subscription: true,
@@ -55,7 +77,9 @@ const SALT_ROUNDS = 12;
         select: { email: true }
       }
     },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
+    skip,
+    take,
   });
 
   return tenants.map(t => ({
@@ -324,10 +348,14 @@ var _emailService = require('../../shared/email.service');
 }; exports.getSubscriptionPlans = getSubscriptionPlans;
 
 // ─── USERS DIRECTORY ──────────────────────────────────────────
- const getAllUsers = async () => {
+ const getAllUsers = async (query = {}) => {
+  const { skip, take } = parsePagination(query);
+
   const users = await _database2.default.user.findMany({
     include: { tenant: true, role: true },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
+    skip,
+    take,
   });
 
   return users.map(u => ({
@@ -388,9 +416,13 @@ var _emailService = require('../../shared/email.service');
 }; exports.resetUserPassword = resetUserPassword;
 
 // ─── AUDIT LOGS ───────────────────────────────────────────────
- const getAuditLogs = async () => {
+ const getAuditLogs = async (query = {}) => {
+  const { skip, take } = parsePagination(query);
+
   return _database2.default.auditLog.findMany({
-    orderBy: { timestamp: 'desc' }
+    orderBy: { timestamp: 'desc' },
+    skip,
+    take,
   });
 }; exports.getAuditLogs = getAuditLogs;
 

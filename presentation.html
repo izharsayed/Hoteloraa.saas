@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hoteloraa - Client Pitch & System Overview</title>
+  <!-- Google Fonts: Inter for UI, Lora for headings, JetBrains Mono for numbers -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Premium Hospitality Color Palette Tokens */
+    :root {
+      --color-bg: #FEF9F1;
+      --color-primary: #0B1F3A;
+      --color-secondary: #6B7280;
+      --color-accent: #D4AF37;
+      --color-accent-light: #E5C054;
+      --color-accent-pale: #FAF7EE;
+      --color-success: #1E9E6A;
+      --color-danger: #D94A4A;
+      --color-warning: #F59E0B;
+      --color-surface: #FFFFFF;
+      --color-surface-alt: #F4EFE6;
+      --color-border: #EBE5DA;
+      --color-shadow: rgba(43, 34, 22, 0.06);
+      --font-display: 'Lora', Georgia, serif;
+      --font-ui: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      /* Responsive Typography variables */
+      --font-size-title: 2.3rem;
+      --font-size-subtitle: 0.95rem;
+      --font-size-body: 1rem;
+      --font-size-welcome-title: 2.8rem;
+      --font-size-welcome-desc: 1.2rem;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #050b14;
+      font-family: var(--font-ui);
+      color: var(--color-primary);
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    /* Presentation Container - Viewport Constrained 16:9 Aspect Ratio */
+    .presentation-container {
+      width: 95vw;
+      max-width: 160vh; /* 90vh * 16/9 */
+      aspect-ratio: 16 / 9;
+      background-color: var(--color-bg);
+      background-image: radial-gradient(var(--color-border) 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6), 0 0 40px rgba(212, 175, 55, 0.05);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Slides Wrapper */
+    .slides-container {
+      flex: 1;
+      position: relative;
+    }
+
+    /* Individual Slide styling with Solid Background to prevent overlap */
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: scale(0.96) translateY(15px);
+      padding: 4% 6%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      z-index: 1;
+      background-color: var(--color-bg);
+      background-image: radial-gradient(var(--color-border) 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1) translateY(0);
+      z-index: 2;
+    }
+
+    .slide.prev {
+      transform: scale(0.96) translateY(-15px);
+    }
+
+    /* Slide Content Micro-animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .slide.active .slide-header {
+      animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .slide.active .slide-body {
+      animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-delay: 0.15s;
+    }
+
+    /* Slide Header */
+    .slide-header {
+      margin-bottom: 2%;
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 1.5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .slide-category {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--color-accent);
+      font-weight: 700;
+      margin-bottom: 0.5%;
+    }
+
+    .slide-title {
+      font-family: var(--font-display);
+      font-size: var(--font-size-title);
+      font-weight: 500;
+      color: var(--color-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .slide-subtitle {
+      font-size: var(--font-size-subtitle);
+      color: var(--color-secondary);
+      margin-top: 0.25rem;
+      font-weight: 400;
+    }
+
+    /* Slide Content Layouts */
+    .slide-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      align-content: start;
+    }
+
+    .grid-2col {
+      grid-template-columns: 1.15fr 0.85fr;
+    }
+
+    .grid-3col {
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    /* Standard Elements */
+    h1, h2, h3, h4 {
+      font-family: var(--font-display);
+      font-weight: 500;
+    }
+
+    p {
+      line-height: 1.6;
+      color: var(--color-secondary);
+      font-size: var(--font-size-body);
+    }
+
+    ul {
+      list-style: none;
+    }
+
+    li {
+      position: relative;
+      padding-left: 1.5rem;
+      margin-bottom: 0.75rem;
+      font-size: var(--font-size-body);
+      line-height: 1.5;
+      color: var(--color-primary);
+    }
+
+    li::before {
+      content: "";
+      position: absolute;
+      left: 0.2rem;
+      top: 0.6rem;
+      width: 6px;
+      height: 6px;
+      background-color: var(--color-accent);
+      border-radius: 50%;
+    }
+
+    .highlight-text {
+      color: var(--color-accent);
+      font-weight: 600;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 20px -2px var(--color-shadow);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 25px -5px var(--color-shadow);
+      border-color: var(--color-accent);
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      color: var(--color-primary);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-title svg {
+      color: var(--color-accent);
+      flex-shrink: 0;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-success { background: #E6F6EC; color: var(--color-success); }
+    .badge-danger { background: #FDE8E8; color: var(--color-danger); }
+    .badge-warning { background: #FEF3C7; color: var(--color-warning); }
+    .badge-accent { background: var(--color-accent-pale); color: var(--color-accent); border: 1px solid rgba(212, 175, 55, 0.3); }
+
+    /* --- SPECIAL SLIDE STYLES --- */
+
+    /* Slide 1: Welcome */
+    .slide-welcome {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background-color: #0b1f3a;
+      background-image: 
+        radial-gradient(rgba(212, 175, 55, 0.15) 1.5px, transparent 1.5px),
+        linear-gradient(135deg, #071426 0%, #0B1F3A 100%);
+      background-size: 32px 32px, 100% 100%;
+      color: var(--color-bg);
+    }
+
+    .slide-welcome .logo-mark {
+      font-family: var(--font-display);
+      font-size: 3.5rem;
+      font-weight: 600;
+      color: var(--color-accent);
+      letter-spacing: 0.08em;
+      margin-bottom: 1.5rem;
+      text-transform: uppercase;
+      position: relative;
+      display: inline-block;
+    }
+
+    .slide-welcome .logo-mark::after {
+      content: "";
+      position: absolute;
+      bottom: -10px;
+      left: 30%;
+      width: 40%;
+      height: 2px;
+      background-color: var(--color-accent);
+      box-shadow: 0 0 10px var(--color-accent);
+    }
+
+    .slide-welcome h1 {
+      font-size: var(--font-size-welcome-title);
+      color: var(--color-bg);
+      margin-bottom: 1rem;
+      max-width: 800px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+    }
+
+    .slide-welcome p {
+      color: #EBE5DA;
+      font-size: var(--font-size-welcome-desc);
+      max-width: 650px;
+      font-weight: 300;
+      opacity: 0.9;
+    }
+
+    /* Slide 4: Multi-Tenant Architecture Blocks */
+    .arch-diagram {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 1.25rem;
+      background: var(--color-surface-alt);
+      border-radius: 12px;
+      border: 1px dashed var(--color-border);
+    }
+
+    .arch-layer {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 0.75rem 1.25rem;
+      text-align: center;
+      font-weight: 600;
+      color: var(--color-primary);
+      box-shadow: 0 2px 4px var(--color-shadow);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+
+    .arch-layer:hover {
+      transform: scale(1.02);
+    }
+
+    .arch-layer.accent {
+      border: 1px solid var(--color-accent);
+      background: var(--color-accent-pale);
+      color: var(--color-accent);
+    }
+
+    /* Tenant Isolation Graphic */
+    .tenant-isolation-graphic {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .tenant-box {
+      flex: 1;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      background: var(--color-surface);
+      box-shadow: 0 2px 5px var(--color-shadow);
+    }
+
+    .tenant-box h5 {
+      font-family: var(--font-ui);
+      font-weight: 600;
+      color: var(--color-accent);
+      margin-bottom: 0.4rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+    }
+
+    .tenant-box p {
+      font-size: 0.75rem;
+      line-height: 1.3;
+    }
+
+    /* Slide 5: Interactive Business Config Simulator */
+    .config-selectors {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .config-btn {
+      flex: 1;
+      padding: 0.75rem;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--color-secondary);
+      font-size: 0.85rem;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .config-btn:hover {
+      border-color: var(--color-accent);
+      color: var(--color-primary);
+      background-color: var(--color-accent-pale);
+    }
+
+    .config-btn.active {
+      background: var(--color-primary);
+      color: var(--color-bg);
+      border-color: var(--color-primary);
+      box-shadow: 0 4px 12px var(--color-shadow);
+    }
+
+    .config-preview-panel {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      height: 250px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 20px var(--color-shadow);
+    }
+
+    .module-matrix {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .module-pill {
+      padding: 0.6rem;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 0.78rem;
+      font-weight: 500;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface-alt);
+      color: var(--color-secondary);
+      opacity: 0.35;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .module-pill.enabled {
+      background: #EBF7EE;
+      color: var(--color-success);
+      border-color: #C2ECD0;
+      opacity: 1;
+      font-weight: 600;
+      transform: scale(1.02);
+      box-shadow: 0 2px 5px rgba(30, 158, 106, 0.1);
+    }
+
+    /* Slide 7: Interactive Restaurant Floor Simulator */
+    .restaurant-grid-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .interactive-table {
+      aspect-ratio: 1.1;
+      border-radius: 50%;
+      border: 2px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      background: var(--color-surface);
+      position: relative;
+      box-shadow: 0 3px 6px var(--color-shadow);
+    }
+
+    .interactive-table.square {
+      border-radius: 12px;
+    }
+
+    .interactive-table.available { border-color: var(--color-success); color: var(--color-success); }
+    .interactive-table.occupied { border-color: var(--color-danger); color: var(--color-danger); }
+    .interactive-table.reserved { border-color: var(--color-warning); color: var(--color-warning); }
+
+    .interactive-table.available:hover { background: #EAF9F1; transform: scale(1.05); }
+    .interactive-table.occupied:hover { background: #FDECEC; transform: scale(1.05); }
+    .interactive-table.reserved:hover { background: #FFF9E6; transform: scale(1.05); }
+
+    .table-info-box {
+      background: var(--color-surface-alt);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      min-height: 250px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-shadow: 0 4px 15px var(--color-shadow);
+    }
+
+    /* Slide 8: Interactive Folio Bill Simulator */
+    .folio-bill {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      box-shadow: 0 10px 25px var(--color-shadow);
+      padding: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      border-radius: 8px;
+      position: relative;
+    }
+
+    .folio-bill::after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: radial-gradient(circle, transparent 4px, var(--color-surface) 4px);
+      background-size: 12px 12px;
+      transform: rotate(180deg);
+    }
+
+    .bill-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.25rem;
+      border-bottom: 1px dashed var(--color-border);
+    }
+
+    .bill-row.total {
+      border-bottom: none;
+      font-weight: 600;
+      font-size: 1.15rem;
+      color: var(--color-accent);
+      margin-top: 1rem;
+      border-top: 2px solid var(--color-primary);
+      padding-top: 0.5rem;
+    }
+
+    /* Slide 9: Inventory list details */
+    .inventory-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .inventory-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.65rem 1rem;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    /* Slide 11: Brand Aesthetics Swatches */
+    .color-swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+    }
+
+    .swatch-card {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      box-shadow: 0 3px 10px var(--color-shadow);
+    }
+
+    .swatch-color {
+      height: 70px;
+    }
+
+    .swatch-details {
+      padding: 0.75rem;
+    }
+
+    .swatch-name {
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .swatch-hex {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--color-secondary);
+      margin-top: 0.15rem;
+    }
+
+    /* Slide 12: Interactive ROI Calculator */
+    .calculator-container {
+      background: var(--color-surface-alt);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 10px var(--color-shadow);
+    }
+
+    .slider-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .slider-group label {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .slider-group input[type="range"] {
+      width: 100%;
+      height: 6px;
+      background: var(--color-border);
+      border-radius: 9999px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .slider-group input[type="range"]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 6px;
+      cursor: pointer;
+      background: var(--color-border);
+      border-radius: 9999px;
+    }
+
+    .slider-group input[type="range"]::-webkit-slider-thumb {
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      background: var(--color-accent);
+      cursor: pointer;
+      -webkit-appearance: none;
+      margin-top: -7px;
+      transition: background-color 0.2s, transform 0.1s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .slider-group input[type="range"]::-webkit-slider-thumb:hover {
+      background-color: var(--color-accent-light);
+      transform: scale(1.15);
+    }
+
+    .roi-result-box {
+      background: var(--color-primary);
+      color: var(--color-bg);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 10px 25px rgba(11, 31, 58, 0.25);
+    }
+
+    .roi-value {
+      font-family: var(--font-mono);
+      font-size: 2.8rem;
+      font-weight: 600;
+      color: var(--color-accent);
+      margin: 0.5rem 0;
+      text-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
+    }
+
+    /* Slide 13: Future enhancements cards */
+    .scale-card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .scale-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      box-shadow: 0 3px 8px var(--color-shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .scale-card h4 {
+      font-family: var(--font-ui);
+      font-weight: 600;
+      color: var(--color-primary);
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .scale-card h4 svg {
+      color: var(--color-accent);
+    }
+
+    .scale-card p {
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    /* Slide 14: Roadmap Vertical Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 2rem;
+      border-left: 2px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      max-height: 330px;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+
+    .timeline-item {
+      position: relative;
+    }
+
+    .timeline-dot {
+      position: absolute;
+      left: calc(-2rem - 6px);
+      top: 4px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--color-accent);
+      border: 2px solid var(--color-bg);
+    }
+
+    .timeline-phase {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--color-accent);
+      margin-bottom: 0.15rem;
+    }
+
+    .timeline-title {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--color-primary);
+    }
+
+    .timeline-desc {
+      font-size: 0.85rem;
+      color: var(--color-secondary);
+    }
+
+    /* --- FOOTER & NAVIGATION --- */
+    .presentation-footer {
+      height: 55px;
+      border-top: 1px solid var(--color-border);
+      padding: 0 4%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--color-surface);
+      z-index: 10;
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .nav-btn {
+      background: none;
+      border: 1px solid var(--color-border);
+      color: var(--color-primary);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn:hover {
+      background: var(--color-accent-pale);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+
+    .slide-progress {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--color-secondary);
+    }
+
+    .progress-bar-container {
+      position: absolute;
+      bottom: 55px;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--color-border);
+      z-index: 10;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--color-accent);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .brand-signature {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--color-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .brand-signature .accent-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--color-accent);
+      border-radius: 50%;
+    }
+
+    /* Keyboard Shortcuts Overlay */
+    .shortcuts-help {
+      font-size: 0.75rem;
+      color: var(--color-secondary);
+      display: flex;
+      gap: 1rem;
+    }
+
+    .key-badge {
+      background: var(--color-surface-alt);
+      border: 1px solid var(--color-border);
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+
+    /* --- MOBILE RESPONSIVE MEDIA QUERIES --- */
+    @media (max-width: 768px) {
+      :root {
+        --font-size-title: 1.5rem;
+        --font-size-subtitle: 0.8rem;
+        --font-size-body: 0.88rem;
+        --font-size-welcome-title: 1.8rem;
+        --font-size-welcome-desc: 0.95rem;
+      }
+
+      body {
+        overflow: auto;
+        background-color: var(--color-bg);
+      }
+
+      .presentation-container {
+        width: 100vw;
+        height: 100vh;
+        max-width: 100vw;
+        aspect-ratio: auto;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+      }
+
+      .slide {
+        padding: 5% 5% 75px 5%; /* Extra bottom padding to avoid footer overlap */
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+        background-size: 18px 18px;
+      }
+
+      .slide.active {
+        transform: scale(1) translateY(0); /* Simpler animation on mobile for performance */
+      }
+
+      .slide-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+        margin-bottom: 1.25rem;
+        padding-bottom: 1rem;
+      }
+
+      .slide-title {
+        line-height: 1.3;
+      }
+
+      .slide-body {
+        gap: 1.25rem;
+      }
+
+      .grid-2col, .grid-3col {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+      }
+
+      .card {
+        padding: 1.25rem;
+      }
+
+      /* Tenant graphic scaling */
+      .tenant-isolation-graphic {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      /* Stack simulator actions vertically */
+      .config-selectors {
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+
+      .config-btn {
+        padding: 0.6rem;
+        font-size: 0.8rem;
+      }
+
+      .config-preview-panel {
+        height: auto;
+        min-height: 180px;
+        padding: 1rem;
+      }
+
+      .module-matrix {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.35rem;
+      }
+
+      .module-pill {
+        padding: 0.5rem;
+        font-size: 0.72rem;
+      }
+
+      .restaurant-grid-container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+      }
+
+      .table-info-box {
+        min-height: auto;
+        padding: 1rem;
+      }
+
+      .folio-bill {
+        padding: 1rem;
+        font-size: 0.8rem;
+      }
+
+      .inventory-list {
+        gap: 0.35rem;
+      }
+
+      .inventory-item {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+      }
+
+      .color-swatch-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+      }
+
+      .swatch-color {
+        height: 45px;
+      }
+
+      .swatch-details {
+        padding: 0.5rem;
+      }
+
+      .swatch-name {
+        font-size: 0.75rem;
+      }
+
+      .swatch-hex {
+        font-size: 0.65rem;
+      }
+
+      .roi-result-box {
+        padding: 1.25rem;
+      }
+
+      .roi-value {
+        font-size: 2.2rem;
+      }
+
+      .scale-card-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+
+      .timeline {
+        max-height: none;
+        overflow-y: visible;
+        padding-right: 0;
+      }
+
+      /* Footer adjustments */
+      .presentation-footer {
+        height: 60px;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: var(--color-surface);
+        box-shadow: 0 -4px 15px rgba(0,0,0,0.06);
+        padding: 0 5%;
+      }
+
+      .progress-bar-container {
+        bottom: 60px;
+      }
+
+      .shortcuts-help {
+        display: none !important; /* Hide keyboard helpers on mobile */
+      }
+
+      .brand-signature span:last-child {
+        display: none; /* Hide slide category inside footer if space is tight */
+      }
+      .brand-signature .accent-dot {
+        display: none;
+      }
+    }
+
+    /* PRINT LAYOUT FOR PDF EXPORT */
+    @media print {
+      body {
+        background: none;
+        overflow: visible;
+      }
+      .presentation-container {
+        max-width: 100% !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        width: 100% !important;
+        aspect-ratio: 16/9 !important;
+        height: auto !important;
+        display: block !important;
+      }
+      .slide {
+        position: relative !important;
+        page-break-after: always !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+        display: flex !important;
+        height: 100vh !important;
+        width: 100vw !important;
+        padding: 4% 6% !important;
+      }
+      .presentation-footer, .progress-bar-container {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="presentation-container">
+    
+    <!-- Progress Indicator Bar -->
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Slides Container -->
+    <div class="slides-container">
+
+      <!-- Slide 1: Welcome/Title -->
+      <div class="slide slide-welcome active" data-category="Intro">
+        <div class="logo-mark">Hoteloraa</div>
+        <h1>Unified Hospitality Management</h1>
+        <p>Premium multi-tenant SaaS engineered for hotels, restaurants, and luxury properties.</p>
+      </div>
+
+      <!-- Slide 2: Introducing Hoteloraa -->
+      <div class="slide" data-category="The Solution">
+        <div class="slide-header">
+          <div>
+            <div class="slide-category">The Solution</div>
+            <h2 class="slide-title">Hoteloraa Ecosystem</h2>
+          </div>
+          <div class="slide-subtitle">A single backend powering all operational touchpoints</div>
+        </div>
+        <div class="slide-body grid-3col">
+          <div class="card">
+            <div class="badge badge-accent" style="margin-bottom: 1rem;">Restaurant Core</div>
+            <h3 class="card-title">POS &amp; KOT System</h3>
+            <p>Visual floor plan layouts, rapid captain ordering, digital KOT kitchen routing, and checkout cashier terminals.</p>
+          </div>
+          <div class="card">
+            <div class="badge badge-accent" style="margin-bottom: 1rem;">Lodging Core</div>
+            <h3 class="card-title">Room &amp; Housekeeping</h3>
+            <p>Frictionless reservations, real-time room status engines, mobile-friendly housekeeping lists, and customer profiles.</p>
+          </div>
+          <div class="card" style="border-color: var(--color-accent); background: var(--color-accent-pale);">
+            <div class="badge badge-success" style="margin-bottom: 1rem; color: #fff; background: var(--color-success)">Fully Integrated</div>
+            <h3 class="card-title">Shared Guest Folio</h3>
+            <p>Bridge food service, laundry, room tabs, and hospitality billing directly to the primary guest invoice with zero friction.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 3: Flexible Configurations (Interactive) -->
+      <div class="slide" data-category="Flexibility">
+        <div class="slide-header">
+          <div>
+            <div class="slide-category">Feature-Based Access</div>
+            <h2 class="slide-title">Flexible Configurations</h2>
+          </div>
+          <div class="slide-subtitle">Click the configuration modes below to see the UI adapt in real-time</div>
+        </div>
+        <div class="slide-body grid-2col">
+          <div>
+            <div class="config-selectors">
+              <button class="config-btn active" onclick="selectConfig('restaurant')">Restaurant Only</button>
+              <button class="config-btn" onclick="selectConfig('lodging')">Lodging Only</button>
+              <button class="config-btn" onclick="selectConfig('hotel-restaurant')">Hotel + Restaurant</button>
+            </div>
+            <p style="margin-top: 1rem; font-size: 0.95rem;" id="config-description">
+              Optimized for dining and quick service. Focuses on table operations, kitchen workflow speed, and instant cashier transactions.
+            </p>
+          </div>
+          <div class="config-preview-panel">
+            <h4 id="preview-title" style="margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+              <span>Hoteloraa Dashboard Mode</span>
+              <span class="badge badge-accent" id="preview-badge">Restaurant</span>
+            </h4>
+            <div style="flex: 1;">
+              <div class="module-matrix" id="moduleMatrix">
+                <div class="module-pill enabled" data-modes="restaurant,hotel-restaurant">POS Billing</div>
+                <div class="module-pill enabled" data-modes="restaurant,hotel-restaurant">Tables Management</div>
+                <div class="module-pill enabled" data-modes="restaurant,hotel-restaurant">Kitchen KOT</div>
+                <div class="module-pill" data-modes="lodging,hotel-restaurant">Reservations</div>
+                <div class="module-pill" data-modes="lodging,hotel-restaurant">Housekeeping</div>
+                <div class="module-pill" data-modes="lodging,hotel-restaurant">Room Control</div>
+                <div class="module-pill enabled" data-modes="restaurant,lodging,hotel-restaurant">Inventory</div>
+                <div class="module-pill enabled" data-modes="restaurant,lodging,hotel-restaurant">Reports</div>
+                <div class="module-pill" data-modes="hotel-restaurant">Guest Folio System</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 4: Lodging Workflows -->
+      <div class="slide" data-category="Lodging">
+        <div class="slide-header">
+          <div>
+            <div class="slide-category">Front Desk Workflow</div>
+            <h2 class="slide-title">Room &amp; Housekeeping Lifecycle</h2>
+          </div>
+          <div class="slide-subtitle">Complete guest management and real-time room tracking</div>
+        </div>
+        <div class="slide-body grid-2col">
+          <div>
+            <ul>
+              <li><strong>Dynamic Status Engine:</strong> Cleanly transition rooms between Reservation, Occupied, Dirty, and Cleaning states.</li>
+              <li><strong>Housekeeping App:</strong> Staff receive instant room updates on mobile browsers to optimize turnarounds.</li>
+              <li><strong>Frictionless Check-Ins:</strong> Fetch booking information and allocate keys in under 45 seconds.</li>
+            </ul>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; background: var(--color-surface-alt); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--color-border);">
+            <h4 style="font-size: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">Live Room Dashboard Mock</h4>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+              <div style="padding: 0.75rem; background: #EBF7EE; color: var(--color-success); border: 1px solid #C2ECD0; border-radius: 8px; font-family: var(--font-mono); font-size: 0.8rem; text-align: center;">
+                Room 101<br><span style="font-size: 0.7rem; font-weight: bold;">AVAILABLE</span>
+              </div>
+              <div style="padding: 0.75rem; background: #FFF9E6; color: var(--color-warning); border: 1px solid #FEEFCE; border-radius: 8px; font-family: var(--font-mono); font-size: 0.8rem; text-align: center;">
+                Room 102<br><span style="font-size: 0.7rem; font-weight: bold;">RESERVED</span>
+              </div>
+              <div style="padding: 0.75rem; background: #FDECEC; color: var(--color-danger); border: 1px solid #FCD3D3; border-radius: 8px; font-family: var(--font-mono); font-size: 0.8rem; text-align: center;">
+                Room 103<br><span style="font-size: 0.7rem; font-weight: bold;">OCCUPIED</span>
+              </div>
+              <div style="padding: 0.75rem; background: #F3F4F6; color: #4B5563; border: 1px solid #E5E7EB; border-radius: 8px; font-family: var(--font-mono); font-size: 0.8rem; text-align: center;">
+                Room 201<br><span style="font-size: 0.7rem; font-weight: bold;">DIRTY</span>
+              </div>
+              <div style="padding: 0.75rem; background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; border-radius: 8px; font-family: var(--font-mono); font-size: 0.8rem; text-align: center;">
+                Room 202<br><span style="font-size: 0.7rem; font-weight: bold;">CLEANING</span>
+              </div>
+              <div style="padding: 0.75rem; background: #F3F4F6; color: #4B5563; border: 1px solid #E5E7EB; border-radius: 8px; font-family: var(--font-mono); font-size: 0.8rem; text-align: center;">
+                Room 203<br><span style="font-size: 0.7rem; font-weight: bold;">MAINTENANCE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 5: Restaurant Workflows (Interactive Table) -->
+      <div class="slide" data-category="Restaurant">
+        <div class="slide-header">
+          <div>
+            <div class="slide-category">Restaurant Operations</div>
+            <h2 class="slide-title">Interactive Dining &amp; KOT Floor</h2>
+          </div>
+          <div class="slide-subtitle">Click tables below to simulate active order status tracking</div>
+        </div>
+        <div class="slide-body grid-2col">
+          <div>
+            <div class="restaurant-grid-container">
+              <div class="interactive-table available" onclick="selectTable(1, 'Available', 'Free to seat.')">T1</div>
+              <div class="interactive-table occupied square" onclick="selectTable(2, 'Occupied', 'KOT: 3 items prep. Total: ₹1,450')">T2</div>
+              <div class="interactive-table reserved" onclick="selectTable(3, 'Reserved', 'Booked for 8:00 PM (Party of 4)')">T3</div>
+              <div class="interactive-table occupied" onclick="selectTable(4, 'Occupied', 'KOT: Bill Printed. Total: ₹980')">T4</div>
+              <div class="interactive-table available square" onclick="selectTable(5, 'Available', 'Free to seat.')">T5</div>
+              <div class="interactive-table occupied" onclick="selectTable(6, 'Occupied', 'KOT: Appetizers Served. Total: ₹2,100')">T6</div>
+            </div>
+          </div>
+          <div class="table-info-box" id="tableInfoBox">
+            <h4 style="color: var(--color-accent); font-family: var(--font-display); font-size: 1.25rem;" id="tableInfoTitle">Table T2 Status</h4>
+            <div class="badge badge-danger" id="tableInfoBadge" style="margin: 0.5rem 0; width: fit-content;">Occupied</div>
+            <p id="tableInfoText" style="margin-top: 0.5rem;">KOT: 3 items preparing in the kitchen. Total: ₹1,450. Guest: Mr. Fernandez (Room 103)</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 6: The Guest Folio System (Interactive Bill) -->
+      <div class="slide" data-category="Finance">
+        <div class="slide-header">
+          <div>
+            <div class="slide-category">Integrated Guest Folio</div>
+            <h2 class="slide-title">The Unified Checkout Experience</h2>
+          </div>
+          <div class="slide-subtitle">No billing leakage, no manual calculations, completely electronic</div>
+        </div>
+        <div class="slide-body grid-2col">
+          <div>
+            <p style="margin-bottom: 1rem;">When Restaurant operations and Lodging operations are combined, Room Service and Dining bills route to the guest room invoice automatically.</p>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+              <button class="config-btn active" id="btn-add-food" onclick="addFolioCharge('Dinner - Table 4', 1250)">Add Food (₹1,250)</button>
+              <button class="config-btn active" id="btn-add-laundry" onclick="addFolioCharge('Laundry Service', 350)">Add Laundry (₹350)</button>
+            </div>
+            <p style="font-size: 0.9rem;">Click buttons above to simulate real-time room charge additions directly into the Folio.</p>
+          </div>
+          <div class="folio-bill">
+            <div style="text-align: center; font-weight: bold; margin-bottom: 1rem; border-bottom: 2px solid var(--color-primary); padding-bottom: 0.5rem; font-size: 0.85rem;">HOTELORAA INVOICE (GUEST FOLIO)</div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.75rem; color: var(--color-secondary);">
+              <span>Guest: Mr. Kapoor</span>
+              <span>Room: 304</span>
+            </div>
+            <div id="folioItems">
+              <div class="bill-row">
+                <span>Room Booking (2 Nights)</span>
+                <span>₹7,000</span>
+              </div>
+              <div class="bill-row">
+                <span>Breakfast Room Service</span>
+                <span>₹650</span>
+              </div>
+            </div>
+            <div class="bill-row total">
+              <span>TOTAL DUE:</span>
+              <span id="folioTotal">₹7,650</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 7: Inventory & Vendor Management -->
+      <div class="slide" data-category="Inventory">
+        <div class="slide-header">
+          <div>
+            <div class="slide-category">Back-Office Core</div>
+            <h2 class="slide-title">Inventory &amp; Vendor Management</h2>
+          </div>
+          <div class="slide-subtitle">Prevent waste, optimize menu yields, and manage supplier purchase orders</div>
+        </div>
+        <div class="slide-body grid-2col">
+          <div>
+            <ul>
+              <li><strong>Real-time Stock Control:</strong> Auto-deduct ingredients and stock as restaurant orders and KOTs are processed.</li>
+              <li><strong>Low-Stock Alerts:</strong> Automated threshold warnings protect properties from item shortages.</li>
+              <li><strong>Vendor Registry &amp; Purchases:</strong> Streamlined purchase order (PO) workflows linking invoice data straight to accounting.</li>
+            </ul>
+          </div>
+          <div class="inventory-list">
+            <div class="inventory-item">
+              <span>Basmati Rice (Kitchen)</span>
+              <span class="badge badge-success">45 KG (Sufficient)</span>
+            </div>
+            <div class="inventory-item">
+              <span>Paneer / Cottage Cheese</span>
+              <span class="badge badge-danger">1.2 KG (Low Stock Alert)</span>
+            </div>
+            <div class="inventory-item">
+              <span>Premium Coffee Beans</span>
+              <span class="badge badge-warning">5 KG (Reorder Pending)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 8: Multi-Tenant Architecture -->
+      <div class="slide" data-category="Architecture">
+        <div class="slide-header">
+          <div>
+            <div class="slide-category">System Architecture</div>
+            <h2 class="slide-title">Secure Multi-Tenant Backbone</h2>
+          </div>
+          <div class="slide-subtitle">Built for enterprise-grade scalability and data isolation</div>
+        </div>
+        <div class="slide-body grid-2col">
+          <div>
+            <p style="margin-bottom: 1.5rem;">Hoteloraa uses a **Shared-Database, Isolated-Row** approach to multi-tenancy. This guarantees that your business data, user lists, settings, and financials are securely partitioned.</p>
+            <div class="tenant-isolation-graphic">
+              <div class="tenant-box">
+                <h5>Tenant A</h5>
+                <p>Royal Palace Hotel<br><strong>Isolated Users &amp; Folios</strong></p>
+              </div>
+              <div class="tenant-box" style="border-color: var(--color-accent);">
+                <h5>Tenant B</h5>
+                <p>Cafe Aroma<br><strong>Isolated POS &amp; Inventory</strong></p>
+              </div>
+            </div>
+          </div>
+          <div class="arch-diagram">
+            <div class="arch-layer accent">
+              <span>Super Admin Dashboard</span>
+              <span class="badge badge-accent">Platform Owner</span>
+            </div>
+            <div class="arch-layer">
+              <span>Tenant Admin Access Control</span>
+              <span class="badge badge-success" style="font-size: 0.65rem;">Configurable</span>
+            </div>
+            <div class="arch-layer">
+              <span>Role-Based API (Prisma / SQL)</span>
+              <span class="badge badge-warning" style="font-size: 0.65rem; color: #fff; background: var(--color-warning);">Secure Route Guard</span>
+            </div>
+            <div class="arch-layer" style="background: var(--color-primary); color: var(--color-bg);">
+              <span>Isolated Tenant Database Partition</span>
+              <span class="badge badge-accent" style="color: var(--color-primary); background: var(--color-bg)">Isolated Data</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 9: Role-Based Access Control -->
+      <div class="slide" data-category="Security">
+        <div class="slide-header">
+          <div>
+            <div class="slide-category">Security Framework</div>
+            <h2 class="slide-title">Fine-Grained Permissions</h2>
+          </div>
+          <div class="slide-subtitle">Enforcing operational integrity via secure user hierarchies</div>
+        </div>
+        <div class="slide-body grid-3col">
+          <div class="card">
+            <h4 style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="display: inline-block; width: 8px; height: 8px; background: var(--color-accent); border-radius: 50%;"></span>
+              Front Desk Staff
+            </h4>
+            <p style="font-size: 0.9rem; margin-bottom: 1rem;">Authorized actions:</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+              <span class="badge badge-success" style="font-size: 0.65rem;">room.checkin</span>
+              <span class="badge badge-success" style="font-size: 0.65rem;">reservation.create</span>
+              <span class="badge badge-danger" style="font-size: 0.65rem;">report.revenue</span>
+            </div>
+          </div>
+          <div class="card">
+            <h4 style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="display: inline-block; width: 8px; height: 8px; background: var(--color-accent); border-radius: 50%;"></span>
+              Service Captains
+            </h4>
+            <p style="font-size: 0.9rem; margin-bottom: 1rem;">Authorized actions:</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+              <span class="badge badge-success" style="font-size: 0.65rem;">kot.create</span>
+              <span class="badge badge-success" style="font-size: 0.65rem;">table.assign</span>
+              <span class="badge badge-danger" style="font-size: 0.65rem;">billing.refund</span>
+            </div>
+          </div>
+          <div class="card">
+            <h4 style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="display: inline-block; width: 8px; height: 8px; background: var(--color-accent); border-radius: 50%;"></span>
+              Cashiers &amp; Finance
+            </h4>
+            <p style="font-size: 0.9rem; margin-bottom: 1rem;">Authorized actions:</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+              <span class="badge badge-success" style="font-size: 0.65rem;">billing.generate</span>
+              <span class="badge badge-success" style="font-size: 0.65rem;">payment.receive</span>
+              <span class="badge badge-danger" style="font-size: 0.65rem;">menu.price_update</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 10: Brand Aesthetics -->
+      <div class="slide" data-category="Design">
+        <div class="slide-header">
+          <div>
+            <div class="slide-category">UI/UX Design System</div>
+            <h2 class="slide-title">Premium Brand Guidelines</h2>
+          </div>
+          <div class="slide-subtitle">A warm, luxury design that reflects hospitality standards</div>
+        </div>
+        <div class="slide-body grid-2col">
+          <div>
+            <p style="margin-bottom: 1rem;">Hoteloraa avoids harsh neon dashboards, utilizing a curated color palette that reflects boutique luxury hotels and fine dining cafés.</p>
+            <h4 style="margin-bottom: 0.5rem;">Typography Stack:</h4>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+              <div><strong style="font-family: var(--font-display); font-size: 1.15rem;">Lora</strong> - Premium Headings &amp; Room Numbers</div>
+              <div><strong style="font-family: var(--font-ui); font-size: 1.05rem;">Inter</strong> - Rapid Operational UI &amp; Actions</div>
+              <div><strong style="font-family: var(--font-mono); font-size: 0.95rem;">JetBrains Mono</strong> - Pricing &amp; Invoice Numbers</div>
+            </div>
+          </div>
+          <div class="color-swatch-grid">
+            <div class="swatch-card">
+              <div class="swatch-color" style="background: #0B1F3A;"></div>
+              <div class="swatch-details">
+                <div class="swatch-name">Classic Navy</div>
+                <div class="swatch-hex">#0B1F3A</div>
+              </div>
+            </div>
+            <div class="swatch-card">
+              <div class="swatch-color" style="background: #FEF9F1; border-bottom: 1px solid var(--color-border);"></div>
+              <div class="swatch-details">
+                <div class="swatch-name">Warm Ivory</div>
+                <div class="swatch-hex">#FEF9F1</div>
+              </div>
+            </div>
+            <div class="swatch-card">
+              <div class="swatch-color" style="background: #D4AF37;"></div>
+              <div class="swatch-details">
+                <div class="swatch-name">Matte Gold</div>
+                <div class="swatch-hex">#D4AF37</div>
+              </div>
+            </div>
+            <div class="swatch-card">
+              <div class="swatch-color" style="background: #F4EFE6;"></div>
+              <div class="swatch-details">
+                <div class="swatch-name">Soft Linen</div>
+                <div class="swatch-hex">#F4EFE6</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- Slide 12: Future Scale & Integrations -->
+      <div class="slide" data-category="Future Scale">
+        <div class="slide-header">
+          <div>
+            <div class="slide-category">Growth &amp; Scalability</div>
+            <h2 class="slide-title">Future Expansion Features</h2>
+          </div>
+          <div class="slide-subtitle">Technological horizon to continuously elevate property margins</div>
+        </div>
+        <div class="slide-body">
+          <div class="scale-card-grid">
+            <div class="scale-card">
+              <h4>
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v1m6 11h2m-6 0h-2v4m0-16v4m0 4h.01M4 12h2m10 0h2"></path></svg>
+                QR Menu &amp; Ordering
+              </h4>
+              <p>Guests scan table QR codes to browse menus and order directly, reducing waiter workload and table turnaround times.</p>
+            </div>
+            <div class="scale-card">
+              <h4>
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                WhatsApp Notifications
+              </h4>
+              <p>Send automated guest reservation confirmations, KOT updates, invoice PDFs, and housekeeping alerts via WhatsApp APIs.</p>
+            </div>
+            <div class="scale-card">
+              <h4>
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                AI Revenue Analytics
+              </h4>
+              <p>Predict occupancy thresholds, automate seasonal pricing plans, and receive smart recommendations for ingredient purchasing yields.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 13: Roadmap -->
+      <div class="slide" data-category="Roadmap">
+        <div class="slide-header">
+          <div>
+            <div class="slide-category">Development Roadmap</div>
+            <h2 class="slide-title">Phased Implementation</h2>
+          </div>
+          <div class="slide-subtitle">Structured launch timeline to ensure robust operations</div>
+        </div>
+        <div class="slide-body">
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-phase">Phase 1 - 2: Architecture &amp; Room Control</div>
+              <div class="timeline-title">Secure Foundations &amp; Front Desk Operations</div>
+              <div class="timeline-desc">Tenant isolation, database setup, reservations database, room status boards, receptionist check-in dashboard.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-phase">Phase 3 - 4: POS &amp; Billing</div>
+              <div class="timeline-title">Restaurant POS, KOT &amp; Financial Integration</div>
+              <div class="timeline-desc">Visual restaurant floor management, Captain digital KOTs, cashier checkouts, and room-integrated guest folio billing.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-phase">Phase 5 - 6: Inventory &amp; Analytics</div>
+              <div class="timeline-title">Purchasing, Stock Management, and Reports</div>
+              <div class="timeline-desc">Ingredients and inventory tracking, vendors lists, auto-po capabilities, and multi-tenant revenue reports.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 14: Close / QA -->
+      <div class="slide slide-welcome" data-category="Contact">
+        <div class="logo-mark" style="font-size: 2.5rem;">Hoteloraa</div>
+        <h2 style="font-family: var(--font-display); font-size: 2rem; color: var(--color-bg); margin-bottom: 1.5rem;">Where Premium Hospitality Meets Modern Technology</h2>
+        <p style="font-size: 1.15rem; color: var(--color-accent); font-weight: bold; margin-bottom: 0.5rem;">Let's discuss how we can transform your operations.</p>
+        <p style="font-size: 1rem; color: var(--color-border);">Email: partner@hoteloraa.com | Web: www.hoteloraa.com</p>
+      </div>
+
+    </div>
+
+    <!-- Presentation Footer controls -->
+    <div class="presentation-footer">
+      <div class="brand-signature">
+        <span>Hoteloraa</span>
+        <span class="accent-dot"></span>
+        <span class="slide-category" id="currentCategory" style="font-size: 0.75rem; letter-spacing: 0.05em; margin: 0;">Intro</span>
+      </div>
+      
+      <div class="shortcuts-help">
+        <span>Navigate: <span class="key-badge">←</span> <span class="key-badge">→</span> or <span class="key-badge">Space</span></span>
+        <span>PDF: <span class="key-badge">Ctrl + P</span></span>
+      </div>
+
+      <div class="nav-controls">
+        <button class="nav-btn" onclick="prevSlide()" title="Previous Slide (Left Arrow)">←</button>
+        <div class="slide-progress" id="slideNum">1 / 13</div>
+        <button class="nav-btn" onclick="nextSlide()" title="Next Slide (Right Arrow or Space)">→</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Slide Navigation Logic
+    const slides = document.querySelectorAll('.slide');
+    const slideNumIndicator = document.getElementById('slideNum');
+    const progressBar = document.getElementById('progressBar');
+    const currentCategoryIndicator = document.getElementById('currentCategory');
+    let currentSlideIndex = 0;
+
+    function showSlide(index) {
+      if (index < 0 || index >= slides.length) return;
+
+      // Update slide states
+      slides.forEach((slide, idx) => {
+        slide.classList.remove('active', 'prev');
+        if (idx === index) {
+          slide.classList.add('active');
+        } else if (idx < index) {
+          slide.classList.add('prev');
+        }
+      });
+
+      currentSlideIndex = index;
+      
+      // Update footer indicators
+      slideNumIndicator.innerText = `${currentSlideIndex + 1} / ${slides.length}`;
+      
+      const pct = ((currentSlideIndex + 1) / slides.length) * 100;
+      progressBar.style.width = `${pct}%`;
+
+      const category = slides[currentSlideIndex].getAttribute('data-category') || 'System';
+      currentCategoryIndicator.innerText = category;
+    }
+
+    function nextSlide() {
+      if (currentSlideIndex < slides.length - 1) {
+        showSlide(currentSlideIndex + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlideIndex > 0) {
+        showSlide(currentSlideIndex - 1);
+      }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+        e.preventDefault();
+        prevSlide();
+      }
+    });
+
+    // Touch navigation for mobile (verifying horizontal gesture to allow vertical scroll)
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const presentation = document.querySelector('.presentation-container');
+    
+    presentation.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+    
+    presentation.addEventListener('touchend', (e) => {
+      let touchEndX = e.changedTouches[0].screenX;
+      let touchEndY = e.changedTouches[0].screenY;
+      
+      let diffX = touchStartX - touchEndX;
+      let diffY = touchStartY - touchEndY;
+      
+      // Only navigate if gesture is predominantly horizontal and meets minimum threshold
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+        if (diffX > 0) {
+          nextSlide(); // swipe left
+        } else {
+          prevSlide(); // swipe right
+        }
+      }
+    }, { passive: true });
+
+    // Initialize slides
+    showSlide(0);
+
+    // --- INTERACTIVE SLIDE 5: CONFIG SELECTOR ---
+    function selectConfig(mode) {
+      // Toggle buttons
+      const buttons = document.querySelectorAll('.config-btn');
+      buttons.forEach(btn => {
+        if (btn.innerText.toLowerCase().includes(mode.replace('-', ' '))) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      // Update descriptions & title
+      const desc = document.getElementById('config-description');
+      const badge = document.getElementById('preview-badge');
+      
+      if (mode === 'restaurant') {
+        desc.innerText = 'Optimized for dining and quick service. Focuses on table operations, kitchen workflow speed, and instant cashier transactions.';
+        badge.innerText = 'Restaurant';
+        badge.className = 'badge badge-success';
+      } else if (mode === 'lodging') {
+        desc.innerText = 'Designed for property and room management. Streamlines guest reservations, housekeeping task assignment, and checking guests in/out.';
+        badge.innerText = 'Lodging';
+        badge.className = 'badge badge-warning';
+        badge.style.color = '#fff';
+      } else {
+        desc.innerText = 'The complete suite. Integrates table service and room billing under a shared folio database. A guest can charge food orders directly to their room bill.';
+        badge.innerText = 'Hotel + Restaurant';
+        badge.className = 'badge badge-accent';
+      }
+
+      // Update pills
+      const pills = document.querySelectorAll('.module-pill');
+      pills.forEach(pill => {
+        const modes = pill.getAttribute('data-modes').split(',');
+        if (modes.includes(mode)) {
+          pill.classList.add('enabled');
+        } else {
+          pill.classList.remove('enabled');
+        }
+      });
+    }
+
+    // --- INTERACTIVE SLIDE 7: RESTAURANT TABLE FLOOR SELECTOR ---
+    function selectTable(num, status, details) {
+      // Update selected table
+      document.getElementById('tableInfoTitle').innerText = `Table T${num} Status`;
+      document.getElementById('tableInfoText').innerText = details;
+      
+      const badge = document.getElementById('tableInfoBadge');
+      badge.innerText = status;
+      badge.className = `badge badge-${status.toLowerCase() === 'available' ? 'success' : status.toLowerCase() === 'occupied' ? 'danger' : 'warning'}`;
+    }
+
+    // --- INTERACTIVE SLIDE 8: GUEST FOLIO ADDITIONS ---
+    let folioCharges = [
+      { name: 'Room Booking (2 Nights)', price: 7000 },
+      { name: 'Breakfast Room Service', price: 650 }
+    ];
+
+    function addFolioCharge(name, price) {
+      // Add charge
+      folioCharges.push({ name, price });
+      
+      // Re-render
+      const itemsContainer = document.getElementById('folioItems');
+      itemsContainer.innerHTML = '';
+      
+      let sum = 0;
+      folioCharges.forEach(charge => {
+        sum += charge.price;
+        const row = document.createElement('div');
+        row.className = 'bill-row';
+        row.innerHTML = `<span>${charge.name}</span><span>₹${charge.price.toLocaleString('en-IN')}</span>`;
+        itemsContainer.appendChild(row);
+      });
+      
+      document.getElementById('folioTotal').innerText = `₹${sum.toLocaleString('en-IN')}`;
+
+      // Disable the button to prevent duplicate clicks
+      if (name.includes('Dinner')) {
+        document.getElementById('btn-add-food').disabled = true;
+        document.getElementById('btn-add-food').style.opacity = 0.5;
+      }
+      if (name.includes('Laundry')) {
+        document.getElementById('btn-add-laundry').disabled = true;
+        document.getElementById('btn-add-laundry').style.opacity = 0.5;
+      }
+    }
+
+
+  </script>
+</body>
+</html>
