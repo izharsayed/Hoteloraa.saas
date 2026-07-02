@@ -19,7 +19,11 @@ function CheckOut() {
   const [notes, setNotes] = useState('');
   const [taxRate, setTaxRate] = useState(18); // default to 18%
 
-  // Print Invoice Modal State
+  // Itemized Extra Charges states
+  const [customExtras, setCustomExtras] = useState([]); // [{ id, desc, amount }]
+  const [newExtraDesc, setNewExtraDesc] = useState('');
+  const [newExtraAmount, setNewExtraAmount] = useState('');
+
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [printInvoiceData, setPrintInvoiceData] = useState(null);
   const [printFormat, setPrintFormat] = useState('a4'); // 'a4' or 'pos'
@@ -73,12 +77,46 @@ function CheckOut() {
     setSelectedRoom(room);
     setCheckoutComplete(false);
     setExtraChargesInput('0');
+    setCustomExtras([]);
+    setNewExtraDesc('');
+    setNewExtraAmount('');
     setDiscountInput('0');
     setPaymentMethod('CASH');
     setNotes('');
   };
 
-  const buildFolio = (room) => {
+  const handleAddCustomExtra = (e) => {
+    e.preventDefault();
+    if (!newExtraDesc.trim() || !newExtraAmount.trim()) return;
+    const amountVal = parseFloat(newExtraAmount) || 0;
+    if (amountVal <= 0) return;
+
+    const newItem = {
+      id: Date.now().toString(),
+      desc: newExtraDesc.trim(),
+      amount: amountVal
+    };
+
+    const updatedList = [...customExtras, newItem];
+    setCustomExtras(updatedList);
+    
+    // Automatically recalculate extraChargesInput total sum
+    const totalExtras = updatedList.reduce((sum, item) => sum + item.amount, 0);
+    setExtraChargesInput(totalExtras.toString());
+
+    setNewExtraDesc('');
+    setNewExtraAmount('');
+  };
+
+  const handleRemoveCustomExtra = (itemId) => {
+    const updatedList = customExtras.filter(item => item.id !== itemId);
+    setCustomExtras(updatedList);
+
+    const totalExtras = updatedList.reduce((sum, item) => sum + item.amount, 0);
+    setExtraChargesInput(totalExtras.toString());
+  };
+
+  const buildFolio = (room, includeCustomExtras = false) => {
     if (!room) return [];
     const items = [];
 
@@ -96,7 +134,17 @@ function CheckOut() {
       });
     }
 
-    // 3. Existing Discount
+    // 3. Dynamic Custom Extras Added at Checkout
+    if (includeCustomExtras) {
+      customExtras.forEach(item => {
+        items.push({
+          desc: item.desc,
+          amount: item.amount
+        });
+      });
+    }
+
+    // 4. Existing Discount
     if (room.discount > 0) {
       items.push({
         desc: 'Discount Applied',
@@ -104,7 +152,7 @@ function CheckOut() {
       });
     }
 
-    // 4. Restaurant Dine-In Orders
+    // 5. Restaurant Dine-In Orders
     if (room.orders && room.orders.length > 0) {
       room.orders.forEach((order) => {
         items.push({
@@ -152,7 +200,6 @@ function CheckOut() {
         ratePerNight: selectedRoom.ratePerNight,
         folioItems: [
           ...folioList,
-          ...(extraVal > 0 ? [{ desc: 'Additional Extras Added', amount: extraVal }] : []),
           ...(discVal > 0 ? [{ desc: 'Additional Discount Added', amount: -discVal }] : [])
         ],
         subtotal: subtotal,
@@ -195,7 +242,6 @@ function CheckOut() {
       ratePerNight: selectedRoom.ratePerNight,
       folioItems: [
         ...folioList,
-        ...(extraVal > 0 ? [{ desc: 'Additional Extras Added', amount: extraVal }] : []),
         ...(discVal > 0 ? [{ desc: 'Additional Discount Added', amount: -discVal }] : [])
       ],
       subtotal: subtotal,
@@ -209,8 +255,8 @@ function CheckOut() {
   };
 
   // Calculations
-  const folioList = buildFolio(selectedRoom);
-  const baseTotal = folioList.reduce((acc, curr) => acc + curr.amount, 0);
+  const folioList = buildFolio(selectedRoom, true);
+  const baseTotal = buildFolio(selectedRoom, false).reduce((acc, curr) => acc + curr.amount, 0);
   const extraVal = parseFloat(extraChargesInput) || 0;
   const discVal = parseFloat(discountInput) || 0;
   const subtotal = baseTotal + extraVal - discVal;
@@ -307,26 +353,81 @@ function CheckOut() {
 
                 {/* Settle Form Inputs */}
                 <div className="space-y-4 pt-4 border-t border-border-cream">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Add Extras (₹)</label>
-                      <input 
-                        type="number"
-                        min="0"
-                        value={extraChargesInput}
-                        onChange={(e) => setExtraChargesInput(e.target.value)}
-                        className="w-full px-3 py-2 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
-                      />
+                  <div className="space-y-4">
+                    {/* Itemized Custom Extras Builder */}
+                    <div className="space-y-1.5 p-3.5 bg-cream/10 border border-border-cream/50 rounded-2xl">
+                      <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Add Extras Itemized</label>
+                      <div className="flex gap-2">
+                        <input 
+                          type="text"
+                          placeholder="e.g. Water Bottle, Laundry"
+                          value={newExtraDesc}
+                          onChange={(e) => setNewExtraDesc(e.target.value)}
+                          className="flex-1 px-3 py-2 bg-white border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                        />
+                        <input 
+                          type="number"
+                          min="1"
+                          placeholder="Price (₹)"
+                          value={newExtraAmount}
+                          onChange={(e) => setNewExtraAmount(e.target.value)}
+                          className="w-20 px-3 py-2 bg-white border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddCustomExtra}
+                          className="px-3 py-2 bg-navy text-white hover:bg-navy/90 rounded-xl text-xs font-bold transition-all active:scale-95 shrink-0"
+                        >
+                          + Add
+                        </button>
+                      </div>
+
+                      {customExtras.length > 0 && (
+                        <div className="mt-2.5 p-2 bg-white/60 border border-border-cream/40 rounded-xl space-y-1.5 max-h-24 overflow-y-auto">
+                          {customExtras.map((item) => (
+                            <div key={item.id} className="flex justify-between items-center text-[10px] text-charcoal font-medium">
+                              <span className="flex items-center gap-1.5 truncate max-w-[150px]">
+                                <span className="w-1.5 h-1.5 rounded-full bg-gold shrink-0"></span>
+                                {item.desc}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-navy font-bold">₹{item.amount}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveCustomExtra(item.id)}
+                                  className="text-danger hover:text-danger-dark p-0.5"
+                                  title="Remove item"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Add Discount (₹)</label>
-                      <input 
-                        type="number"
-                        min="0"
-                        value={discountInput}
-                        onChange={(e) => setDiscountInput(e.target.value)}
-                        className="w-full px-3 py-2 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
-                      />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Total Extras (₹)</label>
+                        <input 
+                          type="text"
+                          readOnly
+                          disabled
+                          value={extraChargesInput}
+                          className="w-full px-3 py-2 bg-cream/20 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-bold text-charcoal font-mono cursor-not-allowed"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Add Discount (₹)</label>
+                        <input 
+                          type="number"
+                          min="0"
+                          value={discountInput}
+                          onChange={(e) => setDiscountInput(e.target.value)}
+                          className="w-full px-3 py-2 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                        />
+                      </div>
                     </div>
                   </div>
 
