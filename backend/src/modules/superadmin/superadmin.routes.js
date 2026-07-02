@@ -31,6 +31,10 @@ router.put('/users/:id/reset-password', superadminController.resetUserPassword);
 router.get('/audit-logs', superadminController.getAuditLogs);
 router.post('/audit-logs/simulate', superadminController.createSimulatedLog);
 
+// Support Tickets Management
+router.get('/tickets', superadminController.getAllTickets);
+router.patch('/tickets/:id', superadminController.updateTicket);
+
 // Global Roles & Matrix (RBAC)
 router.get('/roles', superadminController.getGlobalRoles);
 router.patch('/roles/:id/permissions', superadminController.updateRolePermissions);

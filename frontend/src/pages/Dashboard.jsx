@@ -8,9 +8,15 @@ import {
   TrendingUp, 
   Clock, 
   ArrowRight,
-  ChevronRight
+  ChevronRight,
+  LifeBuoy,
+  X,
+  Loader2,
+  CheckCircle,
+  Trash2,
+  UploadCloud
 } from 'lucide-react';
-import api from '../utils/api';
+import api, { assetUrl } from '../utils/api';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -25,6 +31,54 @@ function Dashboard() {
   } catch (e) {}
 
   const businessType = user.businessType || 'HOTEL_RESTAURANT';
+
+  // Support Ticket Modal States
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [ticketForm, setTicketForm] = useState({ title: '', category: 'BUG', priority: 'MEDIUM', module: 'OTHER', description: '', attachmentUrl: '' });
+  const [ticketSaving, setTicketSaving] = useState(false);
+  const [ticketSuccess, setTicketSuccess] = useState(false);
+  const [ticketError, setTicketError] = useState('');
+  const [attachmentUploading, setAttachmentUploading] = useState(false);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      setAttachmentUploading(true);
+      setTicketError('');
+      const result = await api.upload('/tickets/upload', formData);
+      setTicketForm(p => ({ ...p, attachmentUrl: result.attachmentUrl }));
+    } catch (err) {
+      console.error(err);
+      setTicketError(err.message || 'Failed to upload screenshot');
+    } finally {
+      setAttachmentUploading(false);
+    }
+  };
+
+  const handleCreateTicket = async (e) => {
+    e.preventDefault();
+    if (!ticketForm.title || !ticketForm.description) return;
+    try {
+      setTicketSaving(true);
+      setTicketError('');
+      await api.post('/tickets', ticketForm);
+      setTicketSuccess(true);
+      setTicketForm({ title: '', category: 'BUG', priority: 'MEDIUM', module: 'OTHER', description: '', attachmentUrl: '' });
+      setTimeout(() => {
+        setTicketSuccess(false);
+        setShowTicketModal(false);
+      }, 2000);
+    } catch (err) {
+      setTicketError(err.message || 'Failed to submit ticket');
+    } finally {
+      setTicketSaving(false);
+    }
+  };
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -281,6 +335,11 @@ function Dashboard() {
           <span className="font-mono text-sm px-3 py-1.5 bg-white border border-border-cream rounded-xl text-slate shadow-sm">
             Fiscal: {new Date().toISOString().split('T')[0]}
           </span>
+          {(user.userRole === 'MANAGER' || user.userRole === 'TENANT_ADMIN') && (
+            <button onClick={() => setShowTicketModal(true)} className="flex items-center gap-2 px-4 py-2 border border-navy/20 hover:border-navy text-navy hover:bg-navy/5 font-semibold rounded-xl text-xs transition-all duration-200">
+              <LifeBuoy className="w-4 h-4 text-gold" /> Report Issue
+            </button>
+          )}
           {businessType !== 'RESTAURANT' && (
             <button onClick={() => navigate('/checkin')} className="btn-primary">
               Quick Check-In <ArrowRight className="w-4 h-4" />
@@ -385,9 +444,171 @@ function Dashboard() {
               ₹{revenueHighlights.netSales.toLocaleString()}
             </span>
           </div>
-        </div>
-
       </div>
+    </div>
+
+      {/* Support Ticket Modal */}
+      {showTicketModal && (
+        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-navy/10 flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2rem] border border-border-cream p-8 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onClick={() => setShowTicketModal(false)} disabled={ticketSaving}
+              className="absolute top-6 right-6 text-slate hover:text-navy transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="font-display font-semibold text-lg text-navy mb-1 flex items-center gap-2">
+              <LifeBuoy className="w-5 h-5 text-gold animate-spin-slow" /> Report System Issue
+            </h3>
+            <p className="text-slate text-xs mb-6">Create a support ticket to platform administrators about any system error or problem.</p>
+
+            {ticketSuccess ? (
+              <div className="py-12 flex flex-col items-center justify-center text-center space-y-3">
+                <CheckCircle className="w-12 h-12 text-success animate-bounce" />
+                <h4 className="font-display font-bold text-navy text-base">Ticket Submitted!</h4>
+                <p className="text-slate text-xs font-semibold">Our platform administrators have been notified.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleCreateTicket} className="space-y-4">
+                {ticketError && (
+                  <div className="p-3 bg-danger-pale border border-danger/10 rounded-xl text-danger text-xs font-semibold">
+                    {ticketError}
+                  </div>
+                )}
+                
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Ticket Title *</label>
+                  <input type="text" required placeholder="e.g. POS printer not printing invoice"
+                    value={ticketForm.title} onChange={e => setTicketForm(p => ({ ...p, title: e.target.value }))}
+                    className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold" disabled={ticketSaving} />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Affected Module</label>
+                  <select value={ticketForm.module} onChange={e => setTicketForm(p => ({ ...p, module: e.target.value }))}
+                    className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold" disabled={ticketSaving}>
+                    <option value="DASHBOARD">Dashboard & Overview</option>
+                    <option value="TABLES">Dining Tables / Seating</option>
+                    <option value="MENU">Menu Management</option>
+                    <option value="ORDERS">POS Orders</option>
+                    <option value="KOT">Kitchen (KOT)</option>
+                    <option value="POS">POS Billing Checkout</option>
+                    <option value="ROOMS">Rooms Directory</option>
+                    <option value="RESERVATIONS">Room Reservations</option>
+                    <option value="CHECKIN_CHECKOUT">Check-In / Check-Out</option>
+                    <option value="HOUSEKEEPING">Housekeeping</option>
+                    <option value="INVENTORY">Inventory & Stock</option>
+                    <option value="VENDORS_PURCHASES">Vendors & Procurement</option>
+                    <option value="ATTENDANCE_SHIFTS">Attendance & Shifts</option>
+                    <option value="REPORTS">Reports & Analytics</option>
+                    <option value="SETTINGS_USERS">System Settings & Users</option>
+                    <option value="OTHER">Other / General</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Category</label>
+                    <select value={ticketForm.category} onChange={e => setTicketForm(p => ({ ...p, category: e.target.value }))}
+                      className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold" disabled={ticketSaving}>
+                      <option value="BUG">Bug / Error</option>
+                      <option value="QUESTION">Question</option>
+                      <option value="FEATURE_REQUEST">Feature Request</option>
+                      <option value="BILLING">Billing / Subscription</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Priority</label>
+                    <select value={ticketForm.priority} onChange={e => setTicketForm(p => ({ ...p, priority: e.target.value }))}
+                      className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold" disabled={ticketSaving}>
+                      <option value="LOW">Low</option>
+                      <option value="MEDIUM">Medium</option>
+                      <option value="HIGH">High</option>
+                      <option value="URGENT">Urgent</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Detailed Description *</label>
+                  <textarea required rows={4} placeholder="Describe the error, what triggers it, and any details to help us troubleshoot..."
+                    value={ticketForm.description} onChange={e => setTicketForm(p => ({ ...p, description: e.target.value }))}
+                    className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold" disabled={ticketSaving} />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Screenshot / Photos</label>
+                  {ticketForm.attachmentUrl ? (
+                    <div className="relative border border-border-cream rounded-xl p-2 bg-cream/5 flex items-center justify-between group">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <img 
+                          src={assetUrl(ticketForm.attachmentUrl)} 
+                          alt="Screenshot preview" 
+                          className="w-12 h-12 object-cover rounded-lg border border-border-cream"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-semibold text-navy truncate">
+                            {ticketForm.attachmentUrl.split('/').pop()}
+                          </p>
+                          <p className="text-[9px] text-slate font-medium">Uploaded successfully</p>
+                        </div>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => setTicketForm(p => ({ ...p, attachmentUrl: '' }))}
+                        className="p-1.5 rounded-lg bg-danger/10 text-danger hover:bg-danger/20 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        disabled={attachmentUploading || ticketSaving}
+                        className="hidden" 
+                        id="ticket-screenshot"
+                      />
+                      <label 
+                        htmlFor="ticket-screenshot"
+                        className={`w-full flex flex-col items-center justify-center py-4 border border-dashed border-border-cream rounded-xl hover:border-gold cursor-pointer transition-all ${
+                          attachmentUploading ? 'opacity-70 pointer-events-none' : ''
+                        }`}
+                      >
+                        {attachmentUploading ? (
+                          <>
+                            <Loader2 className="w-6 h-6 text-gold animate-spin mb-1.5" />
+                            <span className="text-[11px] font-bold text-navy">Uploading screenshot...</span>
+                          </>
+                        ) : (
+                          <>
+                            <UploadCloud className="w-6 h-6 text-gold mb-1.5" />
+                            <span className="text-[11px] font-bold text-navy">Upload screenshot or photo</span>
+                            <span className="text-[9px] text-slate mt-0.5">JPEG, PNG, WEBP up to 5MB</span>
+                          </>
+                        )}
+                      </label>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-3 pt-3">
+                  <button type="button" onClick={() => setShowTicketModal(false)} disabled={ticketSaving}
+                    className="w-1/2 px-4 py-2.5 border border-border-cream text-charcoal hover:bg-stone-50 rounded-xl text-xs font-bold">
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={ticketSaving}
+                    className="w-1/2 px-4 py-2.5 bg-navy text-white hover:bg-navy/90 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+                    {ticketSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <LifeBuoy className="w-4 h-4" />}
+                    {ticketSaving ? 'Submitting...' : 'Submit Ticket'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

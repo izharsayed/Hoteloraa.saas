@@ -1,6 +1,7 @@
 "use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } }
 
 var _superadminservice = require('./superadmin.service'); var superadminService = _interopRequireWildcard(_superadminservice);
+var _ticketsservice = require('../tickets/tickets.service'); var ticketsService = _interopRequireWildcard(_ticketsservice);
 var _helpers = require('../../shared/helpers');
 
 // Overview Metrics
@@ -169,3 +170,23 @@ var _helpers = require('../../shared/helpers');
     next(err);
   }
 }; exports.deleteRole = deleteRole;
+
+// Support Tickets Management
+ const getAllTickets = async (req, res, next) => {
+  try {
+    const result = await ticketsService.getAllTickets();
+    _helpers.sendSuccess.call(void 0, res, result, 'All tickets retrieved successfully');
+  } catch (err) {
+    next(err);
+  }
+}; exports.getAllTickets = getAllTickets;
+
+ const updateTicket = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const result = await ticketsService.updateTicket(id, req.body);
+    _helpers.sendSuccess.call(void 0, res, result, 'Ticket updated successfully');
+  } catch (err) {
+    next(err);
+  }
+}; exports.updateTicket = updateTicket;

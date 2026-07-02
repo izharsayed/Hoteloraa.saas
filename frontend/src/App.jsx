@@ -53,6 +53,7 @@ import SuperAdminSubscriptions from './pages/SuperAdminSubscriptions.jsx';
 import SuperAdminUsers from './pages/SuperAdminUsers.jsx';
 import SuperAdminRBAC from './pages/SuperAdminRBAC.jsx';
 import SuperAdminLogs from './pages/SuperAdminLogs.jsx';
+import SuperAdminTickets from './pages/SuperAdminTickets.jsx';
 
 // Manager Panel
 import Manager from './pages/Manager.jsx';
@@ -429,6 +430,7 @@ function App() {
             <Route path="/superadmin/users"          element={<SuperAdminUsers />} />
             <Route path="/superadmin/rbac"           element={<SuperAdminRBAC />} />
             <Route path="/superadmin/logs"           element={<SuperAdminLogs />} />
+            <Route path="/superadmin/tickets"        element={<SuperAdminTickets />} />
           </Route>
         </Route>
 

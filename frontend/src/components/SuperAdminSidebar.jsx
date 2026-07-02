@@ -10,7 +10,8 @@ import {
   FileText, 
   Users,
   LogOut,
-  ChevronLeft
+  ChevronLeft,
+  LifeBuoy
 } from 'lucide-react';
 import api from '../utils/api.js';
 
@@ -21,6 +22,7 @@ function SuperAdminSidebar({ collapsed, onToggle }) {
     { name: 'Cluster Overview', path: '/superadmin', icon: Activity },
     { name: 'Tenants Registry', path: '/superadmin/tenants', icon: Building2 },
     { name: 'Subscription Plans', path: '/superadmin/subscriptions', icon: CreditCard },
+    { name: 'Support Tickets', path: '/superadmin/tickets', icon: LifeBuoy },
     { name: 'Platform Users', path: '/superadmin/users', icon: Users },
     { name: 'Global RBAC Panel', path: '/superadmin/rbac', icon: ShieldCheck },
     { name: 'System Audit Logs', path: '/superadmin/logs', icon: FileText },

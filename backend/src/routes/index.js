@@ -31,6 +31,7 @@ var _categoriesroutes = require('../modules/categories/categories.routes'); var 
 var _superadminroutes = require('../modules/superadmin/superadmin.routes'); var _superadminroutes2 = _interopRequireDefault(_superadminroutes);
 var _notificationsroutes = require('../modules/notifications/notifications.routes'); var _notificationsroutes2 = _interopRequireDefault(_notificationsroutes);
 var _floorsroutes = require('../modules/floors/floors.routes'); var _floorsroutes2 = _interopRequireDefault(_floorsroutes);
+var _ticketsroutes = require('../modules/tickets/tickets.routes'); var _ticketsroutes2 = _interopRequireDefault(_ticketsroutes);
 
 // Attendance (new)
 const attendanceRoutes = require('../modules/attendance/attendance.routes');
@@ -88,6 +89,7 @@ router.use('/subscriptions', _subscriptionsroutes2.default);
 router.use('/categories', _categoriesroutes2.default);
 router.use('/superadmin', _superadminroutes2.default);
 router.use('/notifications', _notificationsroutes2.default);
+router.use('/tickets', _ticketsroutes2.default);
 
 // Attendance & Shifts (new)
 router.use('/attendance', attendanceRoutes);

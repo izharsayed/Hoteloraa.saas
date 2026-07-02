@@ -190,6 +190,7 @@ model Tenant {
   categories    Category[]
   notifications Notification[]
   floors        Floor[]
+  tickets       Ticket[]
 
   // Attendance relations (new)
   shifts             Shift[]
@@ -312,6 +313,7 @@ model User {
   payments     Payment[]
   passwordResetTokens PasswordResetToken[]
   notifications Notification[]
+  tickets       Ticket[]
 
   // Attendance relations (new)
   attendance      Attendance[]    @relation("AttendanceEmployee")
@@ -1099,4 +1101,31 @@ model AttendanceLog {
   @@index([tenantId, createdAt])
   @@index([tenantId, attendanceId])
   @@map("attendance_logs")
+}
+
+// ============================================================
+// SUPPORT TICKETS
+// ============================================================
+
+model Ticket {
+  id           String      @id @default(uuid())
+  tenantId     String
+  userId       String
+  title        String
+  description  String      @db.Text
+  category     String      // BUG, QUESTION, FEATURE_REQUEST, BILLING, OTHER
+  module       String      @default("OTHER")
+  priority     String      // LOW, MEDIUM, HIGH, URGENT
+  status       String      @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  attachmentUrl String?     // Optional screenshot/photo url
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  tenant       Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([priority])
+  @@map("tickets")
 }
