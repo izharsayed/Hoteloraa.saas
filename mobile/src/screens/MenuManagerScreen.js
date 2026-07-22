@@ -287,7 +287,10 @@ export default function MenuManagerScreen({ user, onLogout, onOpenDrawer }) {
           
           <View style={styles.headerActionsRow}>
             <TouchableOpacity style={styles.outlineBtn} onPress={() => setShowCategoryModal(true)}>
-              <Text style={styles.outlineBtnText}>📁 Manage Categories</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="folder-open-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                <Text style={styles.outlineBtnText}>Manage Categories</Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity style={styles.goldBtn} onPress={() => { resetForm(); setShowAddModal(true); }}>
               <Text style={styles.goldBtnText}>＋ Add Menu Item</Text>
@@ -333,7 +336,7 @@ export default function MenuManagerScreen({ user, onLogout, onOpenDrawer }) {
           </View>
         ) : filteredItems.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyIcon}>🍽️</Text>
+            <Ionicons name="restaurant-outline" size={40} color="#D4AF37" style={{ marginBottom: 12 }} />
             <Text style={styles.emptyTextBold}>No Dishes Found</Text>
             <Text style={styles.emptyText}>Add some items or change filters.</Text>
           </View>
@@ -351,7 +354,7 @@ export default function MenuManagerScreen({ user, onLogout, onOpenDrawer }) {
                     <Image source={{ uri: absoluteImageUrl }} style={styles.dishImage} />
                   ) : (
                     <View style={[styles.dishImage, styles.placeholderImage]}>
-                      <Text style={{ fontSize: 24 }}>🍲</Text>
+                      <Ionicons name="restaurant-outline" size={24} color="#718096" />
                     </View>
                   )}
                   {/* Status Dot indicator */}
@@ -399,7 +402,7 @@ export default function MenuManagerScreen({ user, onLogout, onOpenDrawer }) {
                           autoFocus
                         />
                         <TouchableOpacity style={styles.savePriceBtn} onPress={() => handlePriceChange(item.id, editingPriceVal)}>
-                          <Text style={styles.savePriceBtnText}>✓</Text>
+                          <Ionicons name="checkmark-outline" size={14} color="#D4AF37" />
                         </TouchableOpacity>
                       </View>
                     ) : (
@@ -411,7 +414,7 @@ export default function MenuManagerScreen({ user, onLogout, onOpenDrawer }) {
                         }}
                       >
                         <Text style={styles.priceText}>₹ {item.price}</Text>
-                        <Text style={styles.editPricePencil}>✏️</Text>
+                        <Ionicons name="create-outline" size={14} color="#D4AF37" style={{ marginLeft: 6 }} />
                       </TouchableOpacity>
                     )}
 
@@ -428,7 +431,7 @@ export default function MenuManagerScreen({ user, onLogout, onOpenDrawer }) {
                         style={styles.actionBtnDelete}
                         onPress={() => handleDeleteItem(item.id)}
                       >
-                        <Text style={styles.actionBtnDeleteText}>🗑️</Text>
+                        <Ionicons name="trash-outline" size={14} color="#E53E3E" />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -525,10 +528,16 @@ export default function MenuManagerScreen({ user, onLogout, onOpenDrawer }) {
             <Text style={styles.modalLabel}>Upload Photo</Text>
             <View style={styles.imageSelectorRow}>
               <TouchableOpacity style={styles.uploadBtn} onPress={() => handleUploadImage(false)} disabled={uploading}>
-                <Text style={styles.uploadBtnText}>🖼️ Choose Gallery</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Ionicons name="image-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                  <Text style={styles.uploadBtnText}>Choose Gallery</Text>
+                </View>
               </TouchableOpacity>
               <TouchableOpacity style={styles.uploadBtn} onPress={() => handleUploadImage(true)} disabled={uploading}>
-                <Text style={styles.uploadBtnText}>📸 Take Photo</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Ionicons name="camera-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                  <Text style={styles.uploadBtnText}>Take Photo</Text>
+                </View>
               </TouchableOpacity>
             </View>
 
@@ -578,7 +587,10 @@ export default function MenuManagerScreen({ user, onLogout, onOpenDrawer }) {
               ) : (
                 categories.map((c) => (
                   <View key={c.id} style={styles.categoryRow}>
-                    <Text style={styles.categoryRowName}>📁 {c.name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Ionicons name="folder-open-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                      <Text style={styles.categoryRowName}>{c.name}</Text>
+                    </View>
                     <TouchableOpacity onPress={() => handleDeleteCategory(c.id)}>
                       <Text style={styles.deleteLink}>Delete</Text>
                     </TouchableOpacity>

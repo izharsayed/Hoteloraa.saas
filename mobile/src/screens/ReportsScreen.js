@@ -73,10 +73,10 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
     : '₹15,400';
 
   const kpis = [
-    { name: 'Average Daily Rate (ADR)', value: adrValue, change: '↗ +3.4%', desc: 'Average rent paid per occupied room', icon: '💰' },
-    { name: 'RevPAR', value: revparValue, change: '↗ +4.2%', desc: 'Revenue per available room', icon: '📈' },
-    { name: 'POS Dining Covers', value: diningCovers.toString(), change: '↗ +12.4%', desc: 'Number of restaurant customers served', icon: '🍽️' },
-    { name: 'Room Service Revenue', value: roomServiceRev, change: '↗ +8.1%', desc: 'In-room food & beverage orders', icon: '🛎️' }
+    { name: 'Average Daily Rate (ADR)', value: adrValue, change: '↗ +3.4%', desc: 'Average rent paid per occupied room', icon: 'cash-outline' },
+    { name: 'RevPAR', value: revparValue, change: '↗ +4.2%', desc: 'Revenue per available room', icon: 'trending-up-outline' },
+    { name: 'POS Dining Covers', value: diningCovers.toString(), change: '↗ +12.4%', desc: 'Number of restaurant customers served', icon: 'restaurant-outline' },
+    { name: 'Room Service Revenue', value: roomServiceRev, change: '↗ +8.1%', desc: 'In-room food & beverage orders', icon: 'notifications-outline' }
   ];
 
   // 5. Timeline Chart Data (Weekly Occupancy Timeline)
@@ -166,7 +166,7 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
                 <View key={kpi.name} style={styles.kpiCard}>
                   <View style={styles.kpiHeader}>
                     <Text style={styles.kpiLabel} numberOfLines={1}>{kpi.name}</Text>
-                    <Text style={styles.kpiIcon}>{kpi.icon}</Text>
+                    <Ionicons name={kpi.icon} size={18} color="#D4AF37" />
                   </View>
                   <Text style={styles.kpiValue}>{kpi.value}</Text>
                   <View style={styles.kpiFooter}>
@@ -180,8 +180,14 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
             {/* Weekly Occupancy Timeline Chart */}
             <View style={styles.chartCard}>
               <View style={styles.chartHeader}>
-                <Text style={styles.chartTitle}>📊 Weekly Occupancy Timeline</Text>
-                <Text style={styles.chartRange}>📅 {datesRange.start} - {datesRange.end}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Ionicons name="bar-chart-outline" size={16} color="#D4AF37" style={{ marginRight: 6 }} />
+                  <Text style={styles.chartTitle}>Weekly Occupancy Timeline</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Ionicons name="calendar-outline" size={12} color="#718096" style={{ marginRight: 4 }} />
+                  <Text style={styles.chartRange}>{datesRange.start} - {datesRange.end}</Text>
+                </View>
               </View>
 
               {/* Flexbox Bar Chart */}
@@ -219,7 +225,10 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
 
             {/* Revenue Split Module Progress List */}
             <View style={styles.chartCard}>
-              <Text style={styles.chartTitle}>💰 Revenue Split by Module</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                <Ionicons name="cash-outline" size={16} color="#D4AF37" style={{ marginRight: 6 }} />
+                <Text style={[styles.chartTitle, { marginBottom: 0 }]}>Revenue Split by Module</Text>
+              </View>
               <View style={styles.splitList}>
                 {revenueSplit.map((item) => (
                   <View key={item.name} style={styles.splitRow}>

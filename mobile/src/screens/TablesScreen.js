@@ -255,7 +255,10 @@ export default function TablesScreen({ user, onLogout, onOpenDrawer }) {
           
           <View style={styles.headerActionsRow}>
             <TouchableOpacity style={styles.outlineBtn} onPress={() => setIsManageFloorsOpen(true)}>
-              <Text style={styles.outlineBtnText}>🏢 Manage Floors</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="business-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                <Text style={styles.outlineBtnText}>Manage Floors</Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity style={styles.goldBtn} onPress={() => setIsAddModalOpen(true)}>
               <Text style={styles.goldBtnText}>＋ Add Table</Text>
@@ -305,7 +308,7 @@ export default function TablesScreen({ user, onLogout, onOpenDrawer }) {
             </View>
           ) : filteredTables.length === 0 ? (
             <View style={styles.emptyGridCard}>
-              <Text style={{ fontSize: 32, marginBottom: 8 }}>🍽️</Text>
+              <Ionicons name="restaurant-outline" size={32} color="#D4AF37" style={{ marginBottom: 8 }} />
               <Text style={styles.emptyGridText}>No tables found in this zone.</Text>
               <Text style={styles.emptyGridSubtext}>Click "Add Table" to create one!</Text>
             </View>
@@ -320,7 +323,10 @@ export default function TablesScreen({ user, onLogout, onOpenDrawer }) {
                     onPress={() => setSelectedTable(table)}
                   >
                     <Text style={styles.tableName}>{table.name}</Text>
-                    <Text style={styles.tableCapacity}>👥 {table.capacity} pax</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+                      <Ionicons name="people-outline" size={12} color="#718096" style={{ marginRight: 4 }} />
+                      <Text style={styles.tableCapacity}>{table.capacity} pax</Text>
+                    </View>
                     
                     {/* Status indicator pill */}
                     <View style={[styles.statusPillBadge, getStatusColor(table.status)]}>
@@ -461,7 +467,10 @@ export default function TablesScreen({ user, onLogout, onOpenDrawer }) {
               ) : (
                 floors.map((f) => (
                   <View key={f.id} style={styles.floorRow}>
-                    <Text style={styles.floorRowName}>🏢 {f.name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Ionicons name="business-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                      <Text style={styles.floorRowName}>{f.name}</Text>
+                    </View>
                     <TouchableOpacity onPress={() => handleDeleteFloor(f.id)}>
                       <Text style={styles.deleteLink}>Delete</Text>
                     </TouchableOpacity>
@@ -498,19 +507,28 @@ export default function TablesScreen({ user, onLogout, onOpenDrawer }) {
                 style={[styles.statusOptionBtn, { borderColor: '#38A169' }]}
                 onPress={() => handleUpdateStatus('AVAILABLE')}
               >
-                <Text style={{ fontSize: 11, fontWeight: 'bold', color: '#38A169' }}>🟢 Free Table</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                  <Ionicons name="checkmark-circle-outline" size={12} color="#38A169" style={{ marginRight: 4 }} />
+                  <Text style={{ fontSize: 11, fontWeight: 'bold', color: '#38A169' }}>Free Table</Text>
+                </View>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.statusOptionBtn, { borderColor: '#E53E3E' }]}
                 onPress={() => handleUpdateStatus('OCCUPIED')}
               >
-                <Text style={{ fontSize: 11, fontWeight: 'bold', color: '#E53E3E' }}>🔴 Seat Guest</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                  <Ionicons name="people-outline" size={12} color="#E53E3E" style={{ marginRight: 4 }} />
+                  <Text style={{ fontSize: 11, fontWeight: 'bold', color: '#E53E3E' }}>Seat Guest</Text>
+                </View>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.statusOptionBtn, { borderColor: '#D97706' }]}
                 onPress={() => handleUpdateStatus('RESERVED')}
               >
-                <Text style={{ fontSize: 11, fontWeight: 'bold', color: '#D97706' }}>🟠 Reserve Table</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                  <Ionicons name="calendar-outline" size={12} color="#D97706" style={{ marginRight: 4 }} />
+                  <Text style={{ fontSize: 11, fontWeight: 'bold', color: '#D97706' }}>Reserve Table</Text>
+                </View>
               </TouchableOpacity>
             </View>
 
@@ -519,7 +537,10 @@ export default function TablesScreen({ user, onLogout, onOpenDrawer }) {
               style={[styles.statusOptionBtn, { borderColor: '#E53E3E', backgroundColor: '#FFF5F5', marginTop: 10 }]}
               onPress={() => handleDeleteTable(selectedTable.id)}
             >
-              <Text style={{ fontSize: 11, fontWeight: 'bold', color: '#E53E3E' }}>🗑️ Delete Table</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="trash-outline" size={12} color="#E53E3E" style={{ marginRight: 4 }} />
+                <Text style={{ fontSize: 11, fontWeight: 'bold', color: '#E53E3E' }}>Delete Table</Text>
+              </View>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.closeBtn} onPress={() => setSelectedTable(null)}>

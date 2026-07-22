@@ -12,7 +12,7 @@ export default function PlaceholderScreen({ viewName, groupName, user, onLogout,
           metricLabel: 'Shift Status',
           subtitle: 'Today shift: 09:00 AM - 06:00 PM',
           details: 'You checked in today at 08:54 AM from the local Wi-Fi network.',
-          icon: '⏱️'
+          icon: 'time-outline'
         };
       case 'reports':
         return {
@@ -20,7 +20,7 @@ export default function PlaceholderScreen({ viewName, groupName, user, onLogout,
           metricLabel: 'Projected Net Profit',
           subtitle: 'Gross revenue: ₹1,85,400 today',
           details: 'Detailed reporting dashboard is active on the web console. Log in to view full cash flows.',
-          icon: '📈'
+          icon: 'trending-up-outline'
         };
       case 'rooms':
         return {
@@ -28,7 +28,7 @@ export default function PlaceholderScreen({ viewName, groupName, user, onLogout,
           metricLabel: 'Rooms Occupied',
           subtitle: '6 rooms dirty/housekeeping',
           details: 'Access check-in and room layouts on your desktop console.',
-          icon: '🏨'
+          icon: 'business-outline'
         };
       case 'reservations':
         return {
@@ -36,7 +36,7 @@ export default function PlaceholderScreen({ viewName, groupName, user, onLogout,
           metricLabel: 'Upcoming Today',
           subtitle: '12 reservations active this week',
           details: 'Manage customer bookings, calendar grids, and group reservations via the web app.',
-          icon: '📅'
+          icon: 'calendar-outline'
         };
       case 'inventory':
         return {
@@ -44,7 +44,7 @@ export default function PlaceholderScreen({ viewName, groupName, user, onLogout,
           metricLabel: 'Inventory Alerts',
           subtitle: 'Spices, Flour, Toiletries below threshold',
           details: 'Create purchase orders and request supplier quotes on the desktop console.',
-          icon: '📦'
+          icon: 'cube-outline'
         };
       case 'users':
         return {
@@ -52,7 +52,7 @@ export default function PlaceholderScreen({ viewName, groupName, user, onLogout,
           metricLabel: 'Staff Checked-In',
           subtitle: '2 on leave, 3 shifts open',
           details: 'Add new staff members, set payroll, and assign custom roles using the admin panel on web.',
-          icon: '👤'
+          icon: 'people-outline'
         };
       case 'settings':
         return {
@@ -60,7 +60,7 @@ export default function PlaceholderScreen({ viewName, groupName, user, onLogout,
           metricLabel: 'Mobile App Settings',
           subtitle: 'Backend: Active & Connected',
           details: 'To configure security policies, email templates, and invoice formats, please use the web console.',
-          icon: '⚙️'
+          icon: 'settings-outline'
         };
       default:
         return {
@@ -68,7 +68,7 @@ export default function PlaceholderScreen({ viewName, groupName, user, onLogout,
           metricLabel: 'Desktop Native Module',
           subtitle: 'Feature accessible on desktop browser',
           details: 'This operational panel is optimized for widescreen monitors. Please log in on a desktop to manage.',
-          icon: '💻'
+          icon: 'desktop-outline'
         };
     }
   };
@@ -98,7 +98,7 @@ export default function PlaceholderScreen({ viewName, groupName, user, onLogout,
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Main visual gold card */}
         <View style={styles.card}>
-          <Text style={styles.largeIcon}>{content.icon}</Text>
+          <Ionicons name={content.icon} size={64} color="#D4AF37" style={{ marginBottom: 12 }} />
           <Text style={styles.metricTitle}>{content.metricLabel}</Text>
           <Text style={styles.metricValue}>{content.metric}</Text>
           <Text style={styles.metricSubtitle}>{content.subtitle}</Text>
@@ -110,7 +110,10 @@ export default function PlaceholderScreen({ viewName, groupName, user, onLogout,
           <Text style={styles.infoText}>{content.details}</Text>
           
           <View style={styles.webNoticeContainer}>
-            <Text style={styles.webNoticeBadge}>🌐 DESKTOP WEB MODULE</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+              <Ionicons name="globe-outline" size={14} color="#3182CE" style={{ marginRight: 4 }} />
+              <Text style={styles.webNoticeBadge}>DESKTOP WEB MODULE</Text>
+            </View>
             <Text style={styles.webNoticeText}>
               For the full operational suite, billing templates, audits, and settings, log in to your Hoteloraa console from your PC or Mac web browser.
             </Text>

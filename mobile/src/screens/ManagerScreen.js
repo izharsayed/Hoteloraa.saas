@@ -42,11 +42,11 @@ export default function ManagerScreen({ user, onLogout, onOpenDrawer }) {
     fetchDashboardStats();
   };
 
-  const renderCard = (title, value, subtitle, icon) => (
+  const renderCard = (title, value, subtitle, iconName) => (
     <View style={styles.statCard}>
       <View style={styles.cardHeader}>
         <Text style={styles.cardTitle}>{title}</Text>
-        <Text style={styles.cardIcon}>{icon}</Text>
+        <Ionicons name={iconName} size={18} color="#D4AF37" />
       </View>
       <Text style={styles.cardValue}>{value}</Text>
       {subtitle ? <Text style={styles.cardSubtitle}>{subtitle}</Text> : null}
@@ -59,10 +59,10 @@ export default function ManagerScreen({ user, onLogout, onOpenDrawer }) {
       <View style={styles.section}>
         <Text style={styles.sectionHeading}>Restaurant Operations</Text>
         <View style={styles.grid}>
-          {renderCard("Today's Revenue", `₹${data.todayRevenue || 0}`, "Paid orders today", "💰")}
-          {renderCard("Occupied Tables", `${data.occupiedTables || 0} / ${data.totalTables || 0}`, "Currently active tables", "🍽️")}
-          {renderCard("Pending KOTs", data.pendingKOTs || 0, "Orders in kitchen", "🔥")}
-          {renderCard("Total Orders", data.totalOrders || 0, "Orders processed today", "📝")}
+          {renderCard("Today's Revenue", `₹${data.todayRevenue || 0}`, "Paid orders today", "cash-outline")}
+          {renderCard("Occupied Tables", `${data.occupiedTables || 0} / ${data.totalTables || 0}`, "Currently active tables", "restaurant-outline")}
+          {renderCard("Pending KOTs", data.pendingKOTs || 0, "Orders in kitchen", "flame-outline")}
+          {renderCard("Total Orders", data.totalOrders || 0, "Orders processed today", "receipt-outline")}
         </View>
 
         {/* Dine-in vs Takeaway split */}
@@ -90,10 +90,10 @@ export default function ManagerScreen({ user, onLogout, onOpenDrawer }) {
       <View style={styles.section}>
         <Text style={styles.sectionHeading}>Lodging / Hotel Operations</Text>
         <View style={styles.grid}>
-          {renderCard("Lodging Revenue", `₹${data.todayRevenue || 0}`, "Room charges & services", "🏨")}
-          {renderCard("Room Occupancy", `${data.occupiedRooms || 0} / ${data.totalRooms || 0}`, "Rooms currently occupied", "🔑")}
-          {renderCard("Today's Check-ins", data.todayCheckIns || 0, "Expected arrivals today", "📥")}
-          {renderCard("Pending Cleanings", data.pendingHousekeeping || 0, "Housekeeping tasks remaining", "🧹")}
+          {renderCard("Lodging Revenue", `₹${data.todayRevenue || 0}`, "Room charges & services", "business-outline")}
+          {renderCard("Room Occupancy", `${data.occupiedRooms || 0} / ${data.totalRooms || 0}`, "Rooms currently occupied", "key-outline")}
+          {renderCard("Today's Check-ins", data.todayCheckIns || 0, "Expected arrivals today", "log-in-outline")}
+          {renderCard("Pending Cleanings", data.pendingHousekeeping || 0, "Housekeeping tasks remaining", "brush-outline")}
         </View>
 
       {/* Room bookings vs room service */}

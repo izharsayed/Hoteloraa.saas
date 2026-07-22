@@ -16,6 +16,7 @@ import {
   Platform,
 } from 'react-native';
 import { api } from '../api';
+import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
@@ -236,7 +237,7 @@ export default function CaptainScreen({ user, onLogout, onOpenDrawer }) {
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {onOpenDrawer && (
             <TouchableOpacity onPress={onOpenDrawer} style={{ marginRight: 15, padding: 4 }}>
-              <Text style={{ fontSize: 24, color: '#D4AF37', fontWeight: 'bold' }}>☰</Text>
+              <Ionicons name="menu" size={28} color="#D4AF37" />
             </TouchableOpacity>
           )}
           <View>
@@ -327,25 +328,37 @@ export default function CaptainScreen({ user, onLogout, onOpenDrawer }) {
 
                     <View style={styles.actionsBtnRow}>
                       <TouchableOpacity style={[styles.actionBtn, styles.btnAppend]} onPress={startAddItems}>
-                        <Text style={styles.actionBtnText}>➕ Add Items</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <Ionicons name="add-circle-outline" size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
+                          <Text style={styles.actionBtnText}>Add Items</Text>
+                        </View>
                       </TouchableOpacity>
 
                       {activeOrder.status !== 'SERVED' && (
                         <TouchableOpacity style={[styles.actionBtn, styles.btnServe]} onPress={handleServeOrder}>
-                          <Text style={styles.actionBtnText}>🍽️ Serve Order</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Ionicons name="restaurant-outline" size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
+                            <Text style={styles.actionBtnText}>Serve Order</Text>
+                          </View>
                         </TouchableOpacity>
                       )}
                     </View>
 
                     <TouchableOpacity style={styles.cancelOrderTrigger} onPress={handleCancelOrder}>
-                      <Text style={styles.cancelOrderTriggerText}>❌ Cancel / Void Order</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                        <Ionicons name="close-circle-outline" size={14} color="#E53E3E" style={{ marginRight: 6 }} />
+                        <Text style={styles.cancelOrderTriggerText}>Cancel / Void Order</Text>
+                      </View>
                     </TouchableOpacity>
                   </View>
                 ) : (
                   <View style={styles.emptyOrderSection}>
                     <Text style={styles.emptyOrderText}>No active orders on this table.</Text>
                     <TouchableOpacity style={[styles.actionBtn, styles.btnCreate]} onPress={startNewOrder}>
-                      <Text style={styles.actionBtnText}>📝 Create New Order</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                        <Ionicons name="create-outline" size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
+                        <Text style={styles.actionBtnText}>Create New Order</Text>
+                      </View>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -494,15 +507,16 @@ const styles = StyleSheet.create({
     borderColor: '#D4AF37',
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#D4AF37',
     fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'sans-serif-medium',
+    letterSpacing: 0.5,
   },
   headerSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#E2E8F0',
-    marginTop: 2,
+    marginTop: 1,
   },
   logoutBtn: {
     backgroundColor: 'rgba(212, 175, 55, 0.15)',

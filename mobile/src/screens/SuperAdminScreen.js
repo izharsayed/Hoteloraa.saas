@@ -17,13 +17,13 @@ import { api } from '../api';
 import { Ionicons } from '@expo/vector-icons';
 
 const TABS = [
-  { key: 'super_cluster', label: 'Overview', icon: '🌐' },
-  { key: 'super_tenants', label: 'Tenants', icon: '🏢' },
-  { key: 'super_plans', label: 'Plans', icon: '💳' },
-  { key: 'super_tickets', label: 'Tickets', icon: '🎫' },
-  { key: 'super_users', label: 'Users', icon: '👥' },
-  { key: 'super_rbac', label: 'RBAC', icon: '🛡️' },
-  { key: 'super_audit', label: 'Audit Logs', icon: '📝' },
+  { key: 'super_cluster', label: 'Overview', icon: 'globe-outline' },
+  { key: 'super_tenants', label: 'Tenants', icon: 'business-outline' },
+  { key: 'super_plans', label: 'Plans', icon: 'card-outline' },
+  { key: 'super_tickets', label: 'Tickets', icon: 'bookmark-outline' },
+  { key: 'super_users', label: 'Users', icon: 'people-outline' },
+  { key: 'super_rbac', label: 'RBAC', icon: 'shield-half-outline' },
+  { key: 'super_audit', label: 'Audit Logs', icon: 'document-text-outline' },
 ];
 
 export default function SuperAdminScreen({ user, onLogout, onOpenDrawer, activeTab, onNavigate }) {
@@ -226,7 +226,10 @@ export default function SuperAdminScreen({ user, onLogout, onOpenDrawer, activeT
         <View style={styles.centerBox}>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={() => fetchTabData(activeTab)}>
-            <Text style={styles.retryBtnText}>🔄 Retry Sync</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="refresh" size={14} color="#D4AF37" style={{ marginRight: 4 }} />
+              <Text style={styles.retryBtnText}>Retry Sync</Text>
+            </View>
           </TouchableOpacity>
         </View>
       ) : (
@@ -264,7 +267,10 @@ export default function SuperAdminScreen({ user, onLogout, onOpenDrawer, activeT
               </View>
 
               <View style={styles.card}>
-                <Text style={styles.sectionHeading}>⚙️ System Cluster Resources Status</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                  <Ionicons name="settings-outline" size={16} color="#D4AF37" style={{ marginRight: 6 }} />
+                  <Text style={[styles.sectionHeading, { marginBottom: 0 }]}>System Cluster Resources Status</Text>
+                </View>
                 <View style={styles.progressRow}>
                   <View style={styles.progressMeta}>
                     <Text style={styles.progressLabel}>CPU Core Load:</Text>
@@ -297,7 +303,10 @@ export default function SuperAdminScreen({ user, onLogout, onOpenDrawer, activeT
               </View>
 
               <View style={styles.card}>
-                <Text style={styles.sectionHeading}>📊 SaaS Subscriptions Ledger</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                  <Ionicons name="bar-chart-outline" size={16} color="#D4AF37" style={{ marginRight: 6 }} />
+                  <Text style={[styles.sectionHeading, { marginBottom: 0 }]}>SaaS Subscriptions Ledger</Text>
+                </View>
                 <View style={styles.ledgerRow}>
                   <Text style={styles.ledgerLabel}>MONTHLY RECURRING REVENUE</Text>
                   <Text style={styles.ledgerVal}>{overview.mrr || '₹0'}</Text>
@@ -326,7 +335,7 @@ export default function SuperAdminScreen({ user, onLogout, onOpenDrawer, activeT
                   onChangeText={setSearchQuery}
                 />
                 <TouchableOpacity style={styles.createBtn} onPress={() => setShowCreateTenant(true)}>
-                  <Text style={styles.createBtnText}>➕ Create Tenant</Text>
+                  <Text style={styles.createBtnText}>Create Tenant</Text>
                 </TouchableOpacity>
               </View>
 
@@ -370,9 +379,17 @@ export default function SuperAdminScreen({ user, onLogout, onOpenDrawer, activeT
                         style={[styles.actionBtn, tenant.status === 'SUSPENDED' ? styles.actionActiveBtn : styles.actionSuspendBtn]}
                         onPress={() => handleToggleTenant(tenant.id)}
                       >
-                        <Text style={styles.actionBtnText}>
-                          {tenant.status === 'SUSPENDED' ? '🔓 Activate Workspace' : '🔒 Suspend Workspace'}
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                          <Ionicons 
+                            name={tenant.status === 'SUSPENDED' ? "lock-open-outline" : "lock-closed-outline"} 
+                            size={12} 
+                            color={tenant.status === 'SUSPENDED' ? "#2B6CB0" : "#C53030"} 
+                            style={{ marginRight: 6 }} 
+                          />
+                          <Text style={styles.actionBtnText}>
+                            {tenant.status === 'SUSPENDED' ? 'Activate Workspace' : 'Suspend Workspace'}
+                          </Text>
+                        </View>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -471,14 +488,20 @@ export default function SuperAdminScreen({ user, onLogout, onOpenDrawer, activeT
                           style={[styles.actionBtn, styles.actionActiveBtn]}
                           onPress={() => handleUpdateTicket(ticket.id, 'RESOLVED')}
                         >
-                          <Text style={styles.actionBtnText}>✅ Resolve Ticket</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                            <Ionicons name="checkmark-circle-outline" size={12} color="#FFFFFF" style={{ marginRight: 6 }} />
+                            <Text style={styles.actionBtnText}>Resolve Ticket</Text>
+                          </View>
                         </TouchableOpacity>
                       ) : (
                         <TouchableOpacity
                           style={[styles.actionBtn, styles.actionSuspendBtn]}
                           onPress={() => handleUpdateTicket(ticket.id, 'PENDING')}
                         >
-                          <Text style={styles.actionBtnText}>⚠️ Reopen Ticket</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                            <Ionicons name="alert-circle-outline" size={12} color="#C53030" style={{ marginRight: 6 }} />
+                            <Text style={styles.actionBtnText}>Reopen Ticket</Text>
+                          </View>
                         </TouchableOpacity>
                       )}
                     </View>
@@ -537,9 +560,17 @@ export default function SuperAdminScreen({ user, onLogout, onOpenDrawer, activeT
                         style={[styles.actionBtn, pUser.isActive ? styles.actionSuspendBtn : styles.actionActiveBtn]}
                         onPress={() => handleToggleUser(pUser.id)}
                       >
-                        <Text style={styles.actionBtnText}>
-                          {pUser.isActive ? '⛔ Block Account' : '🔓 Unblock Account'}
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                          <Ionicons 
+                            name={pUser.isActive ? "ban-outline" : "checkmark-circle-outline"} 
+                            size={12} 
+                            color={pUser.isActive ? "#C53030" : "#2B6CB0"} 
+                            style={{ marginRight: 6 }} 
+                          />
+                          <Text style={styles.actionBtnText}>
+                            {pUser.isActive ? 'Block Account' : 'Unblock Account'}
+                          </Text>
+                        </View>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -592,8 +623,11 @@ export default function SuperAdminScreen({ user, onLogout, onOpenDrawer, activeT
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                 />
-                <TouchableOpacity style={styles.simulateBtn} onPress={() => setShowSimulateLog(true)}>
-                  <Text style={styles.simulateBtnText}>🧪 Simulate Log</Text>
+                 <TouchableOpacity style={styles.simulateBtn} onPress={() => setShowSimulateLog(true)}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Ionicons name="flask-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                    <Text style={styles.simulateBtnText}>Simulate Log</Text>
+                  </View>
                 </TouchableOpacity>
               </View>
 
@@ -831,17 +865,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#FBFBF9',
   },
   header: {
-    backgroundColor: '#0C2340',
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    alignItems: 'center',
+    paddingHorizontal: 20,
     paddingVertical: 16,
+    backgroundColor: '#0C2340',
     borderBottomWidth: 2,
     borderColor: '#D4AF37',
   },
   menuButton: {
-    marginRight: 12,
+    marginRight: 15,
     padding: 4,
   },
   menuIcon: {
@@ -850,14 +884,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   headerTitle: {
-    fontSize: 19,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#D4AF37',
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'sans-serif-medium',
+    letterSpacing: 0.5,
   },
   headerSubtitle: {
-    fontSize: 10.5,
+    fontSize: 11,
     color: '#E2E8F0',
-    letterSpacing: 0.5,
+    marginTop: 1,
   },
   logoutBtn: {
     backgroundColor: 'rgba(212, 175, 55, 0.15)',

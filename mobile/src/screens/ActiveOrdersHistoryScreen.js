@@ -270,11 +270,20 @@ export default function ActiveOrdersHistoryScreen({ user, onLogout, onOpenDrawer
                   </View>
 
                   <View style={styles.metaRow}>
-                    <Text style={styles.metaText}>🪑 {order.table?.name || 'Quick POS'}</Text>
+                    <View style={styles.metaItem}>
+                      <Ionicons name="restaurant-outline" size={13} color="#D4AF37" style={{ marginRight: 4 }} />
+                      <Text style={styles.metaText}>{order.table?.name || 'Quick POS'}</Text>
+                    </View>
                     <Text style={styles.metaSpacer}>•</Text>
-                    <Text style={styles.metaText}>⏱️ {formatOrderTime(order.createdAt)}</Text>
+                    <View style={styles.metaItem}>
+                      <Ionicons name="time-outline" size={13} color="#D4AF37" style={{ marginRight: 4 }} />
+                      <Text style={styles.metaText}>{formatOrderTime(order.createdAt)}</Text>
+                    </View>
                     <Text style={styles.metaSpacer}>•</Text>
-                    <Text style={styles.metaText}>👤 {order.user?.name || 'Staff'}</Text>
+                    <View style={styles.metaItem}>
+                      <Ionicons name="person-outline" size={13} color="#D4AF37" style={{ marginRight: 4 }} />
+                      <Text style={styles.metaText}>{order.user?.name || 'Staff'}</Text>
+                    </View>
                     <Text style={styles.metaSpacer}>•</Text>
                     <Text style={styles.metaText}>Items: {orderItemsCount}</Text>
                   </View>
@@ -291,7 +300,7 @@ export default function ActiveOrdersHistoryScreen({ user, onLogout, onOpenDrawer
                       style={styles.actionIconButton}
                       onPress={() => handleOpenEditOrder(order)}
                     >
-                      <Text style={styles.pencilText}>✏️</Text>
+                      <Ionicons name="create-outline" size={15} color="#D4AF37" />
                     </TouchableOpacity>
 
                     {/* Serve button */}
@@ -553,6 +562,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexWrap: 'wrap',
     marginTop: 8,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   metaText: {
     fontSize: 10.5,

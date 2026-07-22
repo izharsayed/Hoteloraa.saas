@@ -713,7 +713,10 @@ export default function POSBillingScreen({ user, onLogout, onOpenDrawer }) {
                 );
               }}
             >
-              <Text style={styles.printBtnText}>📄 View & Print Bill</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="document-text-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                <Text style={styles.printBtnText}>View & Print Bill</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>

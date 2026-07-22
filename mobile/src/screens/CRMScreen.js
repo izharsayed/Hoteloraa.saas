@@ -112,7 +112,10 @@ export default function CRMScreen({ user, onLogout, onOpenDrawer }) {
               <Text style={styles.titleSubheading}>Manage guest database, review histories, and check loyalty tiers</Text>
             </View>
             <TouchableOpacity style={styles.refreshBtn} onPress={fetchGuests} disabled={loading}>
-              <Text style={styles.refreshBtnText}>🔄 Refresh</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="refresh" size={14} color="#D4AF37" style={{ marginRight: 4 }} />
+                <Text style={styles.refreshBtnText}>Refresh</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -123,7 +126,7 @@ export default function CRMScreen({ user, onLogout, onOpenDrawer }) {
             <Text style={styles.tierName}>DIAMOND MEMBER</Text>
             <View style={styles.tierBottom}>
               <Text style={styles.tierCount}>{diamondCount}</Text>
-              <Text style={styles.tierIcon}>🎖️</Text>
+              <Ionicons name="ribbon" size={20} color="#0C2340" />
             </View>
           </View>
 
@@ -131,7 +134,7 @@ export default function CRMScreen({ user, onLogout, onOpenDrawer }) {
             <Text style={styles.tierName}>PLATINUM MEMBER</Text>
             <View style={styles.tierBottom}>
               <Text style={styles.tierCount}>{platinumCount}</Text>
-              <Text style={styles.tierIcon}>🏅</Text>
+              <Ionicons name="ribbon" size={20} color="#D4AF37" />
             </View>
           </View>
 
@@ -139,7 +142,7 @@ export default function CRMScreen({ user, onLogout, onOpenDrawer }) {
             <Text style={styles.tierName}>GOLD MEMBER</Text>
             <View style={styles.tierBottom}>
               <Text style={styles.tierCount}>{goldCount}</Text>
-              <Text style={styles.tierIcon}>🎖️</Text>
+              <Ionicons name="ribbon" size={20} color="#B5A642" />
             </View>
           </View>
 
@@ -147,7 +150,7 @@ export default function CRMScreen({ user, onLogout, onOpenDrawer }) {
             <Text style={styles.tierName}>SILVER MEMBER</Text>
             <View style={styles.tierBottom}>
               <Text style={styles.tierCount}>{silverCount}</Text>
-              <Text style={styles.tierIcon}>🥈</Text>
+              <Ionicons name="ribbon" size={20} color="#A0AEC0" />
             </View>
           </View>
         </ScrollView>
@@ -170,7 +173,10 @@ export default function CRMScreen({ user, onLogout, onOpenDrawer }) {
             </View>
           ) : error ? (
             <View style={styles.errorBox}>
-              <Text style={styles.errorText}>⚠️ {error}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="alert-circle-outline" size={16} color="#C53030" style={{ marginRight: 6 }} />
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
             </View>
           ) : filteredGuests.length === 0 ? (
             <View style={styles.emptyCard}>
@@ -185,15 +191,21 @@ export default function CRMScreen({ user, onLogout, onOpenDrawer }) {
                     <View style={{ flex: 1 }}>
                       <Text style={styles.guestName}>{g.name}</Text>
                       {g.city ? (
-                        <Text style={styles.guestCity}>📍 {g.city}, {g.country || 'India'}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                          <Ionicons name="location-outline" size={12} color="#D4AF37" style={{ marginRight: 4 }} />
+                          <Text style={styles.guestCity}>{g.city}, {g.country || 'India'}</Text>
+                        </View>
                       ) : null}
                     </View>
                     
                     {/* Tier badge */}
                     <View style={[styles.tierBadge, getGuestTierStyle(tier)]}>
-                      <Text style={[styles.tierBadgeText, getGuestTierTextStyle(tier)]}>
-                        ★ {tier.toUpperCase()}
-                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Ionicons name="star" size={10} color={getGuestTierTextStyle(tier).color} style={{ marginRight: 4 }} />
+                        <Text style={[styles.tierBadgeText, getGuestTierTextStyle(tier)]}>
+                          {tier.toUpperCase()}
+                        </Text>
+                      </View>
                     </View>
                   </View>
 
@@ -201,8 +213,18 @@ export default function CRMScreen({ user, onLogout, onOpenDrawer }) {
 
                   {/* Contact details */}
                   <View style={styles.metaRow}>
-                    {g.email ? <Text style={styles.metaLabel}>✉️ {g.email}</Text> : null}
-                    {g.phone ? <Text style={styles.metaLabel}>📞 {g.phone}</Text> : null}
+                    {g.email ? (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12 }}>
+                        <Ionicons name="mail-outline" size={12} color="#718096" style={{ marginRight: 4 }} />
+                        <Text style={styles.metaLabel}>{g.email}</Text>
+                      </View>
+                    ) : null}
+                    {g.phone ? (
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Ionicons name="call-outline" size={12} color="#718096" style={{ marginRight: 4 }} />
+                        <Text style={styles.metaLabel}>{g.phone}</Text>
+                      </View>
+                    ) : null}
                   </View>
 
                   {/* Stays & Points */}

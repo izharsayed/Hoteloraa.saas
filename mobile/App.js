@@ -40,6 +40,24 @@ export default function App() {
   const [activeGroupName, setActiveGroupName] = useState('General');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [checkoutRoomId, setCheckoutRoomId] = useState(null);
+  const [expandedGroups, setExpandedGroups] = useState({});
+
+  const toggleGroup = (category) => {
+    setExpandedGroups((prev) => ({
+      ...prev,
+      [category]: !prev[category],
+    }));
+  };
+
+  // Auto-expand the active view's category when it changes
+  useEffect(() => {
+    if (activeGroupName) {
+      setExpandedGroups((prev) => ({
+        ...prev,
+        [activeGroupName]: true,
+      }));
+    }
+  }, [activeGroupName]);
 
   // Authentication check on boot
   useEffect(() => {
@@ -245,35 +263,49 @@ export default function App() {
 
             {/* Scrollable Navigation Items */}
             <ScrollView style={styles.drawerNavList} contentContainerStyle={styles.drawerNavContent}>
-              {navigationGroups.map((group) => (
-                <View key={group.category} style={styles.navGroup}>
-                  <Text style={styles.navGroupCategory}>{group.category.toUpperCase()}</Text>
-                  
-                  {group.items.map((item) => {
-                    const isActive = activeView === item.view;
-                    return (
-                      <TouchableOpacity
-                        key={item.name}
-                        style={[styles.navItem, isActive && styles.navItemActive]}
-                        onPress={() => {
-                          setActiveView(item.view);
-                          setActiveGroupName(group.category);
-                          setIsDrawerOpen(false);
-                        }}
-                      >
-                        <Ionicons 
-                          name={item.icon} 
-                          size={18} 
-                          color={isActive ? '#D4AF37' : '#A0AEC0'} 
-                          style={{ marginRight: 12, width: 20, textAlign: 'center' }} 
-                        />
-                        <Text style={[styles.navLabel, isActive && styles.navLabelActive]}>{item.name}</Text>
-                        {isActive && <View style={styles.activeIndicator} />}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              ))}
+              {navigationGroups.map((group) => {
+                const isExpanded = !!expandedGroups[group.category];
+                return (
+                  <View key={group.category} style={styles.navGroup}>
+                    <TouchableOpacity 
+                      style={styles.navGroupHeader} 
+                      onPress={() => toggleGroup(group.category)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.navGroupCategory}>{group.category.toUpperCase()}</Text>
+                      <Ionicons 
+                        name={isExpanded ? "chevron-down" : "chevron-forward"} 
+                        size={14} 
+                        color="#D4AF37" 
+                      />
+                    </TouchableOpacity>
+                    
+                    {isExpanded && group.items.map((item) => {
+                      const isActive = activeView === item.view;
+                      return (
+                        <TouchableOpacity
+                          key={item.name}
+                          style={[styles.navItem, isActive && styles.navItemActive]}
+                          onPress={() => {
+                            setActiveView(item.view);
+                            setActiveGroupName(group.category);
+                            setIsDrawerOpen(false);
+                          }}
+                        >
+                          <Ionicons 
+                            name={item.icon} 
+                            size={18} 
+                            color={isActive ? '#D4AF37' : '#A0AEC0'} 
+                            style={{ marginRight: 12, width: 20, textAlign: 'center' }} 
+                          />
+                          <Text style={[styles.navLabel, isActive && styles.navLabelActive]}>{item.name}</Text>
+                          {isActive && <View style={styles.activeIndicator} />}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                );
+              })}
             </ScrollView>
 
             {/* Bottom Actions */}
@@ -437,14 +469,22 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   navGroup: {
-    marginBottom: 20,
+    marginBottom: 12,
+  },
+  navGroupHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    marginBottom: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderRadius: 6,
   },
   navGroupCategory: {
-    color: '#718096',
-    fontSize: 10,
+    color: '#D4AF37',
+    fontSize: 10.5,
     fontWeight: '800',
-    paddingHorizontal: 20,
-    marginBottom: 8,
     letterSpacing: 1.2,
   },
   navItem: {

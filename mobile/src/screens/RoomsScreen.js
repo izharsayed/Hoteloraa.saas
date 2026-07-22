@@ -265,13 +265,13 @@ export default function RoomsScreen({ user, onLogout, onOpenDrawer }) {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'Available': return '✅';
-      case 'Occupied': return '🛏️';
-      case 'Dirty': return '⚠️';
-      case 'Cleaning': return '🔄';
-      case 'Maintenance': return '🔧';
-      case 'Reserved': return '📅';
-      default: return '🚫';
+      case 'Available': return 'checkmark-circle-outline';
+      case 'Occupied': return 'bed-outline';
+      case 'Dirty': return 'alert-circle-outline';
+      case 'Cleaning': return 'refresh';
+      case 'Maintenance': return 'construct-outline';
+      case 'Reserved': return 'calendar-outline';
+      default: return 'ban-outline';
     }
   };
 
@@ -308,7 +308,7 @@ export default function RoomsScreen({ user, onLogout, onOpenDrawer }) {
               <Text style={styles.actionBtnWhiteText}>＋ Add Room Type</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionBtnIcon} onPress={fetchRooms}>
-              <Text style={{ fontSize: 13 }}>🔄</Text>
+              <Ionicons name="refresh" size={14} color="#D4AF37" />
             </TouchableOpacity>
           </View>
         </View>
@@ -383,7 +383,7 @@ export default function RoomsScreen({ user, onLogout, onOpenDrawer }) {
                   <Text style={styles.roomPrice}>{room.rate} <Text style={{ fontSize: 8, color: '#718096' }}>/ night</Text></Text>
                 </View>
                 <View style={[styles.statusBadge, getStatusBadgeStyle(room.status)]}>
-                  <Text style={[styles.statusIcon]}>{getStatusIcon(room.status)}</Text>
+                  <Ionicons name={getStatusIcon(room.status)} size={12} color={getStatusTextStyle(room.status).color} style={{ marginRight: 4 }} />
                   <Text style={[styles.statusText, getStatusTextStyle(room.status)]}>{room.status}</Text>
                 </View>
               </TouchableOpacity>
@@ -550,7 +550,7 @@ export default function RoomsScreen({ user, onLogout, onOpenDrawer }) {
                 <Text style={styles.modalSubheading}>{editingRoom?.type} • {editingRoom?.floor}</Text>
               </View>
               <TouchableOpacity style={styles.deleteIconBtn} onPress={() => handleDeleteRoom(editingRoom)}>
-                <Text style={{ fontSize: 16 }}>🗑️</Text>
+                <Ionicons name="trash-outline" size={16} color="#E53E3E" />
               </TouchableOpacity>
             </View>
 
@@ -565,7 +565,12 @@ export default function RoomsScreen({ user, onLogout, onOpenDrawer }) {
                   ]}
                   onPress={() => handleStatusChange(editingRoom, status)}
                 >
-                  <Text style={{ fontSize: 13, marginRight: 6 }}>{getStatusIcon(status)}</Text>
+                  <Ionicons 
+                    name={getStatusIcon(status)} 
+                    size={14} 
+                    color={editingRoom?.status === status ? "#0C2340" : "#718096"} 
+                    style={{ marginRight: 6 }} 
+                  />
                   <Text style={[
                     styles.statusOptionText,
                     editingRoom?.status === status && styles.statusOptionTextActive

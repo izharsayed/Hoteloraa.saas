@@ -311,18 +311,24 @@ export default function POSTerminalScreen({ user, onLogout, onOpenDrawer }) {
           style={[styles.tabBtn, activeTab === 'pos' && styles.tabBtnActive]}
           onPress={() => setActiveTab('pos')}
         >
-          <Text style={[styles.tabBtnText, activeTab === 'pos' && styles.tabBtnTextActive]}>
-            🍽️ New Order (POS)
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name="restaurant-outline" size={14} color={activeTab === 'pos' ? "#0C2340" : "#718096"} style={{ marginRight: 6 }} />
+            <Text style={[styles.tabBtnText, activeTab === 'pos' && styles.tabBtnTextActive]}>
+              New Order (POS)
+            </Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.tabBtn, activeTab === 'history' && styles.tabBtnActive]}
           onPress={() => setActiveTab('history')}
         >
-          <Text style={[styles.tabBtnText, activeTab === 'history' && styles.tabBtnTextActive]}>
-            📋 Active Orders & History
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name="receipt-outline" size={14} color={activeTab === 'history' ? "#0C2340" : "#718096"} style={{ marginRight: 6 }} />
+            <Text style={[styles.tabBtnText, activeTab === 'history' && styles.tabBtnTextActive]}>
+              Active Orders & History
+            </Text>
+          </View>
         </TouchableOpacity>
       </View>
 

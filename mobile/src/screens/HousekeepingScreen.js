@@ -24,10 +24,20 @@ const STATUS_COLORS = {
 };
 
 const TASK_TYPE_LABELS = {
-  CLEANING: '🧹 Cleaning',
-  INSPECTION: '🔍 Inspection',
-  MAINTENANCE: '🛠️ Maintenance',
-  TURNDOWN: '🛏️ Turndown Service',
+  CLEANING: 'Cleaning',
+  INSPECTION: 'Inspection',
+  MAINTENANCE: 'Maintenance',
+  TURNDOWN: 'Turndown Service',
+};
+
+const getTaskIcon = (taskType) => {
+  switch (taskType) {
+    case 'CLEANING': return 'brush-outline';
+    case 'INSPECTION': return 'search-outline';
+    case 'MAINTENANCE': return 'construct-outline';
+    case 'TURNDOWN': return 'bed-outline';
+    default: return 'checkbox-outline';
+  }
 };
 
 export default function HousekeepingScreen({ user, onLogout, onOpenDrawer }) {
@@ -121,7 +131,10 @@ export default function HousekeepingScreen({ user, onLogout, onOpenDrawer }) {
         </View>
 
         <View style={styles.cardBody}>
-          <Text style={styles.taskType}>{TASK_TYPE_LABELS[item.taskType] || item.taskType}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+            <Ionicons name={getTaskIcon(item.taskType)} size={16} color="#D4AF37" style={{ marginRight: 6 }} />
+            <Text style={styles.taskType}>{TASK_TYPE_LABELS[item.taskType] || item.taskType}</Text>
+          </View>
           {item.notes ? (
             <View style={styles.notesContainer}>
               <Text style={styles.notesLabel}>Notes:</Text>
@@ -144,9 +157,17 @@ export default function HousekeepingScreen({ user, onLogout, onOpenDrawer }) {
             ]}
             onPress={() => updateTaskStatus(item.id, item.status)}
           >
-            <Text style={styles.actionBtnText}>
-              {item.status === 'PENDING' ? '▶ Start Task' : '✓ Mark Completed'}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons 
+                name={item.status === 'PENDING' ? "play" : "checkmark-circle-outline"} 
+                size={14} 
+                color={item.status === 'PENDING' ? "#0C2340" : "#FFFFFF"} 
+                style={{ marginRight: 4 }} 
+              />
+              <Text style={styles.actionBtnText}>
+                {item.status === 'PENDING' ? 'Start Task' : 'Mark Completed'}
+              </Text>
+            </View>
           </TouchableOpacity>
         ) : null}
       </View>
@@ -217,7 +238,7 @@ export default function HousekeepingScreen({ user, onLogout, onOpenDrawer }) {
           }
           ListEmptyComponent={
             <View style={styles.centerContainer}>
-              <Text style={styles.emptyIcon}>🧹</Text>
+              <Ionicons name="brush-outline" size={48} color="#D4AF37" style={{ marginBottom: 12 }} />
               <Text style={styles.emptyText}>No tasks found in this category.</Text>
               <TouchableOpacity style={styles.refreshBtn} onPress={fetchTasks}>
                 <Text style={styles.refreshBtnText}>Reload Tasks</Text>

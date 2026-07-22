@@ -237,7 +237,10 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
         <View style={styles.centerBox}>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={() => fetchTabData(activeTab)}>
-            <Text style={styles.retryBtnText}>🔄 Retry Sync</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="refresh" size={14} color="#D4AF37" style={{ marginRight: 4 }} />
+              <Text style={styles.retryBtnText}>Retry Sync</Text>
+            </View>
           </TouchableOpacity>
         </View>
       ) : (
@@ -274,12 +277,18 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.sectionHeading}>⭐ Live Operations Dashboard</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                <Ionicons name="star" size={16} color="#D4AF37" style={{ marginRight: 6 }} />
+                <Text style={[styles.sectionHeading, { marginBottom: 0 }]}>Live Operations Dashboard</Text>
+              </View>
 
               {/* Lodging Command card */}
               <View style={styles.card}>
                 <View style={styles.commandHeader}>
-                  <Text style={styles.commandTitle}>🏨 LODGING COMMAND</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Ionicons name="business" size={16} color="#0C2340" style={{ marginRight: 6 }} />
+                    <Text style={styles.commandTitle}>LODGING COMMAND</Text>
+                  </View>
                   <View style={styles.badge}><Text style={styles.badgeText}>LIVE SYNC</Text></View>
                 </View>
                 <Text style={styles.commandDesc}>Rooms allocation & front desk heartbeat</Text>
@@ -317,7 +326,10 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
               {/* Kitchen & POS Command card */}
               <View style={styles.card}>
                 <View style={styles.commandHeader}>
-                  <Text style={styles.commandTitle}>🍕 KITCHEN & POS COMMAND</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Ionicons name="pizza" size={16} color="#0C2340" style={{ marginRight: 6 }} />
+                    <Text style={styles.commandTitle}>KITCHEN & POS COMMAND</Text>
+                  </View>
                   <View style={styles.badge}><Text style={styles.badgeText}>LIVE SYNC</Text></View>
                 </View>
                 <Text style={styles.commandDesc}>Dining tables status & kitchen ticket stream</Text>
@@ -354,13 +366,28 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
 
               {/* Administrative Checklist */}
               <View style={styles.card}>
-                <Text style={styles.commandTitle}>📋 Administrative Checklist</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+                  <Ionicons name="checkbox-outline" size={16} color="#0C2340" style={{ marginRight: 6 }} />
+                  <Text style={[styles.commandTitle, { marginBottom: 0 }]}>Administrative Checklist</Text>
+                </View>
                 <Text style={styles.commandDesc}>Verify property setup logs & parameters</Text>
                 <View style={{ marginTop: 8 }}>
-                  <Text style={styles.checkItem}>✓ Verify employee staff profiles</Text>
-                  <Text style={styles.checkItem}>✓ Audit shift timer configurations</Text>
-                  <Text style={styles.checkItem}>✓ Set property tax settings ({settingsData?.taxRate || 18}%)</Text>
-                  <Text style={styles.checkItem}>✓ Configure module feature toggles</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 3 }}>
+                    <Ionicons name="checkmark-circle-outline" size={12} color="#48BB78" style={{ marginRight: 6 }} />
+                    <Text style={[styles.checkItem, { marginVertical: 0 }]}>Verify employee staff profiles</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 3 }}>
+                    <Ionicons name="checkmark-circle-outline" size={12} color="#48BB78" style={{ marginRight: 6 }} />
+                    <Text style={[styles.checkItem, { marginVertical: 0 }]}>Audit shift timer configurations</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 3 }}>
+                    <Ionicons name="checkmark-circle-outline" size={12} color="#48BB78" style={{ marginRight: 6 }} />
+                    <Text style={[styles.checkItem, { marginVertical: 0 }]}>Set property tax settings ({settingsData?.taxRate || 18}%)</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 3 }}>
+                    <Ionicons name="checkmark-circle-outline" size={12} color="#48BB78" style={{ marginRight: 6 }} />
+                    <Text style={[styles.checkItem, { marginVertical: 0 }]}>Configure module feature toggles</Text>
+                  </View>
                 </View>
               </View>
             </View>
@@ -378,7 +405,7 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
                   onChangeText={setSearchQuery}
                 />
                 <TouchableOpacity style={styles.createBtn} onPress={() => setShowAddStaffModal(true)}>
-                  <Text style={styles.createBtnText}>➕ Add Staff</Text>
+                  <Text style={styles.createBtnText}>Add Staff</Text>
                 </TouchableOpacity>
               </View>
 
@@ -411,13 +438,21 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
                     </View>
 
                     <View style={styles.itemActions}>
-                      <TouchableOpacity
+                       <TouchableOpacity
                         style={[styles.actionBtn, staff.isActive ? styles.actionSuspendBtn : styles.actionActiveBtn]}
                         onPress={() => handleToggleStaffStatus(staff.id)}
                       >
-                        <Text style={styles.actionBtnText}>
-                          {staff.isActive ? '🔒 Suspend Account' : '🔓 Activate Account'}
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                          <Ionicons 
+                            name={staff.isActive ? "lock-closed-outline" : "lock-open-outline"} 
+                            size={12} 
+                            color={staff.isActive ? "#C53030" : "#2B6CB0"} 
+                            style={{ marginRight: 6 }} 
+                          />
+                          <Text style={styles.actionBtnText}>
+                            {staff.isActive ? 'Suspend Account' : 'Activate Account'}
+                          </Text>
+                        </View>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -430,8 +465,8 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
             <View style={styles.tabView}>
               <View style={styles.searchHeader}>
                 <Text style={{ flex: 1, fontSize: 13, color: '#4A5568', fontWeight: '500' }}>Roles & Permission Scopes</Text>
-                <TouchableOpacity style={styles.createBtn} onPress={() => setShowAddRoleModal(true)}>
-                  <Text style={styles.createBtnText}>➕ Add Role</Text>
+                 <TouchableOpacity style={styles.createBtn} onPress={() => setShowAddRoleModal(true)}>
+                  <Text style={styles.createBtnText}>Add Role</Text>
                 </TouchableOpacity>
               </View>
 
@@ -716,17 +751,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#FBFBF9',
   },
   header: {
-    backgroundColor: '#0C2340',
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    alignItems: 'center',
+    paddingHorizontal: 20,
     paddingVertical: 16,
+    backgroundColor: '#0C2340',
     borderBottomWidth: 2,
     borderColor: '#D4AF37',
   },
   menuButton: {
-    marginRight: 12,
+    marginRight: 15,
     padding: 4,
   },
   menuIcon: {
@@ -735,14 +770,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   headerTitle: {
-    fontSize: 19,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#D4AF37',
+    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'sans-serif-medium',
+    letterSpacing: 0.5,
   },
   headerSubtitle: {
-    fontSize: 10.5,
+    fontSize: 11,
     color: '#E2E8F0',
-    letterSpacing: 0.5,
+    marginTop: 1,
   },
   logoutBtn: {
     backgroundColor: 'rgba(212, 175, 55, 0.15)',

@@ -484,7 +484,10 @@ export default function CheckOutScreen({ user, onLogout, onOpenDrawer, checkoutR
               <Text style={styles.titleSubheading}>Review guest ledgers, settle room folios, and complete checkout departure</Text>
             </View>
             <TouchableOpacity style={styles.refreshBtn} onPress={fetchPendingCheckOuts} disabled={loading}>
-              <Text style={styles.refreshBtnText}>🔄 Refresh</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="refresh" size={14} color="#D4AF37" style={{ marginRight: 4 }} />
+                <Text style={styles.refreshBtnText}>Refresh</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -492,7 +495,7 @@ export default function CheckOutScreen({ user, onLogout, onOpenDrawer, checkoutR
         {/* Success Settle Screen */}
         {checkoutComplete && completedCheckoutDetails ? (
           <View style={styles.successCard}>
-            <Text style={styles.successIcon}>🎉</Text>
+            <Ionicons name="checkmark-circle-outline" size={48} color="#D4AF37" style={{ marginBottom: 12 }} />
             <Text style={styles.successTitle}>Checkout Completed!</Text>
             <Text style={styles.successSubtitle}>Room {completedCheckoutDetails.roomNumber} has been successfully cleared</Text>
 
@@ -536,7 +539,10 @@ export default function CheckOutScreen({ user, onLogout, onOpenDrawer, checkoutR
               style={styles.successPrintBtn}
               onPress={() => triggerPrintSelection(false)}
             >
-              <Text style={styles.successPrintBtnText}>🖨️ Print Final Receipt</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="print-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                <Text style={styles.successPrintBtnText}>Print Final Receipt</Text>
+              </View>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -563,7 +569,10 @@ export default function CheckOutScreen({ user, onLogout, onOpenDrawer, checkoutR
                 </View>
               ) : error ? (
                 <View style={styles.errorBox}>
-                  <Text style={styles.errorText}>⚠️ {error}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Ionicons name="alert-circle-outline" size={16} color="#C53030" style={{ marginRight: 6 }} />
+                    <Text style={styles.errorText}>{error}</Text>
+                  </View>
                 </View>
               ) : occupiedRooms.length === 0 ? (
                 <View style={styles.emptyCard}>
@@ -699,7 +708,7 @@ export default function CheckOutScreen({ user, onLogout, onOpenDrawer, checkoutR
                   onChangeText={setNotes}
                 />
 
-                 {/* Checkout Trigger */}
+                {/* Checkout Trigger */}
                 <TouchableOpacity
                   style={styles.submitBtn}
                   onPress={handleCheckoutSettle}
@@ -708,7 +717,10 @@ export default function CheckOutScreen({ user, onLogout, onOpenDrawer, checkoutR
                   {submitting ? (
                     <ActivityIndicator size="small" color="#D4AF37" />
                   ) : (
-                    <Text style={styles.submitBtnText}>🧾 Settle Folio & Complete Checkout</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                      <Ionicons name="receipt-outline" size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
+                      <Text style={styles.submitBtnText}>Settle Folio & Complete Checkout</Text>
+                    </View>
                   )}
                 </TouchableOpacity>
 
@@ -717,12 +729,15 @@ export default function CheckOutScreen({ user, onLogout, onOpenDrawer, checkoutR
                   style={styles.draftBtn}
                   onPress={() => triggerPrintSelection(true)}
                 >
-                  <Text style={styles.draftBtnText}>📄 View & Print Draft Folio</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="document-text-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                    <Text style={styles.draftBtnText}>View & Print Draft Folio</Text>
+                  </View>
                 </TouchableOpacity>
               </View>
             ) : (
               <View style={styles.placeholderBox}>
-                <Text style={{ fontSize: 32, marginBottom: 12 }}>🧾</Text>
+                <Ionicons name="receipt-outline" size={48} color="#A0AEC0" style={{ marginBottom: 12 }} />
                 <Text style={styles.placeholderText}>Select an occupied room above to load guest folio records and process checkout</Text>
               </View>
             )}

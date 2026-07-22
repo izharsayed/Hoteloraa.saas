@@ -14,6 +14,7 @@ import {
   Alert,
 } from 'react-native';
 import { api, getApiBaseUrl, setApiBaseUrl, resetApiBaseUrl } from '../api';
+import { Ionicons } from '@expo/vector-icons';
 
 const DEMO_ACCOUNTS = [
   {
@@ -180,7 +181,10 @@ export default function LoginScreen({ onLoginSuccess }) {
               style={styles.demoTrigger} 
               onPress={() => setDemoVisible(true)}
             >
-              <Text style={styles.demoTriggerText}>⚡ Quick Demo Accounts</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="flash" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                <Text style={styles.demoTriggerText}>Quick Demo Accounts</Text>
+              </View>
             </TouchableOpacity>
           </View>
 
@@ -190,7 +194,10 @@ export default function LoginScreen({ onLoginSuccess }) {
               style={styles.settingsBtn} 
               onPress={() => setSettingsVisible(true)}
             >
-              <Text style={styles.settingsBtnText}>⚙️ Developer API Settings</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="settings-outline" size={14} color="#718096" style={{ marginRight: 6 }} />
+                <Text style={styles.settingsBtnText}>Developer API Settings</Text>
+              </View>
             </TouchableOpacity>
             <Text style={styles.versionText}>v1.0.0 (Expo Go Edition)</Text>
           </View>

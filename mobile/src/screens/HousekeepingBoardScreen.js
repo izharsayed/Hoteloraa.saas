@@ -154,7 +154,10 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
               <Text style={styles.titleSubheading}>Assign cleaning staff, track room cleaning statuses, and inspect rooms</Text>
             </View>
             <TouchableOpacity style={styles.refreshBtn} onPress={fetchHousekeepingTasks} disabled={loading}>
-              <Text style={styles.refreshBtnText}>🔄 Refresh</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="refresh" size={14} color="#D4AF37" style={{ marginRight: 4 }} />
+                <Text style={styles.refreshBtnText}>Refresh</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -170,11 +173,14 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
             </View>
           ) : error ? (
             <View style={styles.errorBox}>
-              <Text style={styles.errorText}>⚠️ {error}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="alert-circle-outline" size={16} color="#C53030" style={{ marginRight: 6 }} />
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
             </View>
           ) : housekeepingList.length === 0 ? (
             <View style={styles.emptyCard}>
-              <Text style={styles.emptyIcon}>✨</Text>
+              <Ionicons name="sparkles" size={40} color="#D4AF37" style={{ marginBottom: 12 }} />
               <Text style={styles.emptyTextBold}>All Rooms Cleaned</Text>
               <Text style={styles.emptyText}>Ready for new guest check-ins.</Text>
             </View>
@@ -193,7 +199,10 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
                       </View>
                       <View style={{ marginLeft: 10, flex: 1 }}>
                         <Text style={styles.roomType}>{task.room?.roomType?.name}</Text>
-                        <Text style={styles.taskNotes}>⚠️ {task.notes || 'Automated cleanup from checkout'}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                          <Ionicons name="alert-circle-outline" size={12} color="#E53E3E" style={{ marginRight: 4 }} />
+                          <Text style={styles.taskNotes}>{task.notes || 'Automated cleanup from checkout'}</Text>
+                        </View>
                       </View>
                     </View>
 
@@ -205,7 +214,10 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
                         setPickerVisible(true);
                       }}
                     >
-                      <Text style={styles.staffDropdownText} numberOfLines={1}>👤 {assignedStaffName}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', maxWidth: 110 }}>
+                        <Ionicons name="person-outline" size={12} color="#718096" style={{ marginRight: 4 }} />
+                        <Text style={styles.staffDropdownText} numberOfLines={1}>{assignedStaffName}</Text>
+                      </View>
                     </TouchableOpacity>
 
                     {/* Status Pill */}
@@ -217,7 +229,10 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
 
                     {/* Done Action */}
                     <TouchableOpacity style={styles.doneBtn} onPress={() => handleMarkClean(task.id)}>
-                      <Text style={styles.doneBtnText}>✓ Done</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Ionicons name="checkmark-circle-outline" size={12} color="#FFFFFF" style={{ marginRight: 3 }} />
+                        <Text style={styles.doneBtnText}>Done</Text>
+                      </View>
                     </TouchableOpacity>
                   </View>
                 );
@@ -228,7 +243,10 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
 
         {/* Housekeeping Roster Card */}
         <View style={styles.card}>
-          <Text style={styles.cardHeading}>✨ Housekeeping Roster</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+            <Ionicons name="sparkles" size={16} color="#D4AF37" style={{ marginRight: 6 }} />
+            <Text style={[styles.cardHeading, { marginBottom: 0 }]}>Housekeeping Roster</Text>
+          </View>
           <View style={styles.rosterWrapper}>
             {staff.map((u, idx) => (
               <View key={u.id || idx} style={styles.rosterRow}>
@@ -267,7 +285,10 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
                   style={styles.pickerOption}
                   onPress={() => handleAssignStaff(selectedTaskForAssign.id, u.id)}
                 >
-                  <Text style={styles.pickerOptionText}>👤 {u.name}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Ionicons name="person-outline" size={14} color="#718096" style={{ marginRight: 6 }} />
+                    <Text style={styles.pickerOptionText}>{u.name}</Text>
+                  </View>
                 </TouchableOpacity>
               ))}
             </ScrollView>

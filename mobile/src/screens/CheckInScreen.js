@@ -139,7 +139,10 @@ export default function CheckInScreen({ user, onLogout, onOpenDrawer }) {
               <Text style={styles.titleSubheading}>Verify guests, assign room numbers, and issue room access keys</Text>
             </View>
             <TouchableOpacity style={styles.refreshBtn} onPress={fetchPendingCheckIns} disabled={loading}>
-              <Text style={styles.refreshBtnText}>🔄 Refresh</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="refresh" size={14} color="#D4AF37" style={{ marginRight: 4 }} />
+                <Text style={styles.refreshBtnText}>Refresh</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -147,7 +150,7 @@ export default function CheckInScreen({ user, onLogout, onOpenDrawer }) {
         {/* Success Banner */}
         {isCheckedIn && selectedBooking ? (
           <View style={styles.successCard}>
-            <Text style={styles.successIcon}>🛡️</Text>
+            <Ionicons name="shield-checkmark" size={48} color="#D4AF37" style={{ marginBottom: 12 }} />
             <Text style={styles.successTitle}>Check-In Completed!</Text>
             <Text style={styles.successText}>
               Room <Text style={{ fontWeight: 'bold', color: '#0C2340' }}>{selectedBooking.room?.number}</Text> is now marked as Occupied.
@@ -184,7 +187,10 @@ export default function CheckInScreen({ user, onLogout, onOpenDrawer }) {
                 </View>
               ) : error ? (
                 <View style={styles.errorBox}>
-                  <Text style={styles.errorText}>⚠️ {error}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Ionicons name="alert-circle-outline" size={16} color="#C53030" style={{ marginRight: 6 }} />
+                    <Text style={styles.errorText}>{error}</Text>
+                  </View>
                 </View>
               ) : filteredBookings.length === 0 ? (
                 <View style={styles.emptyCard}>
@@ -233,15 +239,24 @@ export default function CheckInScreen({ user, onLogout, onOpenDrawer }) {
                 <View style={styles.summaryBox}>
                   <View style={styles.summaryItem}>
                     <Text style={styles.summaryLabel}>PRIMARY GUEST</Text>
-                    <Text style={styles.summaryVal}>👤 {selectedBooking.guest?.name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                      <Ionicons name="person-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                      <Text style={styles.summaryVal}>{selectedBooking.guest?.name}</Text>
+                    </View>
                   </View>
                   <View style={styles.summaryItem}>
                     <Text style={styles.summaryLabel}>ASSIGNED ROOM</Text>
-                    <Text style={styles.summaryVal}>🔑 Room {selectedBooking.room?.number} ({selectedBooking.room?.roomType?.name})</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                      <Ionicons name="key-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                      <Text style={styles.summaryVal}>Room {selectedBooking.room?.number} ({selectedBooking.room?.roomType?.name})</Text>
+                    </View>
                   </View>
                   <View style={styles.summaryItem}>
                     <Text style={styles.summaryLabel}>DATES & PAX</Text>
-                    <Text style={styles.summaryVal}>📅 {new Date(selectedBooking.checkInDate).toLocaleDateString([], { month: 'short', day: 'numeric' })} - {new Date(selectedBooking.checkOutDate).toLocaleDateString([], { month: 'short', day: 'numeric' })} ({selectedBooking.adults} Adults)</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                      <Ionicons name="calendar-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                      <Text style={styles.summaryVal}>{new Date(selectedBooking.checkInDate).toLocaleDateString([], { month: 'short', day: 'numeric' })} - {new Date(selectedBooking.checkOutDate).toLocaleDateString([], { month: 'short', day: 'numeric' })} ({selectedBooking.adults} Adults)</Text>
+                    </View>
                   </View>
                 </View>
 
@@ -288,7 +303,10 @@ export default function CheckInScreen({ user, onLogout, onOpenDrawer }) {
                   {submitting ? (
                     <ActivityIndicator size="small" color="#D4AF37" />
                   ) : (
-                    <Text style={styles.submitBtnText}>👤 Check-In Guest & Activate Keys</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                      <Ionicons name="person-add-outline" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+                      <Text style={styles.submitBtnText}>Check-In Guest & Activate Keys</Text>
+                    </View>
                   )}
                 </TouchableOpacity>
               </View>
@@ -296,7 +314,10 @@ export default function CheckInScreen({ user, onLogout, onOpenDrawer }) {
 
             {/* Front Desk Guidelines Card */}
             <View style={styles.card}>
-              <Text style={[styles.cardHeading, { color: '#D4AF37' }]}>ℹ️ Front Desk Guidelines</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                <Ionicons name="information-circle-outline" size={18} color="#D4AF37" style={{ marginRight: 6 }} />
+                <Text style={[styles.cardHeading, { color: '#D4AF37', marginBottom: 0 }]}>Front Desk Guidelines</Text>
+              </View>
               <View style={styles.guidelinesList}>
                 <Text style={styles.guidelineItem}>• Verify guest photo matches ID document provided.</Text>
                 <Text style={styles.guidelineItem}>• Take print or digital scan of the ID document for tenant records.</Text>

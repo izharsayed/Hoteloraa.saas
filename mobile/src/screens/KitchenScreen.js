@@ -168,7 +168,10 @@ export default function KitchenScreen({ user, onLogout, onOpenDrawer }) {
           </View>
         </View>
         <View style={styles.activeBadge}>
-          <Text style={styles.activeBadgeText}>👨‍🍳 Tickets: {activeTicketsCount}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="restaurant-outline" size={13} color="#FFFFFF" style={{ marginRight: 4 }} />
+            <Text style={styles.activeBadgeText}>Tickets: {activeTicketsCount}</Text>
+          </View>
         </View>
       </View>
 
@@ -219,7 +222,10 @@ export default function KitchenScreen({ user, onLogout, onOpenDrawer }) {
           </View>
         ) : error ? (
           <View style={styles.errorBox}>
-            <Text style={styles.errorText}>⚠️ {error}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="alert-circle-outline" size={16} color="#C53030" style={{ marginRight: 6 }} />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
           </View>
         ) : activeTab === 'Aggregated' ? (
           /* AGGREGATED DISHES LIST */
@@ -230,9 +236,12 @@ export default function KitchenScreen({ user, onLogout, onOpenDrawer }) {
                 <Text style={styles.emptyText}>No pending items to cook.</Text>
               </View>
             ) : (
-              aggregatedItems.map((item, idx) => (
+               aggregatedItems.map((item, idx) => (
                 <View key={idx} style={styles.aggItemRow}>
-                  <Text style={styles.aggItemName}>🍳 {item.name}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Ionicons name="restaurant-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                    <Text style={styles.aggItemName}>{item.name}</Text>
+                  </View>
                   <View style={styles.qtyBadge}>
                     <Text style={styles.qtyText}>x{item.qty}</Text>
                   </View>
@@ -272,9 +281,10 @@ export default function KitchenScreen({ user, onLogout, onOpenDrawer }) {
                   ]}
                 >
                   {/* Delayed banner */}
-                  {delayed && (
+                   {delayed && (
                     <View style={styles.delayedBanner}>
-                      <Text style={styles.delayedBannerText}>⚠️ DELAYED • {elapsed} mins elapsed</Text>
+                      <Ionicons name="alert-circle-outline" size={12} color="#9B2C2C" style={{ marginRight: 6 }} />
+                      <Text style={styles.delayedBannerText}>DELAYED • {elapsed} mins elapsed</Text>
                     </View>
                   )}
 
@@ -284,8 +294,11 @@ export default function KitchenScreen({ user, onLogout, onOpenDrawer }) {
                       <Text style={styles.kotNum}>{ticket.kotNumber}</Text>
                       <Text style={styles.captainText}>Cap: {ticket.captain} • {ticket.orderType}</Text>
                     </View>
-                    <View style={{ alignItems: 'flex-end' }}>
-                      <Text style={styles.timeElapsed}>⏱️ {elapsed}m ago</Text>
+                     <View style={{ alignItems: 'flex-end' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                        <Ionicons name="time-outline" size={12} color="#718096" style={{ marginRight: 3 }} />
+                        <Text style={styles.timeElapsed}>{elapsed}m ago</Text>
+                      </View>
                       <View style={styles.tableBadge}>
                         <Text style={styles.tableBadgeText}>Table {ticket.table}</Text>
                       </View>
@@ -303,7 +316,12 @@ export default function KitchenScreen({ user, onLogout, onOpenDrawer }) {
                         onPress={() => toggleItemCheck(ticket.id, idx)}
                       >
                         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                          <Text style={styles.checkIcon}>{item.checked ? '☑️' : '⬜'}</Text>
+                          <Ionicons 
+                            name={item.checked ? "checkbox" : "square-outline"} 
+                            size={16} 
+                            color={item.checked ? "#D4AF37" : "#718096"} 
+                            style={{ marginRight: 8 }} 
+                          />
                           <Text style={[styles.itemName, item.checked && styles.itemNameChecked]}>
                             {item.name}
                           </Text>
@@ -314,26 +332,35 @@ export default function KitchenScreen({ user, onLogout, onOpenDrawer }) {
                   </View>
 
                   {/* Action buttons */}
-                  {ticket.status === 'Pending' ? (
+                   {ticket.status === 'Pending' ? (
                     <TouchableOpacity
                       style={styles.actionBtnStart}
                       onPress={() => handleStartPrep(ticket.id)}
                     >
-                      <Text style={styles.actionBtnStartText}>🍳 Start Preparation</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                        <Ionicons name="restaurant-outline" size={14} color="#0C2340" style={{ marginRight: 6 }} />
+                        <Text style={styles.actionBtnStartText}>Start Preparation</Text>
+                      </View>
                     </TouchableOpacity>
                   ) : ticket.status === 'InProgress' ? (
                     <TouchableOpacity
                       style={styles.actionBtnReady}
                       onPress={() => handleMarkReady(ticket.id)}
                     >
-                      <Text style={styles.actionBtnReadyText}>✅ Mark Ready</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                        <Ionicons name="checkmark-circle-outline" size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
+                        <Text style={styles.actionBtnReadyText}>Mark Ready</Text>
+                      </View>
                     </TouchableOpacity>
                   ) : (
                     <TouchableOpacity
                       style={styles.actionBtnServed}
                       onPress={() => handleMarkServed(ticket.id, ticket.orderId)}
                     >
-                      <Text style={styles.actionBtnServedText}>🍽️ Mark Served</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                        <Ionicons name="restaurant-outline" size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
+                        <Text style={styles.actionBtnServedText}>Mark Served</Text>
+                      </View>
                     </TouchableOpacity>
                   )}
                 </View>

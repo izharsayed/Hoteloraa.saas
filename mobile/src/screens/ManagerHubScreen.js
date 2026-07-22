@@ -135,11 +135,11 @@ export default function ManagerHubScreen({ user, onLogout, onOpenDrawer }) {
 
   const totalExpenses = expenses.reduce((acc, curr) => acc + curr.amount, 0);
 
-  const renderMetricCard = (title, value, subtitle, icon) => (
+  const renderMetricCard = (title, value, subtitle, iconName) => (
     <View style={styles.metricCard}>
       <View style={styles.metricHeader}>
         <Text style={styles.metricTitle}>{title}</Text>
-        <Text style={styles.metricIcon}>{icon}</Text>
+        <Ionicons name={iconName} size={18} color="#D4AF37" />
       </View>
       <Text style={styles.metricValue}>{value}</Text>
       {subtitle ? <Text style={styles.metricSubtitle}>{subtitle}</Text> : null}
@@ -167,9 +167,12 @@ export default function ManagerHubScreen({ user, onLogout, onOpenDrawer }) {
       </View>
 
       {/* Floating Toast Notification */}
-      {toastMessage ? (
+       {toastMessage ? (
         <View style={styles.toast}>
-          <Text style={styles.toastText}>✓ {toastMessage}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="checkmark-circle-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+            <Text style={styles.toastText}>{toastMessage}</Text>
+          </View>
         </View>
       ) : null}
 
@@ -177,11 +180,11 @@ export default function ManagerHubScreen({ user, onLogout, onOpenDrawer }) {
         {/* Section 1: Operational Metrics */}
         <View style={styles.section}>
           <Text style={styles.sectionHeading}>Property Metrics</Text>
-          <View style={styles.grid}>
-            {renderMetricCard("Occupancy Rate", `${occupancyRate}%`, "Optimal level today", "🏨")}
-            {renderMetricCard("ADR", `₹${adr.toLocaleString()}`, "Daily avg per occupied room", "💰")}
-            {renderMetricCard("RevPAR", `₹${revpar.toLocaleString()}`, "Rev per available room", "📈")}
-            {renderMetricCard("Dining Covers", covers.toString(), "Covers served today", "🍽️")}
+           <View style={styles.grid}>
+            {renderMetricCard("Occupancy Rate", `${occupancyRate}%`, "Optimal level today", "business-outline")}
+            {renderMetricCard("ADR", `₹${adr.toLocaleString()}`, "Daily avg per occupied room", "cash-outline")}
+            {renderMetricCard("RevPAR", `₹${revpar.toLocaleString()}`, "Rev per available room", "trending-up-outline")}
+            {renderMetricCard("Dining Covers", covers.toString(), "Covers served today", "restaurant-outline")}
           </View>
         </View>
 
@@ -193,9 +196,12 @@ export default function ManagerHubScreen({ user, onLogout, onOpenDrawer }) {
               style={[styles.holidayBtn, holidayRate && styles.holidayBtnActive]}
               onPress={handleToggleHolidayRate}
             >
-              <Text style={[styles.holidayBtnText, holidayRate && styles.holidayBtnTextActive]}>
-                {holidayRate ? '🎄 Peak Season Active' : 'Enable Peak Season'}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                {holidayRate && <Ionicons name="sparkles" size={12} color="#D4AF37" style={{ marginRight: 4 }} />}
+                <Text style={[styles.holidayBtnText, holidayRate && styles.holidayBtnTextActive]}>
+                  {holidayRate ? 'Peak Season Active' : 'Enable Peak Season'}
+                </Text>
+              </View>
             </TouchableOpacity>
           </View>
 

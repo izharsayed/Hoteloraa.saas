@@ -428,8 +428,9 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
         notes: notes || undefined
       };
 
-      await api.post('/reservations', payload);
-      Alert.alert('Success', 'Booking confirmed successfully! 🎉');
+      const resp = await api.post('/reservations', payload);
+      setBookingConfirmedId(resp.id);
+      Alert.alert('Success', 'Booking confirmed successfully!');
       setShowWizard(false);
       
       // Reset Wizard States
@@ -575,7 +576,10 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
       {/* Toast Alert */}
       {toastMessage ? (
         <View style={styles.toast}>
-          <Text style={styles.toastText}>✓ {toastMessage}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="checkmark-circle-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+            <Text style={styles.toastText}>{toastMessage}</Text>
+          </View>
         </View>
       ) : null}
 
@@ -613,7 +617,7 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
         <View style={styles.searchCard}>
           <TextInput
             style={styles.searchInput}
-            placeholder="🔍 Search reference, guest name, room..."
+            placeholder="Search reference, guest name, room..."
             placeholderTextColor="#A0AEC0"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -796,9 +800,12 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
                   keyboardType="email-address"
                 />
 
-                {/* Identity Verification Details */}
+                {/* Identity Verification */}
                 <View style={styles.idVerificationHeaderRow}>
-                  <Text style={styles.sectionDividerText}>🛡️ Identity Verification</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Ionicons name="shield-checkmark-outline" size={16} color="#D4AF37" style={{ marginRight: 6 }} />
+                    <Text style={[styles.sectionDividerText, { marginBottom: 0 }]}>Identity Verification</Text>
+                  </View>
                   <TouchableOpacity style={styles.addCoGuestBtn} onPress={handleAddCoGuest}>
                     <Text style={styles.addCoGuestBtnText}>＋ Add Co-Guest</Text>
                   </TouchableOpacity>
@@ -876,7 +883,7 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
                             <Image source={{ uri: getAbsoluteAssetUrl(doc.frontUrl) }} style={styles.uploadPreview} />
                           ) : (
                             <View style={styles.emptyPreview}>
-                              <Text style={{ fontSize: 18, color: '#A0AEC0' }}>🖼️</Text>
+                              <Ionicons name="image-outline" size={18} color="#A0AEC0" style={{ marginBottom: 4 }} />
                               <Text style={styles.emptyPreviewText}>Front side preview</Text>
                             </View>
                           )}
@@ -897,7 +904,10 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
                               onPress={() => handleCaptureImageWithCamera(doc.id, 'front')}
                               disabled={doc.uploadingSide !== null}
                             >
-                              <Text style={styles.uploadBtnText}>📷 Camera</Text>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                                <Ionicons name="camera-outline" size={12} color="#D4AF37" style={{ marginRight: 4 }} />
+                                <Text style={styles.uploadBtnText}>Camera</Text>
+                              </View>
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -909,7 +919,7 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
                             <Image source={{ uri: getAbsoluteAssetUrl(doc.backUrl) }} style={styles.uploadPreview} />
                           ) : (
                             <View style={styles.emptyPreview}>
-                              <Text style={{ fontSize: 18, color: '#A0AEC0' }}>🖼️</Text>
+                              <Ionicons name="image-outline" size={18} color="#A0AEC0" style={{ marginBottom: 4 }} />
                               <Text style={styles.emptyPreviewText}>Back side preview</Text>
                             </View>
                           )}
@@ -930,7 +940,10 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
                               onPress={() => handleCaptureImageWithCamera(doc.id, 'back')}
                               disabled={doc.uploadingSide !== null}
                             >
-                              <Text style={styles.uploadBtnText}>📷 Camera</Text>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                                <Ionicons name="camera-outline" size={12} color="#D4AF37" style={{ marginRight: 4 }} />
+                                <Text style={styles.uploadBtnText}>Camera</Text>
+                              </View>
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -968,9 +981,12 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
                           setExtraCharges(sum);
                         }}
                       >
-                        <Text style={[styles.idOptBadgeText, active && styles.idOptBadgeTextActive]}>
-                          {active ? '✓ ' : ''}{req} {charge > 0 ? ` (+₹${charge})` : ''}
-                        </Text>
+                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          {active && <Ionicons name="checkmark" size={12} color="#0C2340" style={{ marginRight: 4 }} />}
+                          <Text style={[styles.idOptBadgeText, active && styles.idOptBadgeTextActive]}>
+                            {req} {charge > 0 ? ` (+₹${charge})` : ''}
+                          </Text>
+                        </View>
                       </TouchableOpacity>
                     );
                   })}
@@ -998,9 +1014,12 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
                           setInternalFlags(updated);
                         }}
                       >
-                        <Text style={[styles.idOptBadgeText, active && { color: '#FFFFFF', fontWeight: 'bold' }]}>
-                          {active ? '✓ ' : ''}{flag}
-                        </Text>
+                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          {active && <Ionicons name="checkmark" size={12} color="#FFFFFF" style={{ marginRight: 4 }} />}
+                          <Text style={[styles.idOptBadgeText, active && { color: '#FFFFFF', fontWeight: 'bold' }]}>
+                            {flag}
+                          </Text>
+                        </View>
                       </TouchableOpacity>
                     );
                   })}
@@ -1213,7 +1232,10 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
                   style={[styles.statusOptionBtn, { borderColor: '#38A169' }]}
                   onPress={() => handleStatusChange(selectedBooking.id, 'CONFIRMED')}
                 >
-                  <Text style={[styles.statusOptionText, { color: '#38A169' }]}>Confirm Booking</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="checkmark-circle-outline" size={14} color="#38A169" style={{ marginRight: 6 }} />
+                    <Text style={[styles.statusOptionText, { color: '#38A169' }]}>Confirm Booking</Text>
+                  </View>
                 </TouchableOpacity>
               )}
 
@@ -1222,7 +1244,10 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
                   style={[styles.statusOptionBtn, { borderColor: '#2563EB' }]}
                   onPress={() => handleStatusChange(selectedBooking.id, 'CHECKED_IN')}
                 >
-                  <Text style={[styles.statusOptionText, { color: '#2563EB' }]}>📥 Check In Guest</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="log-in-outline" size={14} color="#2563EB" style={{ marginRight: 6 }} />
+                    <Text style={[styles.statusOptionText, { color: '#2563EB' }]}>Check In Guest</Text>
+                  </View>
                 </TouchableOpacity>
               )}
 
@@ -1237,7 +1262,10 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
                     if (onNavigate) onNavigate('checkout');
                   }}
                 >
-                  <Text style={[styles.statusOptionText, { color: '#E53E3E' }]}>📝 Check Out & Folio</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="log-out-outline" size={14} color="#E53E3E" style={{ marginRight: 6 }} />
+                    <Text style={[styles.statusOptionText, { color: '#E53E3E' }]}>Check Out & Folio</Text>
+                  </View>
                 </TouchableOpacity>
               )}
 
@@ -1246,7 +1274,10 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
                   style={[styles.statusOptionBtn, { borderColor: '#E53E3E', backgroundColor: '#FFF5F5' }]}
                   onPress={() => handleCancelReservation(selectedBooking.id)}
                 >
-                  <Text style={[styles.statusOptionText, { color: '#E53E3E' }]}>❌ Cancel Booking</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="close-circle-outline" size={14} color="#E53E3E" style={{ marginRight: 6 }} />
+                    <Text style={[styles.statusOptionText, { color: '#E53E3E' }]}>Cancel Booking</Text>
+                  </View>
                 </TouchableOpacity>
               )}
             </View>

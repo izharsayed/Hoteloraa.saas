@@ -158,26 +158,32 @@ export default function AttendanceScreen({ user, onLogout, onOpenDrawer }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Dynamic Live Clock Row */}
-        <View style={styles.clockCard}>
-          <Text style={styles.clockIcon}>🕒</Text>
-          <Text style={styles.clockText}>
-            {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-          </Text>
-        </View>
+         {/* Dynamic Live Clock Row */}
+         <View style={styles.clockCard}>
+           <Ionicons name="time-outline" size={26} color="#D4AF37" style={{ marginRight: 10 }} />
+           <Text style={styles.clockText}>
+             {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+           </Text>
+         </View>
 
-        {/* Warning messages */}
-        {error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>⚠️ {error}</Text>
-          </View>
-        ) : null}
+         {/* Warning messages */}
+         {error ? (
+           <View style={styles.errorBox}>
+             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+               <Ionicons name="alert-circle-outline" size={16} color="#C53030" style={{ marginRight: 6 }} />
+               <Text style={styles.errorText}>{error}</Text>
+             </View>
+           </View>
+         ) : null}
 
-        {locationError ? (
-          <View style={styles.warningBox}>
-            <Text style={styles.warningText}>📍 {locationError}</Text>
-          </View>
-        ) : null}
+         {locationError ? (
+           <View style={styles.warningBox}>
+             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+               <Ionicons name="location-outline" size={16} color="#C53030" style={{ marginRight: 6 }} />
+               <Text style={styles.warningText}>{locationError}</Text>
+             </View>
+           </View>
+         ) : null}
 
         {loading && !actionLoading ? (
           <View style={styles.centerLoading}>
@@ -207,9 +213,10 @@ export default function AttendanceScreen({ user, onLogout, onOpenDrawer }) {
 
               {/* Action Buttons */}
               <View style={styles.actionRow}>
-                {isCheckedOut ? (
+                 {isCheckedOut ? (
                   <View style={styles.checkedOutBanner}>
-                    <Text style={styles.checkedOutText}>✓ Checked Out for Today</Text>
+                    <Ionicons name="checkmark-circle-outline" size={16} color="#2F855A" style={{ marginRight: 6 }} />
+                    <Text style={styles.checkedOutText}>Checked Out for Today</Text>
                   </View>
                 ) : (
                   <>
@@ -221,7 +228,10 @@ export default function AttendanceScreen({ user, onLogout, onOpenDrawer }) {
                       {actionLoading && !isCheckedIn ? (
                         <ActivityIndicator size="small" color="#D4AF37" />
                       ) : (
-                        <Text style={styles.checkInBtnText}>▶ Check In</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                          <Ionicons name="play" size={14} color="#0C2340" style={{ marginRight: 4 }} />
+                          <Text style={styles.checkInBtnText}>Check In</Text>
+                        </View>
                       )}
                     </TouchableOpacity>
 
@@ -236,9 +246,12 @@ export default function AttendanceScreen({ user, onLogout, onOpenDrawer }) {
                       {actionLoading && isCheckedIn ? (
                         <ActivityIndicator size="small" color="#E53E3E" />
                       ) : (
-                        <Text style={[styles.checkOutBtnText, isCheckedIn ? styles.checkOutTextEnabled : styles.checkOutTextDisabled]}>
-                          ■ Check Out
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                          <Ionicons name="stop" size={14} color={isCheckedIn ? "#E53E3E" : "#A0AEC0"} style={{ marginRight: 4 }} />
+                          <Text style={[styles.checkOutBtnText, isCheckedIn ? styles.checkOutTextEnabled : styles.checkOutTextDisabled]}>
+                            Check Out
+                          </Text>
+                        </View>
                       )}
                     </TouchableOpacity>
                   </>
@@ -248,7 +261,10 @@ export default function AttendanceScreen({ user, onLogout, onOpenDrawer }) {
 
             {/* Right Card: Current Shift */}
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>📅 My Current Shift</Text>
+               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                 <Ionicons name="calendar-outline" size={16} color="#D4AF37" style={{ marginRight: 6 }} />
+                 <Text style={[styles.cardTitle, { marginBottom: 0 }]}>My Current Shift</Text>
+               </View>
               {shift ? (
                 <View style={styles.shiftGrid}>
                   <View style={styles.shiftItem}>
@@ -277,7 +293,10 @@ export default function AttendanceScreen({ user, onLogout, onOpenDrawer }) {
 
             {/* Bottom Card: Recent History Ledger */}
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>📜 Recent History</Text>
+               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                 <Ionicons name="receipt-outline" size={16} color="#D4AF37" style={{ marginRight: 6 }} />
+                 <Text style={[styles.cardTitle, { marginBottom: 0 }]}>Recent History</Text>
+               </View>
               <View style={styles.tableHeader}>
                 <Text style={[styles.tableCol, { flex: 1.2 }]}>Date</Text>
                 <Text style={styles.tableCol}>In</Text>
