@@ -1,0 +1,115 @@
+Hoteloraa SaaS - Comprehensive Documentation
+
+Hoteloraa is a multi-tenant Software-as-a-Service (SaaS) platform built to streamline the operations of businesses in the hospitality industry. Its flexible architecture enables it to cater to standalone restaurants, standalone lodging/hotels, or integrated hotel and restaurant businesses.
+
+---
+
+1. Project Overview & Architecture
+
+Business Types Supported
+1. Restaurant Only: Core modules include POS Billing, Table Management, Kitchen Order Ticket (KOT), Menu, and Inventory.
+2. Lodging Only: Core modules include Reservations, Rooms, Check-In/Check-Out, Guests, and Housekeeping.
+3. Hotel + Restaurant: Integrates all the above modules plus "Guest Folio" (routing restaurant charges to room bills) and Room Service.
+
+Multi-Tenant System
+At its core, Hoteloraa is built with a multi-tenant architecture. 
+- Tenant: Represents a single business entity (e.g., "Royal Palace Hotel").
+- Isolation: Each tenant maintains its isolated instances of users, roles, features, subscriptions, menu items, rooms, and reports. 
+- Features Flagging: Using TenantFeature, the platform can dynamically toggle entire modules (like POS or ROOMS) based on the tenant's business type or subscription plan.
+
+Tech Stack
+- Frontend Framework: React via Vite
+- Styling: Tailwind CSS (Focus on "Premium Hospitality UI" - Ivory backgrounds, Navy Blue accents, Matte Gold highlights)
+- Backend Environment: Node.js / Express
+- Language: TypeScript
+- Database & ORM: PostgreSQL managed via Prisma (schema.prisma)
+
+---
+
+2. Role-Based Access Control (RBAC)
+
+Hoteloraa avoids hardcoded role checks in favor of dynamic permissions. 
+
+Predefined User Roles include:
+- Super Admin: Platform owner, manages tenants, plans, and global subscriptions.
+- Tenant Admin: Business owner, manages their own users, roles, and business settings.
+- Manager: Has oversight over all daily operations, revenue, and inventory.
+- Receptionist: Manages reservations, check-ins, and guest management.
+- Captain / Waiter: Manages tables, takes orders, and serves.
+- Cashier / Accountant: Manages bills, payments, and refunds.
+- Chef / Kitchen Staff: Interacts with the Kitchen Order Ticket (KOT) system to mark orders as preparing or ready.
+- Housekeeping: Manages room cleaning statuses and maintenance tasks.
+
+---
+
+3. Core Workflows
+
+Restaurant Workflow
+1. Arrival & Allocation: Customer arrives and is assigned an AVAILABLE table. The table status changes to OCCUPIED.
+2. Ordering: A Captain takes the order and submits it, creating an Order and associated OrderItems.
+3. KOT Generation: The order is sent to the kitchen via a Kitchen Order Ticket (KOT). Status goes from PENDING -> PREPARING -> READY.
+4. Service & Billing: The Captain serves the food. The Cashier generates the bill, receives Payment, and the table status resets to CLEANING or AVAILABLE.
+
+Lodging Workflow
+1. Reservation: Guest makes a booking (Reservation created with PENDING or CONFIRMED status).
+2. Check-In: Guest arrives, room is allocated, and reservation status changes to CHECKED_IN. Room status changes from AVAILABLE to OCCUPIED.
+3. Stay & Services: During the stay, extra services (laundry, room service) can be added to the reservation.
+4. Check-Out: The guest checks out. A final invoice is generated. Room status becomes CHECKOUT_PENDING and then CLEANING for Housekeeping.
+
+Hotel + Restaurant (Guest Folio)
+If a guest stays in a room and eats at the restaurant, the restaurant POS can look up the active room reservation and route the Order total to the Guest Folio. During check-out, the final invoice aggregates room charges, restaurant bills, and any other folios into a single payment.
+
+---
+
+4. Database Schema Deep Dive (Prisma)
+
+The Prisma schema defines the robust data model underlying these workflows. Here are the most critical entities:
+
+Core Tenancy & Auth
+- Tenant: The root model containing business details, locale settings, and relationships to all other data.
+- Subscription: Links a Tenant to a SubscriptionPlan (FREE, STARTER, PROFESSIONAL, ENTERPRISE).
+- User: Employees of a tenant. Includes authentication data, roles, and attendance tracking.
+- Role & Permission: Defines granular access controls linked via RolePermission.
+
+Restaurant & POS
+- Table & Floor: Defines the physical layout of the restaurant. Tracks capacity and TableStatus.
+- MenuCategory & MenuItem: Defines the food and beverage offerings, including prices, veg/non-veg flags, and preparation times.
+- Order & OrderItem: Represents a customer's bill. Tracks subtotals, taxes, and discounts.
+- KOT & KOTItem: The Kitchen Order Ticket. Separates the billing aspect (Order) from the kitchen preparation aspect.
+
+Lodging & Rooms
+- RoomType: Defines categories of rooms (e.g., "Deluxe Suite") with base prices and amenities.
+- Room: Individual physical rooms linked to a RoomType. Tracks real-time RoomStatus (e.g., OCCUPIED, CLEANING, MAINTENANCE).
+- Guest: Stores guest details, ID proofs, and historical data (total stays, total spent).
+- Reservation: The central booking entity. Links a Guest, a Room, and tracks dates, financials (rate per night, taxes, advances), and status.
+- Housekeeping: Tasks assigned to users to clean or maintain specific rooms.
+
+Billing & Inventory
+- Payment & FolioItem: Records financial transactions. FolioItem is crucial for the integrated "Hotel + Restaurant" model to track distinct line items (Charge, Payment, Discount).
+- InventoryItem, Vendor, & Purchase: Tracks raw materials (like ingredients for the kitchen or supplies for the hotel), the vendors they are bought from, and historical purchase orders.
+
+---
+
+5. Design System (Frontend)
+
+Hoteloraa emphasizes a Premium UI inspired by luxury boutique hotels. 
+
+- Colors: 
+  - Primary Background: Warm Ivory (#FEF9F1)
+  - Primary Elements: Deep Classic Navy (#0B1F3A)
+  - Accents: Matte Gold (#D4AF37)
+  - Success/Danger: Emerald Green (#1E9E6A) / Soft Crimson (#D94A4A)
+- Typography:
+  - Lora: For display fonts, titles, and premium headings.
+  - Inter: For UI elements, forms, and general readability.
+  - JetBrains Mono: Specifically for numeric data like invoices, prices, and IDs.
+
+---
+
+6. Future Roadmap
+According to the project outlines, future enhancements include:
+- Multi-Branch Support (scaling beyond single locations per tenant)
+- Dedicated Mobile Applications
+- QR Menu Ordering for guests
+- An Online Booking Engine widget for hotel websites
+- AI Revenue Analytics and CRM Systems
