@@ -109,7 +109,7 @@ var _emailService = require('../../shared/email.service');
   const existing = await _database2.default.tenant.findUnique({ where: { slug: dto.slug } });
   if (existing) throw _errormiddleware.createError.call(void 0, 'Tenant slug already exists on cluster', 400);
 
-  const password = Math.random().toString(36).slice(-8);
+  const password = dto.adminPassword || Math.random().toString(36).slice(-8);
   const passwordHash = await _bcryptjs2.default.hash(password, SALT_ROUNDS);
   const verificationToken = _crypto2.default.randomBytes(32).toString('hex');
 
@@ -159,7 +159,7 @@ var _emailService = require('../../shared/email.service');
           passwordHash,
           userRole: 'TENANT_ADMIN',
           isActive: true,
-          isEmailVerified: false,
+          isEmailVerified: true,
           verificationToken
         }
       },

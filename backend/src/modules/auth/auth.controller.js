@@ -48,7 +48,7 @@ const register = async (req, res, next) => {
   try {
     const result = await authService.registerTenant(req.body);
     setAuthCookie(res, result.token);
-    _helpers.sendSuccess.call(void 0, res, withoutToken(result), 'Tenant registered successfully', 201);
+    _helpers.sendSuccess.call(void 0, res, result, 'Tenant registered successfully', 201);
   } catch (err) { next(err); }
 };
 exports.register = register;
@@ -57,7 +57,7 @@ const login = async (req, res, next) => {
   try {
     const result = await authService.login(req.body);
     setAuthCookie(res, result.token);
-    _helpers.sendSuccess.call(void 0, res, withoutToken(result), 'Login successful');
+    _helpers.sendSuccess.call(void 0, res, result, 'Login successful');
   } catch (err) { next(err); }
 };
 exports.login = login;
