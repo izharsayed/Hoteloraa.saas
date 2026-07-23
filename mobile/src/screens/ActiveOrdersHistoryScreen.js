@@ -16,7 +16,7 @@ import {
 import { api } from '../api';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function ActiveOrdersHistoryScreen({ user, onLogout, onOpenDrawer }) {
+export default function ActiveOrdersHistoryScreen({ user, onLogout, onOpenDrawer, lastNotificationTime }) {
   const [orders, setOrders] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,6 +61,12 @@ export default function ActiveOrdersHistoryScreen({ user, onLogout, onOpenDrawer
     }, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (lastNotificationTime) {
+      loadData(true);
+    }
+  }, [lastNotificationTime]);
 
   const handleRefresh = () => {
     setRefreshing(true);

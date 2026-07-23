@@ -42,6 +42,11 @@ export default function App() {
   const [checkoutRoomId, setCheckoutRoomId] = useState(null);
   const [expandedGroups, setExpandedGroups] = useState({});
 
+  // Notifications State
+  const [notifications, setNotifications] = useState([]);
+  const [activeNotification, setActiveNotification] = useState(null);
+  const [lastNotificationTime, setLastNotificationTime] = useState(null);
+
   const toggleGroup = (category) => {
     setExpandedGroups((prev) => ({
       ...prev,
@@ -58,6 +63,68 @@ export default function App() {
       }));
     }
   }, [activeGroupName]);
+
+  // Auto-dismiss active notification toast after 7 seconds
+  useEffect(() => {
+    if (activeNotification) {
+      const timer = setTimeout(() => {
+        setActiveNotification(null);
+      }, 7000);
+      return () => clearTimeout(timer);
+    }
+  }, [activeNotification]);
+
+  // Poll Notifications when user is logged in
+  useEffect(() => {
+    if (!user) {
+      setNotifications([]);
+      setActiveNotification(null);
+      return;
+    }
+
+    let isFirstLoad = true;
+    let localSeenIds = new Set();
+
+    const fetchNotifications = async () => {
+      try {
+        const data = await api.get('/notifications');
+        const list = data || [];
+        setNotifications(list);
+
+        if (isFirstLoad) {
+          list.forEach(n => localSeenIds.add(n.id));
+          isFirstLoad = false;
+          return;
+        }
+
+        // Find new, unread notifications
+        const unseen = list.filter(n => !n.isRead && !localSeenIds.has(n.id));
+        if (unseen.length > 0) {
+          const latest = unseen[0];
+          setActiveNotification(latest);
+          setLastNotificationTime(Date.now());
+          
+          unseen.forEach(n => localSeenIds.add(n.id));
+        }
+      } catch (err) {
+        console.warn('Failed to poll notifications', err);
+      }
+    };
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 5000); // Poll every 5 seconds
+    return () => clearInterval(interval);
+  }, [user]);
+
+  const handleNotificationTap = async (notif) => {
+    setActiveNotification(null);
+    try {
+      await api.patch(`/notifications/${notif.id}/read`);
+      setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n));
+    } catch (e) {
+      console.warn('Failed to mark notification as read:', e);
+    }
+  };
 
   // Authentication check on boot
   useEffect(() => {
@@ -168,9 +235,9 @@ export default function App() {
       case 'crm':
         return <CRMScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
       case 'tables':
-        return <TablesScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
+        return <TablesScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} lastNotificationTime={lastNotificationTime} />;
       case 'kitchen':
-        return <KitchenScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
+        return <KitchenScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} lastNotificationTime={lastNotificationTime} />;
       case 'menu':
         return <MenuManagerScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
       case 'orders':
@@ -178,9 +245,9 @@ export default function App() {
       case 'pos':
         return <POSBillingScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
       case 'captain':
-        return <CaptainScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
+        return <CaptainScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} lastNotificationTime={lastNotificationTime} />;
       case 'captain_history':
-        return <ActiveOrdersHistoryScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
+        return <ActiveOrdersHistoryScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} lastNotificationTime={lastNotificationTime} />;
       case 'housekeeping':
         if (user?.userRole === 'TENANT_ADMIN' || user?.userRole === 'MANAGER' || user?.userRole === 'RECEPTIONIST') {
           return <HousekeepingBoardScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
@@ -316,6 +383,31 @@ export default function App() {
               </TouchableOpacity>
             </View>
           </View>
+        )}
+
+        {/* Floating Notification Toast Banner */}
+        {activeNotification && (
+          <TouchableOpacity 
+            style={styles.notificationToast} 
+            onPress={() => handleNotificationTap(activeNotification)}
+            activeOpacity={0.9}
+          >
+            <View style={styles.notificationToastHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons 
+                  name={activeNotification.type === 'SUCCESS' ? 'checkmark-circle' : 'information-circle'} 
+                  size={20} 
+                  color={activeNotification.type === 'SUCCESS' ? '#48BB78' : '#D4AF37'} 
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={styles.notificationToastTitle}>{activeNotification.title}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setActiveNotification(null)} style={styles.notificationToastCloseBtn}>
+                <Ionicons name="close" size={16} color="#A0AEC0" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.notificationToastMsg}>{activeNotification.message}</Text>
+          </TouchableOpacity>
         )}
       </View>
     );
@@ -550,5 +642,42 @@ const styles = StyleSheet.create({
     color: '#FEB2B2',
     fontSize: 13,
     fontWeight: '600',
+  },
+  notificationToast: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 30,
+    left: 15,
+    right: 15,
+    backgroundColor: '#0C2340',
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#D4AF37',
+    padding: 15,
+    zIndex: 9999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 10,
+  },
+  notificationToastHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  notificationToastTitle: {
+    color: '#FEF9F1',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  notificationToastCloseBtn: {
+    padding: 2,
+  },
+  notificationToastMsg: {
+    color: '#E2E8F0',
+    fontSize: 13,
+    lineHeight: 18,
+    paddingLeft: 28,
   },
 });

@@ -206,11 +206,12 @@ async function recalculateOrderTotals(orderId) {
   }
 
   // Notify Chefs
+  const itemsText = order.items.map(item => `${item.menuItem?.name} (x${item.quantity})`).join(', ');
   const tableName = _optionalChain([order, 'access', _ => _.table, 'optionalAccess', _2 => _2.name]) || 'Quick POS';
   await notificationsService.createNotification(tenantId, {
     role: 'CHEF',
     title: 'New Order Placed',
-    message: `Order ${order.orderNumber} has been placed for ${tableName}.`,
+    message: `New order placed for ${tableName}. Items: ${itemsText}`,
     type: 'INFO',
   }).catch(err => console.error('Failed to create notification:', err));
 
@@ -261,7 +262,10 @@ async function recalculateOrderTotals(orderId) {
   id,
   dto
 ) => {
-  const order = await _database2.default.order.findFirst({ where: { id, tenantId } });
+  const order = await _database2.default.order.findFirst({ 
+    where: { id, tenantId },
+    include: { table: true }
+  });
 
   if (!order) {
     throw _errormiddleware.createError.call(void 0, 'Order not found', 404);
@@ -313,6 +317,20 @@ async function recalculateOrderTotals(orderId) {
 
   // Recalculate totals
   await recalculateOrderTotals(id);
+
+  // Notify Chefs
+  const tableName = _optionalChain([order, 'access', _ => _.table, 'optionalAccess', _2 => _2.name]) || 'Quick POS';
+  const newItemsText = newItemsData.map((item) => {
+    const menuItem = menuItemMap.get(item.menuItemId);
+    return `${menuItem.name} (x${item.quantity})`;
+  }).join(', ');
+
+  await notificationsService.createNotification(tenantId, {
+    role: 'CHEF',
+    title: 'Items Added to Order',
+    message: `New items added for ${tableName}. Items: ${newItemsText}`,
+    type: 'INFO',
+  }).catch(err => console.error('Failed to create notification:', err));
 
   return _database2.default.order.findFirst({
     where: { id, tenantId },

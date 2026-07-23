@@ -195,24 +195,22 @@ var _notificationsservice = require('../notifications/notifications.service'); v
     },
   });
 
-  // Trigger notification to captain who placed the order
-  if (_optionalChain([updatedKOT, 'access', _ => _.order, 'optionalAccess', _2 => _2.userId])) {
-    const tableName = _optionalChain([updatedKOT, 'access', _3 => _3.order, 'access', _4 => _4.table, 'optionalAccess', _5 => _5.name]) || 'Quick POS';
-    if (dto.status === 'IN_PROGRESS') {
-      await notificationsService.createNotification(tenantId, {
-        userId: updatedKOT.order.userId,
-        title: 'Order Preparing',
-        message: `KOT ${updatedKOT.kotNumber} for ${tableName} is now being prepared.`,
-        type: 'INFO',
-      });
-    } else if (dto.status === 'READY') {
-      await notificationsService.createNotification(tenantId, {
-        userId: updatedKOT.order.userId,
-        title: 'Order Ready!',
-        message: `KOT ${updatedKOT.kotNumber} for ${tableName} is ready to serve!`,
-        type: 'SUCCESS',
-      });
-    }
+  // Trigger notification to captain role
+  const tableName = _optionalChain([updatedKOT, 'access', _3 => _3.order, 'access', _4 => _4.table, 'optionalAccess', _5 => _5.name]) || 'Quick POS';
+  if (dto.status === 'IN_PROGRESS') {
+    await notificationsService.createNotification(tenantId, {
+      role: 'CAPTAIN',
+      title: 'Order Preparing',
+      message: `KOT ${updatedKOT.kotNumber} for ${tableName} is now being prepared.`,
+      type: 'INFO',
+    });
+  } else if (dto.status === 'READY') {
+    await notificationsService.createNotification(tenantId, {
+      role: 'CAPTAIN',
+      title: 'Order Ready!',
+      message: `KOT ${updatedKOT.kotNumber} for ${tableName} is ready to serve!`,
+      type: 'SUCCESS',
+    });
   }
 
   // When KOT is READY, push the parent order to READY as well
