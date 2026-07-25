@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const DEFAULT_API_BASE_URL = 'http://192.168.1.18:5000/api/v1';
+const DEFAULT_API_BASE_URL = 'http://192.168.1.11:5000/api/v1';
 
 // In-memory cache for fast access
 let currentApiBaseUrl = DEFAULT_API_BASE_URL;
@@ -44,6 +44,11 @@ export const resetApiBaseUrl = async () => {
 
 export const getCurrentToken = () => currentToken;
 export const getCurrentUser = () => currentUser;
+
+export const updateCurrentUser = async (updatedUser) => {
+  currentUser = updatedUser;
+  await AsyncStorage.setItem('hoteloraa_user', JSON.stringify(updatedUser));
+};
 
 /**
  * Resolve tenantSlug from email address (mirrors web frontend)
@@ -211,6 +216,24 @@ export const api = {
     } finally {
       await clearSession();
     }
+  },
+
+  forgotPassword: async (email) => {
+    const response = await fetch(`${currentApiBaseUrl}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    return handleResponse(response);
+  },
+
+  resetPassword: async (token, newPassword, confirmPassword) => {
+    const response = await fetch(`${currentApiBaseUrl}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword, confirmPassword }),
+    });
+    return handleResponse(response);
   },
 };
 

@@ -15,7 +15,7 @@ export const getNavigationGroups = (user) => {
       category: 'General',
       items: [
         { name: 'Dashboard', view: 'dashboard', icon: 'bar-chart', module: 'dashboard' },
-        { name: 'Operations Hub', view: 'manager_hub', icon: 'settings', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
+        { name: 'Operations Hub', view: 'manager_hub', icon: 'settings', module: 'settings', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
         { name: 'My Attendance', view: 'attendance', icon: 'time', module: 'attendance' },
         { name: 'Reports & Analytics', view: 'reports', icon: 'trending-up', module: 'reports' },
       ]
@@ -26,8 +26,8 @@ export const getNavigationGroups = (user) => {
       items: [
         { name: 'Rooms Directory', view: 'rooms', icon: 'bed', module: 'rooms' },
         { name: 'Reservations', view: 'reservations', icon: 'calendar', module: 'reservations' },
-        { name: 'Front Desk Check-In', view: 'checkin', icon: 'log-in', module: 'rooms' },
-        { name: 'Folios & Check-Out', view: 'checkout', icon: 'document-text', module: 'rooms' },
+        { name: 'Front Desk Check-In', view: 'checkin', icon: 'log-in', module: 'checkin' },
+        { name: 'Folios & Check-Out', view: 'checkout', icon: 'document-text', module: 'checkout' },
         { name: 'Housekeeping', view: 'housekeeping', icon: 'sparkles', module: 'housekeeping' },
         { name: 'Guests & CRM', view: 'crm', icon: 'people', module: 'guests' },
       ]
@@ -39,18 +39,19 @@ export const getNavigationGroups = (user) => {
         { name: 'Table Seating', view: 'tables', icon: 'restaurant', module: 'tables' },
         { name: 'Kitchen KOT', view: 'kitchen', icon: 'restaurant', module: 'kot' },
         { name: 'POS Terminal', view: 'orders', icon: 'receipt', module: 'orders', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
-        { name: 'POS Menu Manager', view: 'menu', icon: 'book', module: 'pos', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
-        { name: 'POS Billing', view: 'pos', icon: 'storefront', module: 'pos' },
+        { name: 'POS Menu Manager', view: 'menu', icon: 'book', module: 'menu', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
+        { name: 'POS Billing', view: 'pos', icon: 'storefront', module: 'billing' },
       ]
     },
     {
       category: 'Captain Dashboard',
       businessTypes: ['RESTAURANT', 'HOTEL_RESTAURANT'],
       items: [
-        { name: 'New Order (POS)', view: 'captain', icon: 'restaurant', roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
-        { name: 'Active Orders & History', view: 'captain_history', icon: 'receipt', roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
+        { name: 'New Order (POS)', view: 'captain', icon: 'restaurant', module: 'orders', roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
+        { name: 'Active Orders & History', view: 'captain_history', icon: 'receipt', module: 'orders', roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
       ]
     },
+    /*
     {
       category: 'Procurement',
       businessTypes: ['RESTAURANT', 'HOTEL_RESTAURANT'],
@@ -70,6 +71,7 @@ export const getNavigationGroups = (user) => {
         { name: 'Roles & Permissions', view: 'rbac', icon: 'shield-checkmark', module: 'roles' },
       ]
     },
+    */
     {
       category: 'Super Admin Portal',
       items: [
@@ -113,6 +115,10 @@ export const getNavigationGroups = (user) => {
     .map((group) => ({
       ...group,
       items: group.items.filter((item) => {
+        // Enforce custom permission scope checks first if custom role is present
+        if (user.roleId && item.module) {
+          return can(item.module);
+        }
         if (item.roles) return item.roles.includes(role);
         if (item.module) return can(item.module);
         return true;

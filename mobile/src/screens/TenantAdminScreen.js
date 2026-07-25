@@ -46,6 +46,14 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
   const [newRoleDesc, setNewRoleDesc] = useState('');
   const [submittingRole, setSubmittingRole] = useState(false);
 
+  // Custom RBAC Permissions selection & Edit Role states
+  const [systemPermissions, setSystemPermissions] = useState([]);
+  const [selectedPermissionIds, setSelectedPermissionIds] = useState([]);
+  const [showEditRoleModal, setShowEditRoleModal] = useState(false);
+  const [editingRoleId, setEditingRoleId] = useState(null);
+  const [editRoleName, setEditRoleName] = useState('');
+  const [editRoleDesc, setEditRoleDesc] = useState('');
+
   // Edit Settings Form States
   const [settingsName, setSettingsName] = useState('');
   const [settingsPhone, setSettingsPhone] = useState('');
@@ -73,7 +81,9 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
         setRolesList(roles || []);
       } else if (tabKey === 'tenant_rbac') {
         const data = await api.get('/roles');
+        const perms = await api.get('/permissions');
         setRolesList(data || []);
+        setSystemPermissions(perms || []);
       } else if (tabKey === 'tenant_features') {
         const data = await api.get('/features');
         setFeaturesList(data || []);
@@ -164,13 +174,14 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
       const payload = {
         name: newRoleName.trim(),
         description: newRoleDesc.trim() || undefined,
-        permissions: []
+        permissionIds: selectedPermissionIds
       };
 
       await api.post('/roles', payload);
       Alert.alert('Role Added', 'Custom role created successfully!');
       setNewRoleName('');
       setNewRoleDesc('');
+      setSelectedPermissionIds([]);
       setShowAddRoleModal(false);
       fetchTabData('tenant_rbac');
     } catch (e) {
@@ -178,6 +189,54 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
     } finally {
       setSubmittingRole(false);
     }
+  };
+
+  const handleEditRoleSubmit = async () => {
+    if (!editRoleName.trim()) {
+      Alert.alert('Validation Error', 'Role Name is required.');
+      return;
+    }
+
+    try {
+      setSubmittingRole(true);
+      const payload = {
+        name: editRoleName.trim(),
+        description: editRoleDesc.trim() || undefined,
+        permissionIds: selectedPermissionIds
+      };
+
+      await api.put(`/roles/${editingRoleId}`, payload);
+      Alert.alert('Role Updated', 'Role permissions updated successfully!');
+      setShowEditRoleModal(false);
+      fetchTabData('tenant_rbac');
+    } catch (e) {
+      Alert.alert('Error', e.message || 'Failed to update role.');
+    } finally {
+      setSubmittingRole(false);
+    }
+  };
+
+  const handleDeleteRole = async (roleId) => {
+    Alert.alert(
+      'Confirm Delete',
+      'Are you sure you want to delete this custom role?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.delete(`/roles/${roleId}`);
+              Alert.alert('Success', 'Role deleted successfully.');
+              fetchTabData('tenant_rbac');
+            } catch (e) {
+              Alert.alert('Error', e.message || 'Failed to delete role.');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handleSaveSettingsSubmit = async () => {
@@ -430,7 +489,7 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
                     </View>
                     <View style={styles.itemDetailRow}>
                       <Text style={styles.detailLabel}>Assigned Role:</Text>
-                      <Text style={[styles.detailValue, { fontWeight: 'bold' }]}>{staff.role || staff.userRole}</Text>
+                      <Text style={[styles.detailValue, { fontWeight: 'bold' }]}>{staff.role?.name || staff.userRole}</Text>
                     </View>
                     <View style={styles.itemDetailRow}>
                       <Text style={styles.detailLabel}>Last Session Login:</Text>
@@ -465,7 +524,7 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
             <View style={styles.tabView}>
               <View style={styles.searchHeader}>
                 <Text style={{ flex: 1, fontSize: 13, color: '#4A5568', fontWeight: '500' }}>Roles & Permission Scopes</Text>
-                 <TouchableOpacity style={styles.createBtn} onPress={() => setShowAddRoleModal(true)}>
+                 <TouchableOpacity style={styles.createBtn} onPress={() => { setSelectedPermissionIds([]); setShowAddRoleModal(true); }}>
                   <Text style={styles.createBtnText}>Add Role</Text>
                 </TouchableOpacity>
               </View>
@@ -486,15 +545,43 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
                   <Text style={{ fontSize: 10.5, fontWeight: 'bold', color: '#0C2340', marginBottom: 6 }}>Scope Permissions:</Text>
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                     {roleObj.permissions?.length > 0 ? (
-                      roleObj.permissions.map((p, i) => (
-                        <View key={i} style={styles.featureBadge}>
-                          <Text style={{ fontSize: 9, color: '#2B6CB0' }}>{p}</Text>
-                        </View>
-                      ))
+                      roleObj.permissions.map((p, i) => {
+                        const labelText = typeof p === 'string' 
+                          ? p 
+                          : `${p.permission?.module?.toLowerCase()}.${p.permission?.action?.toLowerCase()}`;
+                        return (
+                          <View key={i} style={styles.featureBadge}>
+                            <Text style={{ fontSize: 9, color: '#2B6CB0' }}>{labelText}</Text>
+                          </View>
+                        );
+                      })
                     ) : (
                       <Text style={{ fontSize: 11, color: '#A0AEC0', fontStyle: 'italic' }}>No permissions assigned.</Text>
                     )}
                   </View>
+
+                  {!roleObj.isSystem && (
+                    <View style={[styles.itemActions, { marginTop: 12 }]}>
+                      <TouchableOpacity
+                        style={[styles.actionBtn, { backgroundColor: '#F0FFF4', borderWidth: 1, borderColor: '#C6F6D5', marginRight: 8 }]}
+                        onPress={() => {
+                          setEditingRoleId(roleObj.id);
+                          setEditRoleName(roleObj.name);
+                          setEditRoleDesc(roleObj.description || '');
+                          setSelectedPermissionIds(roleObj.permissions?.map(p => p.permissionId) || []);
+                          setShowEditRoleModal(true);
+                        }}
+                      >
+                        <Text style={[styles.actionBtnText, { color: '#2F855A' }]}>Edit Role</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.actionBtn, styles.actionSuspendBtn]}
+                        onPress={() => handleDeleteRole(roleObj.id)}
+                      >
+                        <Text style={[styles.actionBtnText, { color: '#C53030' }]}>Delete</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               ))}
             </View>
@@ -715,6 +802,51 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
                 value={newRoleDesc}
                 onChangeText={setNewRoleDesc}
               />
+
+              <Text style={styles.fieldLabel}>Role Scope Permissions</Text>
+              <ScrollView style={{ maxHeight: 200, borderWidth: 1, borderColor: '#EBE5DA', borderRadius: 10, padding: 8, backgroundColor: '#FBFBF9' }}>
+                {(() => {
+                  const grouped = {};
+                  systemPermissions.forEach(p => {
+                    if (!grouped[p.module]) grouped[p.module] = [];
+                    grouped[p.module].push(p);
+                  });
+                  return Object.keys(grouped).map(moduleKey => (
+                    <View key={moduleKey} style={{ marginBottom: 12 }}>
+                      <Text style={{ fontSize: 10.5, fontWeight: 'bold', color: '#0C2340', marginBottom: 4 }}>{moduleKey}</Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                        {grouped[moduleKey].map(p => {
+                          const isSelected = selectedPermissionIds.includes(p.id);
+                          return (
+                            <TouchableOpacity
+                              key={p.id}
+                              style={{
+                                backgroundColor: isSelected ? '#D4AF37' : '#FFFFFF',
+                                borderColor: isSelected ? '#D4AF37' : '#EBE5DA',
+                                borderWidth: 1,
+                                paddingHorizontal: 8,
+                                paddingVertical: 4,
+                                borderRadius: 6,
+                              }}
+                              onPress={() => {
+                                if (isSelected) {
+                                  setSelectedPermissionIds(prev => prev.filter(id => id !== p.id));
+                                } else {
+                                  setSelectedPermissionIds(prev => [...prev, p.id]);
+                                }
+                              }}
+                            >
+                              <Text style={{ fontSize: 9.5, color: isSelected ? '#0C2340' : '#718096', fontWeight: isSelected ? 'bold' : 'normal' }}>
+                                {p.action}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  ));
+                })()}
+              </ScrollView>
             </View>
 
             <View style={styles.modalActions}>
@@ -741,6 +873,101 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
         </View>
       </Modal>
 
+      {/* MODAL: EDIT ROLE */}
+      <Modal visible={showEditRoleModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalHeader}>Edit Custom Role</Text>
+
+            <View style={{ marginVertical: 12 }}>
+              <Text style={styles.fieldLabel}>Role Name / ID</Text>
+              <TextInput
+                style={styles.fieldInput}
+                placeholder="e.g. Night Manager"
+                placeholderTextColor="#A0AEC0"
+                value={editRoleName}
+                onChangeText={setEditRoleName}
+              />
+
+              <Text style={styles.fieldLabel}>Role Description</Text>
+              <TextInput
+                style={styles.fieldInput}
+                placeholder="e.g. Access to front desk logs during night shifts"
+                placeholderTextColor="#A0AEC0"
+                value={editRoleDesc}
+                onChangeText={setEditRoleDesc}
+              />
+
+              <Text style={styles.fieldLabel}>Role Scope Permissions</Text>
+              <ScrollView style={{ maxHeight: 200, borderWidth: 1, borderColor: '#EBE5DA', borderRadius: 10, padding: 8, backgroundColor: '#FBFBF9' }}>
+                {(() => {
+                  const grouped = {};
+                  systemPermissions.forEach(p => {
+                    if (!grouped[p.module]) grouped[p.module] = [];
+                    grouped[p.module].push(p);
+                  });
+                  return Object.keys(grouped).map(moduleKey => (
+                    <View key={moduleKey} style={{ marginBottom: 12 }}>
+                      <Text style={{ fontSize: 10.5, fontWeight: 'bold', color: '#0C2340', marginBottom: 4 }}>{moduleKey}</Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                        {grouped[moduleKey].map(p => {
+                          const isSelected = selectedPermissionIds.includes(p.id);
+                          return (
+                            <TouchableOpacity
+                              key={p.id}
+                              style={{
+                                backgroundColor: isSelected ? '#D4AF37' : '#FFFFFF',
+                                borderColor: isSelected ? '#D4AF37' : '#EBE5DA',
+                                borderWidth: 1,
+                                paddingHorizontal: 8,
+                                paddingVertical: 4,
+                                borderRadius: 6,
+                              }}
+                              onPress={() => {
+                                if (isSelected) {
+                                  setSelectedPermissionIds(prev => prev.filter(id => id !== p.id));
+                                } else {
+                                  setSelectedPermissionIds(prev => [...prev, p.id]);
+                                }
+                              }}
+                            >
+                              <Text style={{ fontSize: 9.5, color: isSelected ? '#0C2340' : '#718096', fontWeight: isSelected ? 'bold' : 'normal' }}>
+                                {p.action}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  ));
+                })()}
+              </ScrollView>
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalActionBtn, styles.cancelBtn]}
+                onPress={() => setShowEditRoleModal(false)}
+                disabled={submittingRole}
+              >
+                <Text style={styles.cancelBtnText}>Dismiss</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalActionBtn, styles.saveBtn]}
+                onPress={handleEditRoleSubmit}
+                disabled={submittingRole}
+              >
+                {submittingRole ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.saveBtnText}>Save Changes</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -755,7 +982,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingBottom: 16,
+    paddingTop: Platform.OS === 'android' ? 36 : 16,
     backgroundColor: '#0C2340',
     borderBottomWidth: 2,
     borderColor: '#D4AF37',

@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
 // API, Permissions, Navigation and Screens
-import { initApi, getCurrentUser, api } from './src/api';
+import { initApi, getCurrentUser, api, updateCurrentUser } from './src/api';
 import { canAccess, ROLES } from './src/permissions';
 import { getNavigationGroups } from './src/navigationConfig';
 import LoginScreen from './src/screens/LoginScreen';
@@ -135,6 +135,19 @@ export default function App() {
       if (cachedUser) {
         setUser(cachedUser);
         resolveNavigation(cachedUser);
+
+        // Fetch fresh profile in the background to ensure permissions are synchronized
+        try {
+          const freshData = await api.get('/auth/profile');
+          if (freshData) {
+            const updatedUser = { ...cachedUser, ...freshData };
+            setUser(updatedUser);
+            resolveNavigation(updatedUser);
+            await updateCurrentUser(updatedUser);
+          }
+        } catch (e) {
+          console.warn('Failed to fetch fresh user profile on startup', e);
+        }
       }
       setInitializing(false);
     };
