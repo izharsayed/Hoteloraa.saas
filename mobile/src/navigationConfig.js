@@ -101,10 +101,10 @@ export const getNavigationGroups = (user) => {
       if (role === 'SUPER_ADMIN') {
         return group.category === 'Super Admin Portal';
       }
-      if (group.category === 'Super Admin Portal') {
-        return false;
+      if (role === 'TENANT_ADMIN') {
+        return group.category === 'Tenant Administration';
       }
-      if (role !== 'TENANT_ADMIN' && group.category === 'Tenant Administration') {
+      if (group.category === 'Super Admin Portal' || group.category === 'Tenant Administration') {
         return false;
       }
       if (group.businessTypes) {
