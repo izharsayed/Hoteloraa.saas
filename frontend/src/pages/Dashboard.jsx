@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Building, 
-  DollarSign, 
+  IndianRupee, 
   Bed, 
   Utensils, 
   TrendingUp, 
@@ -157,7 +157,7 @@ function Dashboard() {
         title: 'Gross Revenue (Today)',
         value: `₹${todayRevenue.toLocaleString()}`,
         subtitle: 'POS + Takeaways',
-        icon: DollarSign,
+        icon: IndianRupee,
         color: 'text-navy',
         bgColor: 'bg-gold-pale/80',
       }
@@ -220,7 +220,7 @@ function Dashboard() {
         title: 'Gross Revenue (Today)',
         value: `₹${todayRevenue.toLocaleString()}`,
         subtitle: 'Lodging + Service',
-        icon: DollarSign,
+        icon: IndianRupee,
         color: 'text-navy',
         bgColor: 'bg-gold-pale/80',
       }
@@ -281,7 +281,7 @@ function Dashboard() {
         title: 'Gross Revenue (Today)',
         value: `₹${combinedTodayRevenue.toLocaleString()}`,
         subtitle: 'Lodging + POS + Service',
-        icon: DollarSign,
+        icon: IndianRupee,
         color: 'text-navy',
         bgColor: 'bg-gold-pale/80',
       }
