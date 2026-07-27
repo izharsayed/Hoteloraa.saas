@@ -591,7 +591,7 @@ export default function MenuManagerScreen({ user, onLogout, onOpenDrawer }) {
       {/* MODAL 2: MANAGE CATEGORIES */}
       <Modal visible={showCategoryModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { padding: 20 }]}>
             <Text style={styles.modalHeading}>Manage Categories</Text>
             <Text style={styles.modalSubheading}>Configure custom POS category filters</Text>
 
@@ -1168,6 +1168,7 @@ const styles = StyleSheet.create({
     borderColor: '#D4AF37',
     paddingHorizontal: 16,
     borderRadius: 10,
+    height: 38,
     justifyContent: 'center',
     alignItems: 'center',
   },
