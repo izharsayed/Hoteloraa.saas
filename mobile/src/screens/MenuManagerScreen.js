@@ -13,6 +13,7 @@ import {
   SafeAreaView,
   Platform,
   Switch,
+  StatusBar,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { api, getAbsoluteAssetUrl } from '../api';
@@ -445,117 +446,145 @@ export default function MenuManagerScreen({ user, onLogout, onOpenDrawer }) {
       {/* MODAL 1: ADD MENU ITEM */}
       <Modal visible={showAddModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <ScrollView style={[styles.modalContent, { maxHeight: '90%' }]}>
-            <Text style={styles.modalHeading}>Add Menu Item</Text>
-            <Text style={styles.modalSubheading}>Configure kitchen recipes, pricing structures, and active catalog dishes</Text>
+          <StatusBar barStyle="light-content" backgroundColor="#0C2340" />
+          <View style={[styles.modalContent, { maxHeight: '92%', flex: 1, padding: 0, overflow: 'hidden' }]}>
+            
+            {/* Fixed Header */}
+            <View style={styles.modalHeaderRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.modalHeading}>Add Menu Item</Text>
+                <Text style={styles.modalSubheading}>Configure kitchen recipes, pricing structures, and active catalog dishes</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowAddModal(false)} style={{ padding: 4, marginLeft: 8 }}>
+                <Ionicons name="close" size={22} color="#718096" />
+              </TouchableOpacity>
+            </View>
 
-            <Text style={styles.modalLabel}>Item Name *</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="e.g. Chicken Tikka Masala"
-              placeholderTextColor="#A0AEC0"
-              value={newItemName}
-              onChangeText={setNewItemName}
-            />
+            {/* Scrollable Form Body */}
+            <ScrollView 
+              style={{ flex: 1, paddingHorizontal: 16, paddingTop: 10 }}
+              contentContainerStyle={{ paddingBottom: 20 }}
+              keyboardShouldPersistTaps="handled"
+            >
+              <Text style={styles.modalLabel}>Item Name *</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="e.g. Chicken Tikka Masala"
+                placeholderTextColor="#A0AEC0"
+                value={newItemName}
+                onChangeText={setNewItemName}
+              />
 
-            <Text style={styles.modalLabel}>Selling Price (₹) *</Text>
-            <TextInput
-              style={styles.modalInput}
-              keyboardType="numeric"
-              placeholder="250"
-              placeholderTextColor="#A0AEC0"
-              value={newItemPrice}
-              onChangeText={setNewItemPrice}
-            />
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalLabel}>Selling Price (₹) *</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    keyboardType="numeric"
+                    placeholder="250"
+                    placeholderTextColor="#A0AEC0"
+                    value={newItemPrice}
+                    onChangeText={setNewItemPrice}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalLabel}>Cost Price (₹)</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    keyboardType="numeric"
+                    placeholder="120"
+                    placeholderTextColor="#A0AEC0"
+                    value={newItemCostPrice}
+                    onChangeText={setNewItemCostPrice}
+                  />
+                </View>
+              </View>
 
-            <Text style={styles.modalLabel}>Cost Price (₹)</Text>
-            <TextInput
-              style={styles.modalInput}
-              keyboardType="numeric"
-              placeholder="120"
-              placeholderTextColor="#A0AEC0"
-              value={newItemCostPrice}
-              onChangeText={setNewItemCostPrice}
-            />
+              <Text style={styles.modalLabel}>Prep Time (mins)</Text>
+              <TextInput
+                style={styles.modalInput}
+                keyboardType="numeric"
+                placeholder="15"
+                placeholderTextColor="#A0AEC0"
+                value={newItemPrepTime}
+                onChangeText={setNewItemPrepTime}
+              />
 
-            <Text style={styles.modalLabel}>Prep Time (mins)</Text>
-            <TextInput
-              style={styles.modalInput}
-              keyboardType="numeric"
-              placeholder="15"
-              placeholderTextColor="#A0AEC0"
-              value={newItemPrepTime}
-              onChangeText={setNewItemPrepTime}
-            />
+              <Text style={styles.modalLabel}>Category</Text>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false} 
+                style={{ maxHeight: 38, marginBottom: 15 }}
+                contentContainerStyle={{ flexDirection: 'row', alignItems: 'center' }}
+              >
+                {categories.map((cat) => (
+                  <TouchableOpacity
+                    key={cat.id}
+                    style={[styles.pickerBadge, newItemCategory === cat.id && styles.pickerBadgeActive]}
+                    onPress={() => setNewItemCategory(cat.id)}
+                  >
+                    <Text style={[styles.pickerBadgeText, newItemCategory === cat.id && styles.pickerBadgeTextActive]}>
+                      {cat.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
 
-            <Text style={styles.modalLabel}>Category</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ height: 35, marginBottom: 15 }}>
-              {categories.map((cat) => (
-                <TouchableOpacity
-                  key={cat.id}
-                  style={[styles.pickerBadge, newItemCategory === cat.id && styles.pickerBadgeActive]}
-                  onPress={() => setNewItemCategory(cat.id)}
-                >
-                  <Text style={[styles.pickerBadgeText, newItemCategory === cat.id && styles.pickerBadgeTextActive]}>
-                    {cat.name}
-                  </Text>
+              <Text style={styles.modalLabel}>Description</Text>
+              <TextInput
+                style={[styles.modalInput, { height: 60, textAlignVertical: 'top' }]}
+                multiline
+                placeholder="Dish ingredients, portion sizes, notes..."
+                placeholderTextColor="#A0AEC0"
+                value={newItemDescription}
+                onChangeText={setNewItemDescription}
+              />
+
+              {/* Toggle Switches */}
+              <View style={styles.switchRow}>
+                <Text style={styles.switchLabel}>Vegetarian (Veg) Dish</Text>
+                <Switch value={newItemIsVeg} onValueChange={setNewItemIsVeg} trackColor={{ true: '#48BB78' }} />
+              </View>
+
+              <View style={styles.switchRow}>
+                <Text style={styles.switchLabel}>Make Available Immediately</Text>
+                <Switch value={newItemIsAvailable} onValueChange={setNewItemIsAvailable} trackColor={{ true: '#48BB78' }} />
+              </View>
+
+              {/* Image upload */}
+              <Text style={styles.modalLabel}>Upload Photo</Text>
+              <View style={styles.imageSelectorRow}>
+                <TouchableOpacity style={styles.uploadBtn} onPress={() => handleUploadImage(false)} disabled={uploading}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Ionicons name="image-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                    <Text style={styles.uploadBtnText}>Choose Gallery</Text>
+                  </View>
                 </TouchableOpacity>
-              ))}
+                <TouchableOpacity style={styles.uploadBtn} onPress={() => handleUploadImage(true)} disabled={uploading}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Ionicons name="camera-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
+                    <Text style={styles.uploadBtnText}>Take Photo</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              {uploading ? (
+                <ActivityIndicator size="small" color="#D4AF37" style={{ marginVertical: 10 }} />
+              ) : newItemImageUrl ? (
+                <Image source={{ uri: getAbsoluteAssetUrl(newItemImageUrl) }} style={styles.previewImage} />
+              ) : null}
             </ScrollView>
 
-            <Text style={styles.modalLabel}>Description</Text>
-            <TextInput
-              style={[styles.modalInput, { height: 60 }]}
-              multiline
-              placeholder="Dish ingredients, portion sizes, notes..."
-              placeholderTextColor="#A0AEC0"
-              value={newItemDescription}
-              onChangeText={setNewItemDescription}
-            />
-
-            {/* Toggle Switches */}
-            <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>Vegetarian (Veg) Dish</Text>
-              <Switch value={newItemIsVeg} onValueChange={setNewItemIsVeg} trackColor={{ true: '#48BB78' }} />
-            </View>
-
-            <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>Make Available Immediately</Text>
-              <Switch value={newItemIsAvailable} onValueChange={setNewItemIsAvailable} trackColor={{ true: '#48BB78' }} />
-            </View>
-
-            {/* Image upload */}
-            <Text style={styles.modalLabel}>Upload Photo</Text>
-            <View style={styles.imageSelectorRow}>
-              <TouchableOpacity style={styles.uploadBtn} onPress={() => handleUploadImage(false)} disabled={uploading}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Ionicons name="image-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
-                  <Text style={styles.uploadBtnText}>Choose Gallery</Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.uploadBtn} onPress={() => handleUploadImage(true)} disabled={uploading}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Ionicons name="camera-outline" size={14} color="#D4AF37" style={{ marginRight: 6 }} />
-                  <Text style={styles.uploadBtnText}>Take Photo</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-
-            {uploading ? (
-              <ActivityIndicator size="small" color="#D4AF37" style={{ marginVertical: 10 }} />
-            ) : newItemImageUrl ? (
-              <Image source={{ uri: getAbsoluteAssetUrl(newItemImageUrl) }} style={styles.previewImage} />
-            ) : null}
-
-            <View style={styles.modalActions}>
+            {/* Sticky Fixed Bottom Action Footer */}
+            <View style={styles.modalActionsFooter}>
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowAddModal(false)}>
                 <Text style={styles.cancelBtnText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.confirmBtn} onPress={handleCreateMenuItem}>
-                <Text style={styles.confirmBtnText}>Add Item</Text>
+                <Text style={styles.confirmBtnText}>＋ Add Item</Text>
               </TouchableOpacity>
             </View>
-          </ScrollView>
+          </View>
         </View>
       </Modal>
 
@@ -974,21 +1003,42 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingBottom: Platform.OS === 'android' ? 24 : 12,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 28) + 8 : 12,
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     width: '100%',
-    padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 8,
+  },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderColor: '#EBE5DA',
+    backgroundColor: '#FFFFFF',
+  },
+  modalActionsFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderColor: '#EBE5DA',
+    backgroundColor: '#FFFFFF',
   },
   modalHeading: {
     fontSize: 16,

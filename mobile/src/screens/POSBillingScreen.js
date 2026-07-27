@@ -11,6 +11,7 @@ import {
   Modal,
   SafeAreaView,
   Platform,
+  StatusBar,
 } from 'react-native';
 import { api } from '../api';
 import * as Print from 'expo-print';
@@ -70,12 +71,6 @@ export default function POSBillingScreen({ user, onLogout, onOpenDrawer }) {
         }] : []
       }));
       setInvoices(mappedInvoices);
-      
-      // Sync selectedInvoice reference
-      if (selectedInvoice) {
-        const updated = mappedInvoices.find(inv => inv.id === selectedInvoice.id);
-        setSelectedInvoice(updated || null);
-      }
     } catch (err) {
       console.warn(err);
     } finally {
@@ -110,10 +105,11 @@ export default function POSBillingScreen({ user, onLogout, onOpenDrawer }) {
       };
       
       await api.post('/billing/generate', payload);
-      Alert.alert('Success', `Bill settled successfully via ${paymentMethod}`);
       setSelectedInvoice(null);
       setPaymentReference('');
-      loadOrders();
+      setCustomDiscount('');
+      Alert.alert('Success', `Bill settled successfully via ${paymentMethod}`);
+      loadOrders(true);
     } catch (err) {
       Alert.alert('Payment Failed', err.message || 'Failed to settle bill.');
     } finally {
@@ -736,7 +732,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingBottom: 16,
-    paddingTop: Platform.OS === 'android' ? 36 : 16,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 28) + 8 : 16,
     backgroundColor: '#0C2340',
     borderBottomWidth: 2,
     borderColor: '#D4AF37',
@@ -1008,10 +1004,12 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 15,
+    paddingHorizontal: 12,
+    paddingBottom: Platform.OS === 'android' ? 24 : 12,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 28) + 8 : 12,
   },
   modalContent: {
     backgroundColor: '#FFFFFF',

@@ -11,8 +11,11 @@ import {
   Modal,
   SafeAreaView,
   Platform,
+  StatusBar,
+  useWindowDimensions,
+  Image,
 } from 'react-native';
-import { api } from '../api';
+import { api, getAbsoluteAssetUrl } from '../api';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function POSTerminalScreen({ user, onLogout, onOpenDrawer }) {
@@ -28,6 +31,9 @@ export default function POSTerminalScreen({ user, onLogout, onOpenDrawer }) {
   const [searchQuery, setSearchQuery] = useState('');
 
   // POS Cart State
+  const { width: windowWidth } = useWindowDimensions();
+  const isMobile = windowWidth < 600;
+  const [posModalTab, setPosModalTab] = useState('menu'); // 'menu' | 'cart'
   const [cart, setCart] = useState([]);
   const [itemNotes, setItemNotes] = useState({});
 
@@ -418,7 +424,7 @@ export default function POSTerminalScreen({ user, onLogout, onOpenDrawer }) {
                     <View style={styles.orderFooter}>
                       <Text style={styles.totalText}>Total: ₹ {order.totalAmount}</Text>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        {isActive && (
+                        {order.status === 'READY' && (
                           <TouchableOpacity
                             style={styles.actionBtnServe}
                             onPress={() => handleServeOrder(order.id)}
@@ -455,117 +461,199 @@ export default function POSTerminalScreen({ user, onLogout, onOpenDrawer }) {
       {/* MODAL 1: POS CART & MENU DIRECTORY */}
       <Modal visible={!!selectedTable} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { maxHeight: '90%', flex: 1 }]}>
+          <StatusBar barStyle="light-content" backgroundColor="#0C2340" />
+          <View style={[styles.modalContent, { maxHeight: '92%', flex: 1 }]}>
+            {/* Modal Header */}
             <View style={styles.modalHeaderRow}>
-              <Text style={styles.modalHeading}>Record Order - Table {selectedTable?.name}</Text>
-              <TouchableOpacity onPress={() => setSelectedTable(null)}>
+              <View>
+                <Text style={styles.modalHeading}>Record Order - Table {selectedTable?.name}</Text>
+                <Text style={{ fontSize: 10, color: '#718096', marginTop: 1 }}>
+                  {cart.length} item(s) • Subtotal: ₹{getCartSubtotal()}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setSelectedTable(null)} style={{ padding: 4 }}>
                 <Text style={styles.closeX}>✕</Text>
               </TouchableOpacity>
             </View>
 
-            {/* Sub-Layout: Left side Menu selection, Right side Cart */}
-            <View style={{ flex: 1, flexDirection: 'row', marginTop: 10 }}>
-              {/* Menu items selection panel */}
-              <View style={{ flex: 1.2, borderRightWidth: 0.5, borderColor: '#EBE5DA', paddingRight: 10 }}>
-                <TextInput
-                  style={styles.modalSearch}
-                  placeholder="🔍 Search dishes..."
-                  placeholderTextColor="#A0AEC0"
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                />
-                
-                {/* Categories Bar */}
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ height: 35, marginBottom: 8 }}>
-                  <TouchableOpacity
-                    style={[styles.pickerBadge, selectedCategoryId === 'All' && styles.pickerBadgeActive]}
-                    onPress={() => setSelectedCategoryId('All')}
-                  >
-                    <Text style={[styles.pickerBadgeText, selectedCategoryId === 'All' && styles.pickerBadgeTextActive]}>All</Text>
-                  </TouchableOpacity>
-                  {categories.map((c) => (
-                    <TouchableOpacity
-                      key={c.id}
-                      style={[styles.pickerBadge, selectedCategoryId === c.id && styles.pickerBadgeActive]}
-                      onPress={() => setSelectedCategoryId(c.id)}
-                    >
-                      <Text style={[styles.pickerBadgeText, selectedCategoryId === c.id && styles.pickerBadgeTextActive]}>{c.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-
-                {/* Items scroll */}
-                <ScrollView style={{ flex: 1 }}>
-                  {filteredMenuItems.map((item) => {
-                    const cartItem = cart.find(ci => ci.id === item.id);
-                    return (
-                      <View key={item.id} style={styles.menuItemRow}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.menuItemName}>{item.name}</Text>
-                          <Text style={styles.menuItemPrice}>₹ {item.price}</Text>
-                        </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          {cartItem && (
-                            <TouchableOpacity style={styles.cartMathBtn} onPress={() => handleRemoveFromCart(item)}>
-                              <Text style={styles.cartMathText}>－</Text>
-                            </TouchableOpacity>
-                          )}
-                          {cartItem && (
-                            <Text style={styles.cartQtyText}>{cartItem.quantity}</Text>
-                          )}
-                          <TouchableOpacity style={styles.cartMathBtn} onPress={() => handleAddToCart(item)}>
-                            <Text style={styles.cartMathText}>＋</Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    );
-                  })}
-                </ScrollView>
+            {/* Mobile Sub-Tabs (Dishes vs Cart) */}
+            {isMobile && (
+              <View style={styles.mobileSubTabRow}>
+                <TouchableOpacity 
+                  style={[styles.mobileSubTab, posModalTab === 'menu' && styles.mobileSubTabActive]}
+                  onPress={() => setPosModalTab('menu')}
+                >
+                  <Text style={[styles.mobileSubTabText, posModalTab === 'menu' && styles.mobileSubTabTextActive]}>
+                    Dishes Menu
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.mobileSubTab, posModalTab === 'cart' && styles.mobileSubTabActive]}
+                  onPress={() => setPosModalTab('cart')}
+                >
+                  <Text style={[styles.mobileSubTabText, posModalTab === 'cart' && styles.mobileSubTabTextActive]}>
+                    Cart ({cart.reduce((a,c)=>a+c.quantity, 0)})
+                  </Text>
+                </TouchableOpacity>
               </View>
+            )}
+
+            {/* Sub-Layout: Left side Menu selection, Right side Cart */}
+            <View style={{ flex: 1, flexDirection: isMobile ? 'column' : 'row', marginTop: 10 }}>
+              {/* Menu items selection panel */}
+              {(!isMobile || posModalTab === 'menu') && (
+                <View style={{ flex: 1, borderRightWidth: isMobile ? 0 : 0.5, borderColor: '#EBE5DA', paddingRight: isMobile ? 0 : 10 }}>
+                  <TextInput
+                    style={styles.modalSearch}
+                    placeholder="🔍 Search dishes..."
+                    placeholderTextColor="#A0AEC0"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                  />
+                  
+                  {/* Categories Bar */}
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false} 
+                    style={{ maxHeight: 38, marginBottom: 8 }}
+                    contentContainerStyle={{ flexDirection: 'row', alignItems: 'center' }}
+                  >
+                    <TouchableOpacity
+                      style={[styles.pickerBadge, selectedCategoryId === 'All' && styles.pickerBadgeActive]}
+                      onPress={() => setSelectedCategoryId('All')}
+                    >
+                      <Text style={[styles.pickerBadgeText, selectedCategoryId === 'All' && styles.pickerBadgeTextActive]}>All</Text>
+                    </TouchableOpacity>
+                    {categories.map((c) => (
+                      <TouchableOpacity
+                        key={c.id}
+                        style={[styles.pickerBadge, selectedCategoryId === c.id && styles.pickerBadgeActive]}
+                        onPress={() => setSelectedCategoryId(c.id)}
+                      >
+                        <Text style={[styles.pickerBadgeText, selectedCategoryId === c.id && styles.pickerBadgeTextActive]}>{c.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+
+                  {/* Items scroll */}
+                  <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: isMobile && cart.length > 0 ? 60 : 10 }}>
+                    {filteredMenuItems.map((item) => {
+                      const cartItem = cart.find(ci => ci.id === item.id);
+                      return (
+                        <View key={item.id} style={styles.menuItemRow}>
+                          {/* Dish Image Thumbnail */}
+                          <View style={styles.dishImageThumb}>
+                            {item.imageUrl ? (
+                              <Image 
+                                source={{ uri: getAbsoluteAssetUrl(item.imageUrl) }} 
+                                style={styles.dishImg} 
+                                resizeMode="cover"
+                              />
+                            ) : (
+                              <View style={styles.dishPlaceholder}>
+                                <Ionicons name="restaurant" size={18} color="#D4AF37" />
+                              </View>
+                            )}
+                          </View>
+                          <View style={{ flex: 1, paddingRight: 8 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                              <Text style={styles.menuItemName}>{item.name}</Text>
+                              {item.isVeg !== undefined && (
+                                <View style={[styles.vegBadge, { borderColor: item.isVeg ? '#38A169' : '#E53E3E' }]}>
+                                  <View style={[styles.vegDot, { backgroundColor: item.isVeg ? '#38A169' : '#E53E3E' }]} />
+                                </View>
+                              )}
+                            </View>
+                            <Text style={styles.menuItemPrice}>₹ {item.price}</Text>
+                          </View>
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            {cartItem ? (
+                              <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF9F1', borderRadius: 8, borderWidth: 1, borderColor: '#D4AF37', paddingHorizontal: 4, paddingVertical: 2 }}>
+                                <TouchableOpacity style={styles.cartMathBtn} onPress={() => handleRemoveFromCart(item)}>
+                                  <Text style={styles.cartMathText}>－</Text>
+                                </TouchableOpacity>
+                                <Text style={styles.cartQtyText}>{cartItem.quantity}</Text>
+                                <TouchableOpacity style={styles.cartMathBtn} onPress={() => handleAddToCart(item)}>
+                                  <Text style={styles.cartMathText}>＋</Text>
+                                </TouchableOpacity>
+                              </View>
+                            ) : (
+                              <TouchableOpacity style={styles.addDishBtn} onPress={() => handleAddToCart(item)}>
+                                <Text style={styles.addDishBtnText}>＋ Add</Text>
+                              </TouchableOpacity>
+                            )}
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+
+                  {/* Mobile Quick Cart Footer */}
+                  {isMobile && cart.length > 0 && (
+                    <TouchableOpacity 
+                      style={styles.mobileQuickCartBar}
+                      onPress={() => setPosModalTab('cart')}
+                    >
+                      <Text style={styles.mobileQuickCartText}>
+                        Subtotal: ₹{getCartSubtotal()} ({cart.reduce((a,c)=>a+c.quantity, 0)} items)
+                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.mobileQuickCartActionText}>View Cart / KOT</Text>
+                        <Ionicons name="chevron-forward" size={14} color="#0C2340" style={{ marginLeft: 4 }} />
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
 
               {/* Cart Summary & Notes side panel */}
-              <View style={{ flex: 1, paddingLeft: 10 }}>
-                <Text style={styles.cartHeading}>Order Cart</Text>
-                
-                <ScrollView style={{ flex: 1, marginVertical: 8 }}>
-                  {cart.length === 0 ? (
-                    <Text style={styles.emptyCartText}>Cart is empty.</Text>
-                  ) : (
-                    cart.map((ci) => (
-                      <View key={ci.id} style={styles.cartCardItem}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                          <Text style={styles.cartItemName} numberOfLines={1}>{ci.name}</Text>
-                          <Text style={styles.cartItemTotal}>₹ {ci.price * ci.quantity}</Text>
-                        </View>
-                        <Text style={{ fontSize: 9, color: '#718096' }}>Qty: {ci.quantity} x ₹{ci.price}</Text>
-                        <TextInput
-                          style={styles.cartItemNoteInput}
-                          placeholder="Add instructions..."
-                          placeholderTextColor="#A0AEC0"
-                          value={itemNotes[ci.id] || ''}
-                          onChangeText={(text) => updateItemNote(ci.id, text)}
-                        />
+              {(!isMobile || posModalTab === 'cart') && (
+                <View style={{ flex: 1, paddingLeft: isMobile ? 0 : 10 }}>
+                  <Text style={styles.cartHeading}>Order Cart ({cart.reduce((a,c)=>a+c.quantity, 0)})</Text>
+                  
+                  <ScrollView style={{ flex: 1, marginVertical: 8 }}>
+                    {cart.length === 0 ? (
+                      <View style={{ alignItems: 'center', paddingVertical: 40 }}>
+                        <Ionicons name="cart-outline" size={32} color="#A0AEC0" />
+                        <Text style={styles.emptyCartText}>Cart is empty. Select items from menu.</Text>
                       </View>
-                    ))
-                  )}
-                </ScrollView>
-
-                {/* Subtotal & place */}
-                <View style={styles.cartSummaryFooter}>
-                  <Text style={styles.subtotalText}>Subtotal: ₹ {getCartSubtotal()}</Text>
-                  <TouchableOpacity
-                    style={styles.placeBtn}
-                    onPress={handleSubmitOrder}
-                    disabled={submitting}
-                  >
-                    {submitting ? (
-                      <ActivityIndicator size="small" color="#D4AF37" />
                     ) : (
-                      <Text style={styles.placeBtnText}>Place KOT</Text>
+                      cart.map((ci) => (
+                        <View key={ci.id} style={styles.cartCardItem}>
+                          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Text style={styles.cartItemName} numberOfLines={1}>{ci.name}</Text>
+                            <Text style={styles.cartItemTotal}>₹ {ci.price * ci.quantity}</Text>
+                          </View>
+                          <Text style={{ fontSize: 10, color: '#718096', marginTop: 2 }}>Qty: {ci.quantity} x ₹{ci.price}</Text>
+                          <TextInput
+                            style={styles.cartItemNoteInput}
+                            placeholder="Special instructions / notes..."
+                            placeholderTextColor="#A0AEC0"
+                            value={itemNotes[ci.id] || ''}
+                            onChangeText={(text) => updateItemNote(ci.id, text)}
+                          />
+                        </View>
+                      ))
                     )}
-                  </TouchableOpacity>
+                  </ScrollView>
+
+                  {/* Subtotal & place */}
+                  <View style={styles.cartSummaryFooter}>
+                    <Text style={styles.subtotalText}>Subtotal: ₹ {getCartSubtotal()}</Text>
+                    <TouchableOpacity
+                      style={[styles.placeBtn, (cart.length === 0 || submitting) && { opacity: 0.6 }]}
+                      onPress={handleSubmitOrder}
+                      disabled={cart.length === 0 || submitting}
+                    >
+                      {submitting ? (
+                        <ActivityIndicator size="small" color="#0C2340" />
+                      ) : (
+                        <Text style={styles.placeBtnText}>Place KOT Order</Text>
+                      )}
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
+              )}
             </View>
           </View>
         </View>
@@ -920,10 +1008,12 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 15,
+    paddingHorizontal: 12,
+    paddingBottom: Platform.OS === 'android' ? 24 : 12,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 28) + 8 : 12,
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
@@ -935,6 +1025,33 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 8,
+  },
+  mobileSubTabRow: {
+    flexDirection: 'row',
+    backgroundColor: '#FEF9F1',
+    borderRadius: 10,
+    padding: 3,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#EBE5DA',
+  },
+  mobileSubTab: {
+    flex: 1,
+    paddingVertical: 6,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  mobileSubTabActive: {
+    backgroundColor: '#0C2340',
+  },
+  mobileSubTabText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#718096',
+  },
+  mobileSubTabTextActive: {
+    color: '#D4AF37',
+    fontWeight: 'bold',
   },
   modalHeaderRow: {
     flexDirection: 'row',
@@ -960,28 +1077,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EBE5DA',
     borderRadius: 8,
-    height: 32,
-    paddingHorizontal: 8,
-    fontSize: 11.5,
+    height: 34,
+    paddingHorizontal: 10,
+    fontSize: 12,
     color: '#0C2340',
     marginBottom: 8,
   },
   pickerBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 14,
     backgroundColor: '#FEF9F1',
     borderWidth: 1,
     borderColor: '#EBE5DA',
-    marginRight: 4,
-    justifyContent: 'center',
+    marginRight: 6,
+    alignSelf: 'center',
   },
   pickerBadgeActive: {
     backgroundColor: '#0C2340',
     borderColor: '#0C2340',
   },
   pickerBadgeText: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '600',
     color: '#718096',
   },
@@ -989,13 +1106,79 @@ const styles = StyleSheet.create({
     color: '#D4AF37',
     fontWeight: '700',
   },
+  addDishBtn: {
+    backgroundColor: '#D4AF37',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  addDishBtnText: {
+    color: '#0C2340',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  mobileQuickCartBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#D4AF37',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginTop: 8,
+  },
+  mobileQuickCartText: {
+    color: '#0C2340',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  mobileQuickCartActionText: {
+    color: '#0C2340',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
   menuItemRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 0.5,
-    borderColor: '#FEF9F1',
+    borderColor: '#EBE5DA',
+  },
+  dishImageThumb: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginRight: 10,
+    backgroundColor: '#FEF9F1',
+    borderWidth: 1,
+    borderColor: '#EBE5DA',
+  },
+  dishImg: {
+    width: '100%',
+    height: '100%',
+  },
+  dishPlaceholder: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(212, 175, 55, 0.08)',
+  },
+  vegBadge: {
+    width: 11,
+    height: 11,
+    borderWidth: 1,
+    borderRadius: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 6,
+  },
+  vegDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
   },
   menuItemName: {
     fontSize: 11.5,

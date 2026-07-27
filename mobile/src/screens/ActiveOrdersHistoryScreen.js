@@ -12,8 +12,11 @@ import {
   SafeAreaView,
   RefreshControl,
   Platform,
+  StatusBar,
+  useWindowDimensions,
+  Image,
 } from 'react-native';
-import { api } from '../api';
+import { api, getAbsoluteAssetUrl } from '../api';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ActiveOrdersHistoryScreen({ user, onLogout, onOpenDrawer, lastNotificationTime }) {
@@ -24,6 +27,9 @@ export default function ActiveOrdersHistoryScreen({ user, onLogout, onOpenDrawer
   const [submitting, setSubmitting] = useState(false);
 
   // Edit / Detail Modal States
+  const { width: windowWidth } = useWindowDimensions();
+  const isMobile = windowWidth < 600;
+  const [editModalTab, setEditModalTab] = useState('items'); // 'items' | 'add'
   const [editingOrder, setEditingOrder] = useState(null);
   const [editNotes, setEditNotes] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
@@ -309,8 +315,8 @@ export default function ActiveOrdersHistoryScreen({ user, onLogout, onOpenDrawer
                       <Ionicons name="create-outline" size={15} color="#D4AF37" />
                     </TouchableOpacity>
 
-                    {/* Serve button */}
-                    {!isCompleted && (
+                    {/* Serve button - ONLY show when KOT/Kitchen has processed the order to READY */}
+                    {order.status === 'READY' && (
                       <TouchableOpacity 
                         style={styles.serveBadgeButton}
                         onPress={() => handleServeOrder(order.id)}
@@ -339,82 +345,137 @@ export default function ActiveOrdersHistoryScreen({ user, onLogout, onOpenDrawer
       {/* EDIT MODAL: APPEND / VOID ITEMS */}
       <Modal visible={!!editingOrder} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { maxHeight: '90%', flex: 1 }]}>
+          <StatusBar barStyle="light-content" backgroundColor="#0C2340" />
+          <View style={[styles.modalContent, { maxHeight: '92%', flex: 1 }]}>
+            {/* Header Row */}
             <View style={styles.modalHeaderRow}>
-              <Text style={styles.modalHeading}>Edit Order Details</Text>
-              <TouchableOpacity onPress={() => setEditingOrder(null)}>
+              <View>
+                <Text style={styles.modalHeading}>Edit Order Details</Text>
+                <Text style={{ fontSize: 10, color: '#718096', marginTop: 1 }}>
+                  Invoice: {editingOrder?.orderNumber || editingOrder?.id?.substring(0, 8)} • Total: ₹{editingOrder?.totalAmount}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setEditingOrder(null)} style={{ padding: 4 }}>
                 <Text style={styles.closeX}>✕</Text>
               </TouchableOpacity>
             </View>
 
-            <View style={{ flex: 1, flexDirection: 'row', marginTop: 10 }}>
-              {/* Left Column: Active Order Items */}
-              <View style={{ flex: 1, borderRightWidth: 0.5, borderColor: '#EBE5DA', paddingRight: 10 }}>
-                <Text style={styles.modalSectionHeading}>Active Items</Text>
-                
-                <ScrollView style={{ flex: 1, marginVertical: 8 }}>
-                  {(editingOrder?.items || []).map((item) => (
-                    <View key={item.id} style={styles.cartCardItem}>
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <Text style={styles.cartItemName} numberOfLines={1}>{item.menuItem?.name}</Text>
-                        {!item.isVoid ? (
-                          <TouchableOpacity onPress={() => handleVoidItem(item.id)}>
-                            <Text style={styles.voidLink}>Void</Text>
-                          </TouchableOpacity>
-                        ) : (
-                          <Text style={styles.voidedText}>Voided</Text>
-                        )}
-                      </View>
-                      <Text style={{ fontSize: 9.5, color: '#718096' }}>
-                        Qty: {item.quantity} | ₹{item.unitPrice} each {item.isVoid && '(Voided)'}
-                      </Text>
-                      {item.notes ? (
-                        <Text style={{ fontSize: 9, color: '#D4AF37', marginTop: 2 }}>Notes: {item.notes}</Text>
-                      ) : null}
-                    </View>
-                  ))}
-                </ScrollView>
-
-                <View style={styles.cartSummaryFooter}>
-                  <Text style={styles.subtotalText}>Grand Total: ₹{editingOrder?.totalAmount}</Text>
-                </View>
+            {/* Mobile Subtabs */}
+            {isMobile && (
+              <View style={styles.mobileSubTabRow}>
+                <TouchableOpacity 
+                  style={[styles.mobileSubTab, editModalTab === 'items' && styles.mobileSubTabActive]}
+                  onPress={() => setEditModalTab('items')}
+                >
+                  <Text style={[styles.mobileSubTabText, editModalTab === 'items' && styles.mobileSubTabTextActive]}>
+                    Active Items ({(editingOrder?.items || []).filter(i => !i.isVoid).length})
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.mobileSubTab, editModalTab === 'add' && styles.mobileSubTabActive]}
+                  onPress={() => setEditModalTab('add')}
+                >
+                  <Text style={[styles.mobileSubTabText, editModalTab === 'add' && styles.mobileSubTabTextActive]}>
+                    Add Extra Items
+                  </Text>
+                </TouchableOpacity>
               </View>
+            )}
+
+            <View style={{ flex: 1, flexDirection: isMobile ? 'column' : 'row', marginTop: 10 }}>
+              {/* Left Column: Active Order Items */}
+              {(!isMobile || editModalTab === 'items') && (
+                <View style={{ flex: 1, borderRightWidth: isMobile ? 0 : 0.5, borderColor: '#EBE5DA', paddingRight: isMobile ? 0 : 10 }}>
+                  <Text style={styles.modalSectionHeading}>Active Items</Text>
+                  
+                  <ScrollView style={{ flex: 1, marginVertical: 8 }}>
+                    {(editingOrder?.items || []).map((item) => (
+                      <View key={item.id} style={styles.cartCardItem}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Text style={styles.cartItemName} numberOfLines={1}>{item.menuItem?.name}</Text>
+                          {!item.isVoid ? (
+                            <TouchableOpacity style={styles.voidBadgeBtn} onPress={() => handleVoidItem(item.id)}>
+                              <Text style={styles.voidLink}>Void Item</Text>
+                            </TouchableOpacity>
+                          ) : (
+                            <View style={styles.voidedBadge}>
+                              <Text style={styles.voidedText}>Voided</Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text style={{ fontSize: 10, color: '#718096', marginTop: 2 }}>
+                          Qty: {item.quantity} | ₹{item.unitPrice} each {item.isVoid && '(Cancelled)'}
+                        </Text>
+                        {item.notes ? (
+                          <Text style={{ fontSize: 9.5, color: '#D4AF37', marginTop: 2 }}>Notes: {item.notes}</Text>
+                        ) : null}
+                      </View>
+                    ))}
+                  </ScrollView>
+
+                  <View style={styles.cartSummaryFooter}>
+                    <Text style={styles.subtotalText}>Grand Total: ₹{editingOrder?.totalAmount}</Text>
+                  </View>
+                </View>
+              )}
 
               {/* Right Column: Append new catalog items */}
-              <View style={{ flex: 1, paddingLeft: 10 }}>
-                <Text style={styles.modalSectionHeading}>Add Extra Items</Text>
-                <TextInput
-                  style={styles.modalSearch}
-                  placeholder="🔍 Search dishes..."
-                  placeholderTextColor="#A0AEC0"
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                />
+              {(!isMobile || editModalTab === 'add') && (
+                <View style={{ flex: 1, paddingLeft: isMobile ? 0 : 10 }}>
+                  <Text style={styles.modalSectionHeading}>Add Extra Items</Text>
+                  
+                  {/* Search Bar */}
+                  <View style={styles.modalSearchContainer}>
+                    <TextInput
+                      style={styles.modalSearchInput}
+                      placeholder="🔍 Search dishes..."
+                      placeholderTextColor="#A0AEC0"
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                    />
+                  </View>
 
-                <ScrollView style={{ flex: 1 }}>
-                  {filteredMenuItems.map((item) => (
-                    <View key={item.id} style={styles.menuItemRow}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.menuItemName}>{item.name}</Text>
-                        <Text style={styles.menuItemPrice}>₹ {item.price}</Text>
-                        <TextInput
-                          style={styles.cartItemNoteInput}
-                          placeholder="Instructions..."
-                          placeholderTextColor="#A0AEC0"
-                          value={editNotes[item.id] || ''}
-                          onChangeText={(text) => setEditNotes(prev => ({ ...prev, [item.id]: text }))}
-                        />
+                  <ScrollView style={{ flex: 1, marginVertical: 6 }}>
+                    {filteredMenuItems.map((item) => (
+                      <View key={item.id} style={styles.menuItemRow}>
+                        {/* Dish Thumbnail */}
+                        <View style={styles.dishImageThumb}>
+                          {item.imageUrl ? (
+                            <Image 
+                              source={{ uri: getAbsoluteAssetUrl(item.imageUrl) }} 
+                              style={styles.dishImg} 
+                              resizeMode="cover"
+                            />
+                          ) : (
+                            <View style={styles.dishPlaceholder}>
+                              <Ionicons name="restaurant" size={16} color="#D4AF37" />
+                            </View>
+                          )}
+                        </View>
+
+                        <View style={{ flex: 1, paddingRight: 8 }}>
+                          <Text style={styles.menuItemName}>{item.name}</Text>
+                          <Text style={styles.menuItemPrice}>₹ {item.price}</Text>
+                          <TextInput
+                            style={styles.cartItemNoteInput}
+                            placeholder="Instructions (optional)..."
+                            placeholderTextColor="#A0AEC0"
+                            value={editNotes[item.id] || ''}
+                            onChangeText={(text) => setEditNotes(prev => ({ ...prev, [item.id]: text }))}
+                          />
+                        </View>
+
+                        <TouchableOpacity 
+                          style={styles.appendAddBtn} 
+                          onPress={() => handleAddNewItemToOrder(item)}
+                        >
+                          <Text style={styles.appendAddText}>＋ Add</Text>
+                        </TouchableOpacity>
                       </View>
-                      <TouchableOpacity 
-                        style={styles.appendAddBtn} 
-                        onPress={() => handleAddNewItemToOrder(item)}
-                      >
-                        <Text style={styles.appendAddText}>＋ Add</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </ScrollView>
-              </View>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -652,10 +713,12 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 15,
+    paddingHorizontal: 12,
+    paddingBottom: Platform.OS === 'android' ? 24 : 12,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 28) + 8 : 12,
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
@@ -667,6 +730,33 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 8,
+  },
+  mobileSubTabRow: {
+    flexDirection: 'row',
+    backgroundColor: '#FEF9F1',
+    borderRadius: 10,
+    padding: 3,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#EBE5DA',
+  },
+  mobileSubTab: {
+    flex: 1,
+    paddingVertical: 6,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  mobileSubTabActive: {
+    backgroundColor: '#0C2340',
+  },
+  mobileSubTabText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#718096',
+  },
+  mobileSubTabTextActive: {
+    color: '#D4AF37',
+    fontWeight: 'bold',
   },
   modalHeaderRow: {
     flexDirection: 'row',
@@ -710,14 +800,29 @@ const styles = StyleSheet.create({
     color: '#2D3748',
     flex: 1,
   },
+  voidBadgeBtn: {
+    backgroundColor: '#FFF5F5',
+    borderWidth: 1,
+    borderColor: '#FEB2B2',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
   voidLink: {
-    fontSize: 10.5,
+    fontSize: 10,
     fontWeight: 'bold',
     color: '#E53E3E',
+  },
+  voidedBadge: {
+    backgroundColor: '#EDF2F7',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
   voidedText: {
     fontSize: 9.5,
     color: '#A0AEC0',
+    fontWeight: 'bold',
   },
   cartSummaryFooter: {
     borderTopWidth: 1,
@@ -730,16 +835,19 @@ const styles = StyleSheet.create({
     color: '#0C2340',
     textAlign: 'right',
   },
-  modalSearch: {
+  modalSearchContainer: {
+    marginBottom: 8,
+  },
+  modalSearchInput: {
     backgroundColor: '#FEF9F1',
     borderWidth: 1,
     borderColor: '#EBE5DA',
-    borderRadius: 8,
-    height: 32,
-    paddingHorizontal: 8,
-    fontSize: 11.5,
+    borderRadius: 10,
+    height: 38,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    fontSize: 12,
     color: '#0C2340',
-    marginBottom: 8,
   },
   menuItemRow: {
     flexDirection: 'row',
@@ -747,38 +855,61 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 0.5,
-    borderColor: '#FEF9F1',
+    borderColor: '#EBE5DA',
+  },
+  dishImageThumb: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginRight: 10,
+    backgroundColor: '#FEF9F1',
+    borderWidth: 1,
+    borderColor: '#EBE5DA',
+  },
+  dishImg: {
+    width: '100%',
+    height: '100%',
+  },
+  dishPlaceholder: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(212, 175, 55, 0.08)',
   },
   menuItemName: {
-    fontSize: 11.5,
+    fontSize: 12,
     fontWeight: 'bold',
     color: '#2D3748',
   },
   menuItemPrice: {
-    fontSize: 9.5,
-    color: '#718096',
+    fontSize: 10,
+    color: '#D4AF37',
+    fontWeight: '600',
     marginTop: 1,
   },
   cartItemNoteInput: {
     backgroundColor: '#FFFFFF',
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: '#EBE5DA',
     borderRadius: 6,
-    height: 22,
-    paddingHorizontal: 6,
-    fontSize: 9,
+    height: 26,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    fontSize: 10,
     color: '#0C2340',
     marginTop: 4,
   },
   appendAddBtn: {
     backgroundColor: '#0C2340',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
   },
   appendAddText: {
     color: '#D4AF37',
-    fontSize: 9.5,
+    fontSize: 10.5,
     fontWeight: 'bold',
   },
 });

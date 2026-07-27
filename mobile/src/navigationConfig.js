@@ -26,8 +26,8 @@ export const getNavigationGroups = (user) => {
       items: [
         { name: 'Rooms Directory', view: 'rooms', icon: 'bed', module: 'rooms' },
         { name: 'Reservations', view: 'reservations', icon: 'calendar', module: 'reservations' },
-        { name: 'Front Desk Check-In', view: 'checkin', icon: 'log-in', module: 'checkin' },
-        { name: 'Folios & Check-Out', view: 'checkout', icon: 'document-text', module: 'checkout' },
+        { name: 'Front Desk Check-In', view: 'checkin', icon: 'log-in', module: 'checkin', roles: ['TENANT_ADMIN', 'MANAGER', 'RECEPTIONIST', 'CASHIER', 'SUPER_ADMIN'] },
+        { name: 'Folios & Check-Out', view: 'checkout', icon: 'document-text', module: 'checkout', roles: ['TENANT_ADMIN', 'MANAGER', 'RECEPTIONIST', 'CASHIER', 'SUPER_ADMIN'] },
         { name: 'Housekeeping', view: 'housekeeping', icon: 'sparkles', module: 'housekeeping' },
         { name: 'Guests & CRM', view: 'crm', icon: 'people', module: 'guests' },
       ]
@@ -38,17 +38,17 @@ export const getNavigationGroups = (user) => {
       items: [
         { name: 'Table Seating', view: 'tables', icon: 'restaurant', module: 'tables' },
         { name: 'Kitchen KOT', view: 'kitchen', icon: 'restaurant', module: 'kot' },
-        { name: 'POS Terminal', view: 'orders', icon: 'receipt', module: 'orders', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
-        { name: 'POS Menu Manager', view: 'menu', icon: 'book', module: 'menu', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
-        { name: 'POS Billing', view: 'pos', icon: 'storefront', module: 'billing' },
+        { name: 'POS Terminal', view: 'orders', icon: 'receipt', module: 'orders', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CASHIER', 'RECEPTIONIST', 'CAPTAIN'] },
+        { name: 'POS Menu Manager', view: 'menu', icon: 'book', module: 'menu', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CASHIER', 'RECEPTIONIST'] },
+        { name: 'POS Billing', view: 'pos', icon: 'storefront', module: 'billing', roles: ['TENANT_ADMIN', 'MANAGER', 'CASHIER', 'RECEPTIONIST', 'CAPTAIN', 'SUPER_ADMIN'] },
       ]
     },
     {
       category: 'Captain Dashboard',
       businessTypes: ['RESTAURANT', 'HOTEL_RESTAURANT'],
       items: [
-        { name: 'New Order (POS)', view: 'captain', icon: 'restaurant', module: 'orders', roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
-        { name: 'Active Orders & History', view: 'captain_history', icon: 'receipt', module: 'orders', roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
+        { name: 'New Order (POS)', view: 'captain', icon: 'restaurant', module: 'orders', roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CASHIER', 'RECEPTIONIST'] },
+        { name: 'Active Orders & History', view: 'captain_history', icon: 'receipt', module: 'orders', roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CASHIER', 'RECEPTIONIST'] },
       ]
     },
     /*
@@ -99,12 +99,12 @@ export const getNavigationGroups = (user) => {
   return rawNavigation
     .filter((group) => {
       if (role === 'SUPER_ADMIN') {
-        return group.category === 'Super Admin Portal';
+        return true;
       }
-      if (role === 'TENANT_ADMIN') {
-        return group.category === 'Tenant Administration';
+      if (group.category === 'Super Admin Portal') {
+        return false;
       }
-      if (group.category === 'Super Admin Portal' || group.category === 'Tenant Administration') {
+      if (role !== 'TENANT_ADMIN' && group.category === 'Tenant Administration') {
         return false;
       }
       if (group.businessTypes) {

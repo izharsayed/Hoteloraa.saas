@@ -10,6 +10,7 @@ import {
   Alert,
   SafeAreaView,
   Platform,
+  StatusBar,
 } from 'react-native';
 import { api } from '../api';
 import { Ionicons } from '@expo/vector-icons';
@@ -344,7 +345,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingBottom: 16,
-    paddingTop: Platform.OS === 'android' ? 36 : 16,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 28) + 8 : 16,
     backgroundColor: '#0C2340',
     borderBottomWidth: 2,
     borderColor: '#D4AF37',

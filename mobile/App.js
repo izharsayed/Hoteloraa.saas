@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator, Alert, SafeAreaView, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { StyleSheet, View, Text, ActivityIndicator, Alert, SafeAreaView, TouchableOpacity, ScrollView, Platform, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -321,9 +321,12 @@ export default function App() {
           <View style={styles.drawerContainer}>
             {/* Drawer Brand Header */}
             <View style={styles.drawerHeader}>
-              <View>
-                <Text style={styles.brandTitle}>HOTELORAA</Text>
-                <Text style={styles.brandSubtitle}>Property Management Suite</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Image source={require('./assets/logo.png')} style={{ width: 36, height: 36, marginRight: 10, borderRadius: 6 }} resizeMode="contain" />
+                <View>
+                  <Text style={styles.brandTitle}>HOTELORAA</Text>
+                  <Text style={styles.brandSubtitle}>Property Management Suite</Text>
+                </View>
               </View>
               <TouchableOpacity onPress={() => setIsDrawerOpen(false)} style={styles.closeBtn}>
                 <Ionicons name="close" size={24} color="#D4AF37" />
@@ -429,6 +432,7 @@ export default function App() {
   if (initializing) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
+        <Image source={require('./assets/logo.png')} style={{ width: 100, height: 100, marginBottom: 20, borderRadius: 16 }} resizeMode="contain" />
         <ActivityIndicator size="large" color="#D4AF37" />
         <Text style={styles.loadingText}>Initializing Hoteloraa Suite...</Text>
       </SafeAreaView>

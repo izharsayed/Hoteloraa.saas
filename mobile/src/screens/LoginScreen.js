@@ -12,6 +12,7 @@ import {
   Platform,
   ScrollView,
   Alert,
+  Image,
 } from 'react-native';
 import { api, getApiBaseUrl, setApiBaseUrl, resetApiBaseUrl } from '../api';
 import { Ionicons } from '@expo/vector-icons';
@@ -148,9 +149,11 @@ export default function LoginScreen({ onLoginSuccess }) {
           
           {/* Header Branding */}
           <View style={styles.logoContainer}>
-            <View style={styles.logoBadge}>
-              <Text style={styles.logoBadgeText}>H</Text>
-            </View>
+            <Image 
+              source={require('../../assets/logo.png')} 
+              style={styles.logoImage} 
+              resizeMode="contain"
+            />
             <Text style={styles.appName}>HOTELORAA</Text>
             <Text style={styles.appSubtitle}>Luxury Property Management Suite</Text>
           </View>
@@ -481,26 +484,10 @@ const styles = StyleSheet.create({
     marginTop: 40,
     marginBottom: 30,
   },
-  logoBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#0C2340', // Deep Navy
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#D4AF37', // Gold
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  logoBadgeText: {
-    color: '#D4AF37',
-    fontSize: 32,
-    fontWeight: 'bold',
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+  logoImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 16,
   },
   appName: {
     fontSize: 26,
