@@ -25,6 +25,48 @@ const DEMO_ACCOUNTS = [
     role: 'SUPER_ADMIN',
     tenant: 'Hoteloraa System Node',
   },
+  {
+    label: 'Jubeda Khatun (Tenant Admin)',
+    email: 'admin@royalpalace.com',
+    password: 'password123',
+    role: 'TENANT_ADMIN',
+    tenant: 'Royal Palace Hotel',
+  },
+  {
+    label: 'Faisal Ahmed (Manager)',
+    email: 'faisal@royalpalace.com',
+    password: 'password123',
+    role: 'MANAGER',
+    tenant: 'Royal Palace Hotel',
+  },
+  {
+    label: 'Ravi Verma (Captain)',
+    email: 'ravi@royalpalace.com',
+    password: 'password123',
+    role: 'CAPTAIN',
+    tenant: 'Royal Palace Hotel',
+  },
+  {
+    label: 'Priya Sharma (Receptionist)',
+    email: 'priya@royalpalace.com',
+    password: 'password123',
+    role: 'RECEPTIONIST',
+    tenant: 'Royal Palace Hotel',
+  },
+  {
+    label: 'Tanvir Hussain (Chef / Kitchen)',
+    email: 'tanvir@royalpalace.com',
+    password: 'password123',
+    role: 'CHEF',
+    tenant: 'Royal Palace Hotel',
+  },
+  {
+    label: 'Sunita Devi (Housekeeping)',
+    email: 'sunita@royalpalace.com',
+    password: 'password123',
+    role: 'HOUSEKEEPING',
+    tenant: 'Royal Palace Hotel',
+  },
 ];
 
 export default function LoginScreen({ onLoginSuccess }) {

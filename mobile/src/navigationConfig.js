@@ -99,7 +99,7 @@ export const getNavigationGroups = (user) => {
   return rawNavigation
     .filter((group) => {
       if (role === 'SUPER_ADMIN') {
-        return true;
+        return group.category === 'Super Admin Portal';
       }
       if (group.category === 'Super Admin Portal') {
         return false;

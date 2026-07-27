@@ -126,16 +126,27 @@ const login = async (dto) => {
   let tenant;
   let user;
 
+  const normalizedEmail = dto.email ? dto.email.trim() : '';
+
   if (dto.tenantSlug) {
     tenant = await _database2.default.tenant.findUnique({
       where: { slug: dto.tenantSlug },
       select: { id: true, isActive: true, name: true, businessType: true },
     });
     if (!tenant || !tenant.isActive) throw _errormiddleware.createError.call(void 0, 'Tenant not found or inactive', 404);
-    user = await _database2.default.user.findFirst({ where: { tenantId: tenant.id, email: dto.email, isActive: true } });
+    user = await _database2.default.user.findFirst({
+      where: {
+        tenantId: tenant.id,
+        email: { equals: normalizedEmail, mode: 'insensitive' },
+        isActive: true
+      }
+    });
   } else {
     user = await _database2.default.user.findFirst({
-      where: { email: dto.email, isActive: true },
+      where: {
+        email: { equals: normalizedEmail, mode: 'insensitive' },
+        isActive: true
+      },
       include: { tenant: { select: { id: true, isActive: true, name: true, businessType: true } } },
     });
     if (user && user.tenant) {
@@ -232,8 +243,9 @@ const getProfile = async (userId, tenantId) => {
 exports.getProfile = getProfile;
 
 const forgotPassword = async (dto) => {
+  const normalizedEmail = dto.email ? dto.email.trim() : '';
   const user = await _database2.default.user.findFirst({
-    where: { email: dto.email, isActive: true },
+    where: { email: { equals: normalizedEmail, mode: 'insensitive' }, isActive: true },
     select: { id: true, name: true },
   });
 
