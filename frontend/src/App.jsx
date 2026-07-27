@@ -367,7 +367,7 @@ function App() {
             </Route>
 
             {/* --- Procurement --- */}
-            <Route element={<ProtectedRoute module="inventory" />}>
+            {/* <Route element={<ProtectedRoute module="inventory" />}>
               <Route path="/inventory" element={<Inventory />} />
             </Route>
 
@@ -377,7 +377,7 @@ function App() {
 
             <Route element={<ProtectedRoute module="purchases" />}>
               <Route path="/purchases" element={<Purchases />} />
-            </Route>
+            </Route> */}
 
             {/* Manager panel (accessible to admin + manager) */}
             <Route element={<ProtectedRoute allowedRoles={['TENANT_ADMIN', 'MANAGER']} />}>

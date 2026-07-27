@@ -92,7 +92,7 @@ function Sidebar({ collapsed, onToggle }) {
         { name: 'Active Orders & History', path: '/captain/history', icon: ClipboardList, roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
       ]
     },
-    {
+    /* {
       category: 'Procurement',
       businessTypes: ['RESTAURANT', 'HOTEL_RESTAURANT'],
       items: [
@@ -100,7 +100,7 @@ function Sidebar({ collapsed, onToggle }) {
         { name: 'Vendors', path: '/vendors', icon: Truck, module: 'vendors' },
         { name: 'Purchase Orders', path: '/purchases', icon: ShoppingCart, module: 'purchases' },
       ]
-    },
+    }, */
     {
       category: 'Administration',
       items: [
