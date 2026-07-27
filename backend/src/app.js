@@ -4,7 +4,6 @@ var _cors = require('cors'); var _cors2 = _interopRequireDefault(_cors);
 var _helmet = require('helmet'); var _helmet2 = _interopRequireDefault(_helmet);
 var _morgan = require('morgan'); var _morgan2 = _interopRequireDefault(_morgan);
 var _compression = require('compression'); var _compression2 = _interopRequireDefault(_compression);
-var _expressratelimit = require('express-rate-limit'); var _expressratelimit2 = _interopRequireDefault(_expressratelimit);
 var _path = require('path'); var _path2 = _interopRequireDefault(_path);
 
 var _env = require('./config/env'); var _env2 = _interopRequireDefault(_env);
@@ -26,7 +25,7 @@ app.use(_cors2.default.call(void 0, {
     
     const isLocalDev =
       _env2.default.nodeEnv === 'development' &&
-      /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+      /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+)(:\d+)?$/.test(origin);
     
     if (isLocalDev || origin === _env2.default.clientUrl) {
       callback(null, true);
@@ -38,14 +37,6 @@ app.use(_cors2.default.call(void 0, {
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-
-// ─── Rate Limiting ───────────────────────────────────────────
-const limiter = _expressratelimit2.default.call(void 0, {
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500,
-  message: { success: false, message: 'Too many requests, please try again later.' },
-});
-app.use('/api', limiter);
 
 // ─── Request Parsing ─────────────────────────────────────────
 app.use(_express2.default.json({ limit: '10mb' }));
