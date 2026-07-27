@@ -205,14 +205,11 @@ function Menu() {
 
   const getImageUrl = (path) => {
     if (!path) return null;
-    if (path.startsWith('/uploads')) {
-      return `http://localhost:5000${path}`;
-    }
     if (path.startsWith('/images/dishes/')) {
       const fileName = path.split('/').pop();
-      return dishImages[`../assets/images/dishes/${fileName}`] || path;
+      return dishImages[`../assets/images/dishes/${fileName}`] || assetUrl(path);
     }
-    return path;
+    return assetUrl(path);
   };
 
   return (
