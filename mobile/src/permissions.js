@@ -61,6 +61,14 @@ export function hasRole(user, allowedRoles) {
 export function canAccess(user, module) {
   if (!user) return false;
   if (user.userRole === ROLES.SUPER_ADMIN || user.userRole === ROLES.TENANT_ADMIN) return true;
+
+  // Enforce custom role permission scopes if user has a custom role mapped
+  if (user.roleId) {
+    if (!user.permissions || !Array.isArray(user.permissions)) return false;
+    const permissionName = `${module.toLowerCase()}.read`;
+    return user.permissions.includes(permissionName);
+  }
+
   const allowed = MODULE_ACCESS[module] || [];
   return allowed.includes(user.userRole);
 }

@@ -155,9 +155,28 @@ const login = async (dto) => {
 
   await _database2.default.user.update({ where: { id: user.id }, data: { lastLogin: new Date() } });
 
+  let permissions = [];
+  if (user.roleId) {
+    const roleObj = await _database2.default.role.findUnique({
+      where: { id: user.roleId },
+      include: {
+        permissions: {
+          include: {
+            permission: true,
+          },
+        },
+      },
+    });
+    if (roleObj) {
+      permissions = roleObj.permissions.map(
+        (p) => `${p.permission.module.toLowerCase()}.${p.permission.action.toLowerCase()}`
+      );
+    }
+  }
+
   const token = generateToken(user.id, tenant.id, user.email, user.userRole, _nullishCoalesce(user.roleId, () => undefined));
   const { passwordHash: _, tenant: __, ...safeUser } = user;
-  return { user: { ...safeUser, tenantName: tenant.name, businessType: tenant.businessType }, token };
+  return { user: { ...safeUser, tenantName: tenant.name, businessType: tenant.businessType, permissions }, token };
 };
 exports.login = login;
 
@@ -177,10 +196,38 @@ exports.changePassword = changePassword;
 const getProfile = async (userId, tenantId) => {
   const user = await _database2.default.user.findFirst({
     where: { id: userId, tenantId },
-    select: { id: true, name: true, email: true, phone: true, userRole: true, avatarUrl: true, lastLogin: true, createdAt: true },
+    include: {
+      tenant: { select: { name: true, businessType: true } },
+    },
   });
   if (!user) throw _errormiddleware.createError.call(void 0, 'User not found', 404);
-  return user;
+
+  let permissions = [];
+  if (user.roleId) {
+    const roleObj = await _database2.default.role.findUnique({
+      where: { id: user.roleId },
+      include: {
+        permissions: {
+          include: {
+            permission: true,
+          },
+        },
+      },
+    });
+    if (roleObj) {
+      permissions = roleObj.permissions.map(
+        (p) => `${p.permission.module.toLowerCase()}.${p.permission.action.toLowerCase()}`
+      );
+    }
+  }
+
+  const { passwordHash: _, tenant: __, ...safeUser } = user;
+  return { 
+    ...safeUser, 
+    tenantName: user.tenant?.name, 
+    businessType: user.tenant?.businessType, 
+    permissions 
+  };
 };
 exports.getProfile = getProfile;
 

@@ -24,41 +24,6 @@ const DEMO_ACCOUNTS = [
     role: 'SUPER_ADMIN',
     tenant: 'Hoteloraa System Node',
   },
-  {
-    label: 'Royal Palace Admin (Manager)',
-    email: 'faisal@royalpalace.com',
-    password: 'password123',
-    role: 'MANAGER',
-    tenant: 'Royal Palace Hotel',
-  },
-  {
-    label: 'Quresh Manager (Manager - qureshi)',
-    email: 'manager@gmail.com',
-    password: 'password123',
-    role: 'MANAGER',
-    tenant: 'qureshi',
-  },
-  {
-    label: 'Sunita Devi (Housekeeping)',
-    email: 'sunita@royalpalace.com',
-    password: 'password123',
-    role: 'HOUSEKEEPING',
-    tenant: 'Royal Palace Hotel',
-  },
-  {
-    label: 'Ravi Verma (Captain/Waitet)',
-    email: 'ravi@royalpalace.com',
-    password: 'password123',
-    role: 'CAPTAIN',
-    tenant: 'Royal Palace Hotel',
-  },
-  {
-    label: 'Mustkim (Cashier)',
-    email: 'mustkim@caferoma.com',
-    password: 'password123',
-    role: 'CASHIER',
-    tenant: 'Cafe Aroma',
-  },
 ];
 
 export default function LoginScreen({ onLoginSuccess }) {
@@ -73,9 +38,66 @@ export default function LoginScreen({ onLoginSuccess }) {
   // Demo accounts modal
   const [demoVisible, setDemoVisible] = useState(false);
 
+  // Forgot password flow states
+  const [forgotVisible, setForgotVisible] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotStep, setForgotStep] = useState(1); // 1 = request verification code, 2 = reset password
+  const [resetToken, setResetToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+
   useEffect(() => {
     setApiBaseUrlState(getApiBaseUrl());
   }, [settingsVisible]);
+
+  const handleForgotPasswordRequest = async () => {
+    if (!forgotEmail || !forgotEmail.trim()) {
+      Alert.alert('Validation Error', 'Please enter your corporate email address.');
+      return;
+    }
+    setForgotLoading(true);
+    try {
+      await api.forgotPassword(forgotEmail.trim());
+      Alert.alert('Verification Sent', 'If this email is registered, we have sent a 8-character verification code.');
+      setForgotStep(2);
+    } catch (e) {
+      Alert.alert('Request Failed', e.message || 'Could not request password reset code.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetPasswordSubmit = async () => {
+    if (!resetToken.trim() || !newPassword.trim() || !confirmPassword.trim()) {
+      Alert.alert('Validation Error', 'Please fill in all inputs.');
+      return;
+    }
+    if (newPassword.length < 6) {
+      Alert.alert('Validation Error', 'Passwords must be at least 6 characters.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Validation Error', 'Passwords do not match.');
+      return;
+    }
+    setForgotLoading(true);
+    try {
+      const res = await api.resetPassword(resetToken.trim().toUpperCase(), newPassword, confirmPassword);
+      Alert.alert('Success', res.message || 'Password updated successfully. Please log in.');
+      setForgotVisible(false);
+      // Reset form
+      setForgotEmail('');
+      setForgotStep(1);
+      setResetToken('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (e) {
+      Alert.alert('Reset Failed', e.message || 'Could not reset password.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -164,6 +186,17 @@ export default function LoginScreen({ onLoginSuccess }) {
                 autoCorrect={false}
               />
             </View>
+
+            <TouchableOpacity
+              style={styles.forgotPasswordLink}
+              onPress={() => {
+                setForgotEmail(email); // autofill email from login input if present
+                setForgotStep(1);
+                setForgotVisible(true);
+              }}
+            >
+              <Text style={styles.forgotPasswordLinkText}>Forgot Password?</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity 
               style={[styles.loginBtn, loading && styles.loginBtnDisabled]} 
@@ -292,6 +325,134 @@ export default function LoginScreen({ onLoginSuccess }) {
               onPress={() => setDemoVisible(false)}
             >
               <Text style={styles.modalCloseText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Forgot Password Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={forgotVisible}
+        onRequestClose={() => setForgotVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Reset Password</Text>
+            
+            {forgotStep === 1 ? (
+              <View>
+                <Text style={styles.modalDesc}>
+                  Enter your registered corporate email address. We will email you a verification code to reset your password.
+                </Text>
+
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.inputLabel}>Corporate Email</Text>
+                  <TextInput
+                    style={styles.settingsInput}
+                    placeholder="name@hoteloraa.com"
+                    placeholderTextColor="#A0AEC0"
+                    value={forgotEmail}
+                    onChangeText={setForgotEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
+
+                <TouchableOpacity 
+                  style={[styles.modalBtnStacked, styles.modalBtnPrimary, { marginTop: 15 }, forgotLoading && { opacity: 0.7 }]} 
+                  onPress={handleForgotPasswordRequest}
+                  disabled={forgotLoading}
+                >
+                  {forgotLoading ? (
+                    <ActivityIndicator color="#0C2340" />
+                  ) : (
+                    <Text style={styles.modalBtnPriText}>Send Verification Code</Text>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={[styles.modalBtnStacked, styles.modalBtnSecondary, { marginTop: 10 }]} 
+                  onPress={() => setForgotStep(2)}
+                >
+                  <Text style={styles.modalBtnSecText}>Already Have a Code?</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View>
+                <Text style={styles.modalDesc}>
+                  Enter the verification code sent to your email along with your new password.
+                </Text>
+
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.inputLabel}>Verification Code</Text>
+                  <TextInput
+                    style={styles.settingsInput}
+                    placeholder="Enter Code"
+                    placeholderTextColor="#A0AEC0"
+                    value={resetToken}
+                    onChangeText={setResetToken}
+                    autoCapitalize="characters"
+                    autoCorrect={false}
+                  />
+                </View>
+
+                <View style={[styles.inputWrapper, { marginTop: 10 }]}>
+                  <Text style={styles.inputLabel}>New Password</Text>
+                  <TextInput
+                    style={styles.settingsInput}
+                    placeholder="At least 6 characters"
+                    placeholderTextColor="#A0AEC0"
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    secureTextEntry
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
+
+                <View style={[styles.inputWrapper, { marginTop: 10 }]}>
+                  <Text style={styles.inputLabel}>Confirm New Password</Text>
+                  <TextInput
+                    style={styles.settingsInput}
+                    placeholder="Confirm password"
+                    placeholderTextColor="#A0AEC0"
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
+
+                <TouchableOpacity 
+                  style={[styles.modalBtnStacked, styles.modalBtnPrimary, { marginTop: 20 }, forgotLoading && { opacity: 0.7 }]} 
+                  onPress={handleResetPasswordSubmit}
+                  disabled={forgotLoading}
+                >
+                  {forgotLoading ? (
+                    <ActivityIndicator color="#0C2340" />
+                  ) : (
+                    <Text style={styles.modalBtnPriText}>Reset Password</Text>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={[styles.modalBtnStacked, styles.modalBtnSecondary, { marginTop: 10 }]} 
+                  onPress={() => setForgotStep(1)}
+                >
+                  <Text style={styles.modalBtnSecText}>Request New Code</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <TouchableOpacity 
+              style={styles.modalCloseBtn} 
+              onPress={() => setForgotVisible(false)}
+            >
+              <Text style={styles.modalCloseText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -498,6 +659,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  modalBtnStacked: {
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
   modalBtnPrimary: {
     backgroundColor: '#D4AF37',
   },
@@ -563,5 +731,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#718096',
     marginTop: 2,
+  },
+  forgotPasswordLink: {
+    alignSelf: 'flex-end',
+    marginBottom: 20,
+    marginTop: -5,
+    paddingVertical: 5,
+  },
+  forgotPasswordLinkText: {
+    color: '#D4AF37',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

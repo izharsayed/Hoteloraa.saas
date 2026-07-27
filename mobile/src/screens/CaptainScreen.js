@@ -26,7 +26,7 @@ const TABLE_STATUS_COLORS = {
   BILLED: { bg: '#FEFCBF', border: '#FBD38D', text: '#D69E2E', dot: '#D69E2E' },
 };
 
-export default function CaptainScreen({ user, onLogout, onOpenDrawer }) {
+export default function CaptainScreen({ user, onLogout, onOpenDrawer, lastNotificationTime }) {
   const [tables, setTables] = useState([]);
   const [orders, setOrders] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
@@ -80,6 +80,12 @@ export default function CaptainScreen({ user, onLogout, onOpenDrawer }) {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (lastNotificationTime) {
+      fetchData();
+    }
+  }, [lastNotificationTime]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -501,7 +507,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingBottom: 16,
+    paddingTop: Platform.OS === 'android' ? 36 : 16,
     backgroundColor: '#0C2340',
     borderBottomWidth: 2,
     borderColor: '#D4AF37',

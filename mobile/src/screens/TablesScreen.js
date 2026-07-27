@@ -15,7 +15,7 @@ import {
 import { api } from '../api';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function TablesScreen({ user, onLogout, onOpenDrawer }) {
+export default function TablesScreen({ user, onLogout, onOpenDrawer, lastNotificationTime }) {
   const [selectedZone, setSelectedZone] = useState('All');
   const [selectedTable, setSelectedTable] = useState(null);
   const [tables, setTables] = useState([]);
@@ -72,6 +72,13 @@ export default function TablesScreen({ user, onLogout, onOpenDrawer }) {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (lastNotificationTime) {
+      loadTables(true);
+      loadFloors();
+    }
+  }, [lastNotificationTime]);
 
   const handleAddTable = async () => {
     if (!newTableName.trim()) {
@@ -563,7 +570,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingBottom: 16,
+    paddingTop: Platform.OS === 'android' ? 36 : 16,
     backgroundColor: '#0C2340',
     borderBottomWidth: 2,
     borderColor: '#D4AF37',

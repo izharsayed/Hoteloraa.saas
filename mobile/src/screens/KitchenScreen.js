@@ -13,7 +13,7 @@ import {
 import { api } from '../api';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function KitchenScreen({ user, onLogout, onOpenDrawer }) {
+export default function KitchenScreen({ user, onLogout, onOpenDrawer, lastNotificationTime }) {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -64,6 +64,12 @@ export default function KitchenScreen({ user, onLogout, onOpenDrawer }) {
     }, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (lastNotificationTime) {
+      loadTickets(true);
+    }
+  }, [lastNotificationTime]);
 
   const getElapsedTime = (createdAt) => {
     if (!createdAt || isNaN(createdAt.getTime())) return 0;
@@ -383,7 +389,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingBottom: 16,
+    paddingTop: Platform.OS === 'android' ? 36 : 16,
     backgroundColor: '#0C2340',
     borderBottomWidth: 2,
     borderColor: '#D4AF37',

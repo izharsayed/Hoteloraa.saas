@@ -2,6 +2,7 @@
 
 var _helpers = require('../../shared/helpers');
 var _errormiddleware = require('../../middleware/error.middleware');
+var _notificationsservice = require('../notifications/notifications.service');
 
  const getPOSData = async (tenantId) => {
   const tables = await _database2.default.table.findMany({
@@ -66,7 +67,7 @@ var _errormiddleware = require('../../middleware/error.middleware');
   const taxAmount = (subtotal * taxRate) / 100;
   const totalAmount = subtotal + taxAmount;
 
-  return _database2.default.$transaction(async (tx) => {
+  const result = await _database2.default.$transaction(async (tx) => {
     // 1. If tableId provided, set Table to OCCUPIED
     if (tableId) {
       const table = await tx.table.findFirst({
@@ -159,4 +160,18 @@ var _errormiddleware = require('../../middleware/error.middleware');
       },
     });
   });
+
+  // Notify Chefs
+  if (result) {
+    const tableName = _optionalChain([result, 'access', _ => _.table, 'optionalAccess', _2 => _2.name]) || 'Quick POS';
+    const itemsText = result.items.map(item => `${item.menuItem?.name} (x${item.quantity})`).join(', ');
+    _notificationsservice.createNotification(tenantId, {
+      role: 'CHEF',
+      title: 'New Order Placed',
+      message: `New order placed for ${tableName}. Items: ${itemsText}`,
+      type: 'INFO',
+    }).catch(err => console.error('Failed to create notification:', err));
+  }
+
+  return result;
 }; exports.quickOrder = quickOrder;
