@@ -56,6 +56,7 @@ export default function POSBillingScreen({ user, onLogout, onOpenDrawer }) {
         amount: order.subtotal || 0,
         room: order.table?.floor || 'Restaurant',
         status: order.status === 'COMPLETED' ? 'Paid' : 'Unpaid',
+        orderStatus: order.status,
         discount: order.discountAmount || 0,
         paidAmount: order.payment ? order.payment.amount : 0,
         gstRate: 5,
@@ -489,10 +490,29 @@ export default function POSBillingScreen({ user, onLogout, onOpenDrawer }) {
                       <Text style={styles.invoiceIdText}>INV-{inv.id}</Text>
                       <Text style={styles.invoiceType}>{inv.type}</Text>
                     </View>
-                    <View style={[styles.statusBadge, isPaid ? styles.statusPaid : styles.statusUnpaid]}>
-                      <Text style={[styles.statusBadgeText, isPaid ? styles.textPaid : styles.textUnpaid]}>
-                        {inv.status.toUpperCase()}
-                      </Text>
+                    <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
+                      <View style={[styles.statusBadge, isPaid ? styles.statusPaid : styles.statusUnpaid]}>
+                        <Text style={[styles.statusBadgeText, isPaid ? styles.textPaid : styles.textUnpaid]}>
+                          {inv.status.toUpperCase()}
+                        </Text>
+                      </View>
+                      {!isPaid && (
+                        <View style={[
+                          styles.statusBadge,
+                          inv.orderStatus === 'SERVED' ? { backgroundColor: '#EBF8FF', borderColor: '#BEE3F8' } :
+                          inv.orderStatus === 'READY' ? { backgroundColor: '#F0FFF4', borderColor: '#C6F6D5' } :
+                          { backgroundColor: '#FFF5F5', borderColor: '#FED7D7' }
+                        ]}>
+                          <Text style={[
+                            styles.statusBadgeText,
+                            inv.orderStatus === 'SERVED' ? { color: '#2B6CB0' } :
+                            inv.orderStatus === 'READY' ? { color: '#22543D' } :
+                            { color: '#C53030' }
+                          ]}>
+                            {inv.orderStatus}
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   </View>
 
@@ -515,15 +535,25 @@ export default function POSBillingScreen({ user, onLogout, onOpenDrawer }) {
                   </View>
 
                   {!isPaid && (
-                    <TouchableOpacity
-                      style={styles.settleBtn}
-                      onPress={() => {
-                        setSelectedInvoice(inv);
-                        setActiveActionTab('settle');
-                      }}
-                    >
-                      <Text style={styles.settleBtnText}>Settle Check ➔</Text>
-                    </TouchableOpacity>
+                    inv.orderStatus === 'SERVED' ? (
+                      <TouchableOpacity
+                        style={styles.settleBtn}
+                        onPress={() => {
+                          setSelectedInvoice(inv);
+                          setActiveActionTab('settle');
+                        }}
+                      >
+                        <Text style={styles.settleBtnText}>Settle Check ➔</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <View
+                        style={[styles.settleBtn, { backgroundColor: '#EDF2F7', borderColor: '#E2E8F0' }]}
+                      >
+                        <Text style={[styles.settleBtnText, { color: '#A0AEC0' }]}>
+                          Settle Check (Only if Served)
+                        </Text>
+                      </View>
+                    )
                   )}
                 </View>
               );
