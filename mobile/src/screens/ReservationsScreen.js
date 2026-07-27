@@ -50,6 +50,7 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
   const [showWizard, setShowWizard] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [savingStatus, setSavingStatus] = useState(false);
+  const [bookingConfirmedId, setBookingConfirmedId] = useState(null);
 
   // Wizard Step states
   const [wizardStep, setWizardStep] = useState(1); // 1: Dates & Rooms, 2: Guest & ID Verification, 3: Billing & Confirm
@@ -59,6 +60,8 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
   // Booking Form Fields
   const [checkInDate, setCheckInDate] = useState('');
   const [checkOutDate, setCheckOutDate] = useState('');
+  const [showCheckInPicker, setShowCheckInPicker] = useState(false);
+  const [showCheckOutPicker, setShowCheckOutPicker] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState('');
   const [ratePerNight, setRatePerNight] = useState('');
   const [adults, setAdults] = useState('2');
@@ -692,22 +695,44 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
             {/* STEP 1: Dates & Rooms selection */}
             {wizardStep === 1 && (
               <ScrollView style={{ maxHeight: 380 }}>
-                <Text style={styles.modalLabel}>Check-In Date (YYYY-MM-DD) *</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor="#A0AEC0"
-                  value={checkInDate}
-                  onChangeText={setCheckInDate}
+                <Text style={styles.modalLabel}>Check-In Date *</Text>
+                <TouchableOpacity
+                  style={styles.datePickerBtn}
+                  onPress={() => setShowCheckInPicker(true)}
+                >
+                  <Ionicons name="calendar-outline" size={18} color="#D4AF37" style={{ marginRight: 8 }} />
+                  <Text style={styles.datePickerBtnText}>
+                    {checkInDate || 'Select Check-In Date'}
+                  </Text>
+                </TouchableOpacity>
+
+                <Text style={styles.modalLabel}>Check-Out Date *</Text>
+                <TouchableOpacity
+                  style={styles.datePickerBtn}
+                  onPress={() => setShowCheckOutPicker(true)}
+                >
+                  <Ionicons name="calendar-outline" size={18} color="#D4AF37" style={{ marginRight: 8 }} />
+                  <Text style={styles.datePickerBtnText}>
+                    {checkOutDate || 'Select Check-Out Date'}
+                  </Text>
+                </TouchableOpacity>
+
+                <CustomCalendarModal
+                  visible={showCheckInPicker}
+                  title="Select Check-In Date"
+                  initialDate={checkInDate}
+                  minDate={new Date().toISOString().split('T')[0]}
+                  onClose={() => setShowCheckInPicker(false)}
+                  onSelectDate={(dateStr) => setCheckInDate(dateStr)}
                 />
 
-                <Text style={styles.modalLabel}>Check-Out Date (YYYY-MM-DD) *</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor="#A0AEC0"
-                  value={checkOutDate}
-                  onChangeText={setCheckOutDate}
+                <CustomCalendarModal
+                  visible={showCheckOutPicker}
+                  title="Select Check-Out Date"
+                  initialDate={checkOutDate}
+                  minDate={checkInDate || new Date().toISOString().split('T')[0]}
+                  onClose={() => setShowCheckOutPicker(false)}
+                  onSelectDate={(dateStr) => setCheckOutDate(dateStr)}
                 />
 
                 <Text style={styles.modalLabel}>Select Available Room *</Text>
@@ -1636,6 +1661,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 8,
   },
+  datePickerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(212, 175, 55, 0.04)',
+    borderWidth: 1,
+    borderColor: '#EBE5DA',
+    borderRadius: 10,
+    height: 40,
+    paddingHorizontal: 12,
+    marginBottom: 10,
+  },
+  datePickerBtnText: {
+    fontSize: 12,
+    color: '#0C2340',
+    fontWeight: '600',
+  },
   roomSelectRow: {
     flexDirection: 'row',
     marginBottom: 8,
@@ -1981,5 +2022,214 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     fontWeight: '600',
     color: '#2D3748',
+  },
+});
+
+function CustomCalendarModal({ visible, title, initialDate, minDate, onClose, onSelectDate }) {
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+
+  useEffect(() => {
+    if (initialDate) {
+      const parts = initialDate.split('-');
+      if (parts.length === 3) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        if (!isNaN(y) && !isNaN(m)) {
+          setCurrentYear(y);
+          setCurrentMonth(m);
+        }
+      }
+    }
+  }, [initialDate, visible]);
+
+  if (!visible) return null;
+
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+  const handlePrevMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(prev => prev - 1);
+    } else {
+      setCurrentMonth(prev => prev - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(prev => prev + 1);
+    } else {
+      setCurrentMonth(prev => prev + 1);
+    }
+  };
+
+  const handleDaySelect = (day) => {
+    const mm = String(currentMonth + 1).padStart(2, '0');
+    const dd = String(day).padStart(2, '0');
+    onSelectDate(`${currentYear}-${mm}-${dd}`);
+    onClose();
+  };
+
+  const daysGrid = [];
+  for (let i = 0; i < firstDayOfMonth; i++) {
+    daysGrid.push(null);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    daysGrid.push(d);
+  }
+
+  return (
+    <Modal visible={visible} transparent animationType="fade">
+      <View style={calStyles.calOverlay}>
+        <View style={calStyles.calCard}>
+          <View style={calStyles.calHeader}>
+            <Text style={calStyles.calTitle}>{title}</Text>
+            <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
+              <Ionicons name="close" size={20} color="#718096" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={calStyles.calMonthRow}>
+            <TouchableOpacity onPress={handlePrevMonth} style={calStyles.calNavBtn}>
+              <Ionicons name="chevron-back" size={18} color="#D4AF37" />
+            </TouchableOpacity>
+            <Text style={calStyles.calMonthText}>{monthNames[currentMonth]} {currentYear}</Text>
+            <TouchableOpacity onPress={handleNextMonth} style={calStyles.calNavBtn}>
+              <Ionicons name="chevron-forward" size={18} color="#D4AF37" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={calStyles.calDaysHeader}>
+            {daysOfWeek.map((day, idx) => (
+              <Text key={idx} style={calStyles.calDayHeaderCell}>{day}</Text>
+            ))}
+          </View>
+
+          <View style={calStyles.calGrid}>
+            {daysGrid.map((day, idx) => {
+              if (day === null) {
+                return <View key={idx} style={calStyles.calDayCell} />;
+              }
+
+              const mm = String(currentMonth + 1).padStart(2, '0');
+              const dd = String(day).padStart(2, '0');
+              const cellDateStr = `${currentYear}-${mm}-${dd}`;
+              const isSelected = initialDate === cellDateStr;
+              const isPast = minDate && cellDateStr < minDate;
+
+              return (
+                <TouchableOpacity
+                  key={idx}
+                  style={[calStyles.calDayCell, isSelected && calStyles.calDayCellSelected]}
+                  disabled={isPast}
+                  onPress={() => handleDaySelect(day)}
+                >
+                  <Text style={[
+                    calStyles.calDayText, 
+                    isSelected && calStyles.calDayTextSelected,
+                    isPast && { color: '#CBD5E0' }
+                  ]}>
+                    {day}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const calStyles = StyleSheet.create({
+  calOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  calCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    width: '100%',
+    maxWidth: 340,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  calHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderColor: '#EBE5DA',
+    paddingBottom: 8,
+  },
+  calTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#0C2340',
+  },
+  calMonthRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    backgroundColor: '#FEF9F1',
+    borderRadius: 10,
+    padding: 6,
+  },
+  calNavBtn: {
+    padding: 6,
+  },
+  calMonthText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#0C2340',
+  },
+  calDaysHeader: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  calDayHeaderCell: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#718096',
+  },
+  calGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  calDayCell: {
+    width: '14.28%',
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
+  },
+  calDayCellSelected: {
+    backgroundColor: '#0C2340',
+  },
+  calDayText: {
+    fontSize: 13,
+    color: '#2D3748',
+    fontWeight: '500',
+  },
+  calDayTextSelected: {
+    color: '#D4AF37',
+    fontWeight: 'bold',
   },
 });
