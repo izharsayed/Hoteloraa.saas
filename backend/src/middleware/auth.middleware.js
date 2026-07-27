@@ -138,6 +138,7 @@ const checkStaticRoleFallback = (role, module, action) => {
     CHECKOUT: ['CREATE', 'READ', 'UPDATE'],
     PAYMENTS: ['CREATE', 'READ'],
     FOLIO: ['CREATE', 'READ', 'UPDATE'],
+    SETTINGS: ['READ'],
     ATTENDANCE: ['CREATE', 'READ'],
     SHIFTS: ['READ'],
   };
@@ -149,6 +150,7 @@ const checkStaticRoleFallback = (role, module, action) => {
     BILLING: ['CREATE', 'READ', 'UPDATE'],
     PAYMENTS: ['CREATE', 'READ'],
     POS: ['CREATE', 'READ', 'UPDATE'],
+    SETTINGS: ['READ'],
     ATTENDANCE: ['CREATE', 'READ'],
     SHIFTS: ['READ'],
   };

@@ -1447,19 +1447,34 @@ function NewReservationWizard({ onClose, onSuccess }) {
       let guestId = selectedGuest?.id;
 
       if (!guestId) {
-        const createdGuest = await api.post('/guests', {
-          name: guestData.name, phone: guestData.phone,
-          email: guestData.email || undefined, gender: guestData.gender || undefined,
-          dateOfBirth: guestData.dateOfBirth || undefined,
-          nationality: guestData.nationality || undefined,
-          address: guestData.address || '',
-          city: guestData.city || '', state: guestData.state || undefined,
-          country: guestData.country || 'India', postalCode: guestData.postalCode || undefined,
-          idType: guestData.idType,
-          idNumber: guestData.idNumber || undefined,
-          idProofUrl: guestData.idProofUrl || undefined,
-        });
-        guestId = createdGuest.id;
+        try {
+          const createdGuest = await api.post('/guests', {
+            name: guestData.name, phone: guestData.phone,
+            email: guestData.email || undefined, gender: guestData.gender || undefined,
+            dateOfBirth: guestData.dateOfBirth || undefined,
+            nationality: guestData.nationality || undefined,
+            address: guestData.address || '',
+            city: guestData.city || '', state: guestData.state || undefined,
+            country: guestData.country || 'India', postalCode: guestData.postalCode || undefined,
+            idType: guestData.idType,
+            idNumber: guestData.idNumber || undefined,
+            idProofUrl: guestData.idProofUrl || undefined,
+          });
+          guestId = createdGuest.id;
+        } catch (guestErr) {
+          // 409 = guest with this phone already exists → fetch and reuse them
+          if (guestErr.message && guestErr.message.includes('409') || guestErr.message?.toLowerCase().includes('conflict') || guestErr.message?.toLowerCase().includes('already')) {
+            const existingGuests = await api.get(`/guests?search=${encodeURIComponent(guestData.phone)}`);
+            const match = existingGuests?.find(g => g.phone === guestData.phone);
+            if (match) {
+              guestId = match.id;
+            } else {
+              throw new Error('Guest with this phone already exists but could not be found. Please search and select the guest manually.');
+            }
+          } else {
+            throw guestErr;
+          }
+        }
       }
 
       let specialRequestText = [
