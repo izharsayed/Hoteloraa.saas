@@ -62,6 +62,13 @@ const todayRange = () => {
     );
   }
 
+  if (reservation.room && reservation.room.status === 'CLEANING') {
+    throw _errormiddleware.createError.call(void 0,
+      'Room is under cleaning. Please select/allocate another room.',
+      400
+    );
+  }
+
   const now = new Date();
 
   const [updatedReservation] = await _database2.default.$transaction([

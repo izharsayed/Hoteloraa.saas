@@ -902,10 +902,23 @@ function Step3({ availableRooms, selectedRoomId, onSelectRoom, loading, roomType
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[360px] overflow-y-auto pr-1">
           {filtered.map(room => {
             const isSelected = room.id === selectedRoomId;
+            const isCleaning = room.status === 'CLEANING';
             return (
-              <button key={room.id} onClick={() => onSelectRoom(room)}
-                className={`text-left p-4 rounded-2xl border-2 transition-all duration-200 hover:shadow-md active:scale-98
-                  ${isSelected ? 'border-navy bg-navy/5 shadow-lg ring-2 ring-navy/20' : 'border-border-cream bg-white hover:border-gold/40'}`}>
+              <button key={room.id} 
+                onClick={() => {
+                  if (isCleaning) {
+                    alert('Room is under cleaning. Please select/allocate another room.');
+                    return;
+                  }
+                  onSelectRoom(room);
+                }}
+                className={`text-left p-4 rounded-2xl border-2 transition-all duration-200 hover:shadow-md active:scale-98 relative overflow-hidden
+                  ${isSelected ? 'border-navy bg-navy/5 shadow-lg ring-2 ring-navy/20' : isCleaning ? 'border-amber-300 bg-amber-50/40 opacity-75' : 'border-border-cream bg-white hover:border-gold/40'}`}>
+                {isCleaning && (
+                  <div className="mb-2 px-2.5 py-1 bg-amber-100 border border-amber-300 rounded-lg text-amber-900 text-[10px] font-bold flex items-center gap-1">
+                    <span>⚠️ Room is under cleaning. Please select/allocate another room.</span>
+                  </div>
+                )}
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div>
                     <div className="flex items-center gap-2">

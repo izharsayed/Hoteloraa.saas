@@ -112,6 +112,9 @@ const parsePagination = (query = {}) => {
     where: { id: dto.roomId, tenantId, isActive: true },
   });
   if (!room) throw _errormiddleware.createError.call(void 0, 'Room not found or inactive', 404);
+  if (room.status === 'CLEANING') {
+    throw _errormiddleware.createError.call(void 0, 'Room is under cleaning. Please select/allocate another room.', 400);
+  }
 
   // 2. Validate guest belongs to tenant
   const guest = await _database2.default.guest.findFirst({

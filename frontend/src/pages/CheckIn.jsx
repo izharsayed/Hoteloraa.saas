@@ -52,6 +52,11 @@ function CheckIn() {
 
   const handleCompleteCheckIn = async (e) => {
     e.preventDefault();
+    if (selectedBooking?.room?.status === 'CLEANING') {
+      alert('Room is under cleaning. Please select/allocate another room.');
+      return;
+    }
+
     if (!idNumber) {
       alert('Please enter a guest ID verification number.');
       return;
@@ -209,6 +214,14 @@ function CheckIn() {
                   {selectedBooking.bookingRef}
                 </span>
               </div>
+
+              {/* Cleaning Warning Banner */}
+              {selectedBooking.room?.status === 'CLEANING' && (
+                <div className="flex items-center gap-2.5 p-4 bg-amber-50 border border-amber-300 rounded-2xl text-amber-900 text-xs font-semibold">
+                  <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+                  <span>Room is under cleaning. Please select/allocate another room.</span>
+                </div>
+              )}
 
               {/* Guest Profile summary */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs bg-cream/20 p-4 rounded-2xl border border-border-cream/40">
