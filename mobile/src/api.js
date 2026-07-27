@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const DEFAULT_API_BASE_URL = __DEV__
   ? 'http://192.168.1.30:5000/api/v1'
-  : 'https://hoteloraa.work-desk.tech/api.hoteloraa.work-desk.tech/api/v1';
+  : 'https://api.hoteloraa.work-desk.tech/api/v1';
 
 // In-memory cache for fast access
 let currentApiBaseUrl = DEFAULT_API_BASE_URL;
@@ -15,8 +15,11 @@ export const initApi = async (onAuthFailure) => {
   onAuthFailureCallback = onAuthFailure;
   try {
     const savedUrl = await AsyncStorage.getItem('hoteloraa_api_base_url');
-    if (savedUrl) {
+    if (savedUrl && !savedUrl.includes('/api.hoteloraa.work-desk.tech')) {
       currentApiBaseUrl = savedUrl;
+    } else {
+      currentApiBaseUrl = DEFAULT_API_BASE_URL;
+      await AsyncStorage.removeItem('hoteloraa_api_base_url');
     }
     const token = await AsyncStorage.getItem('hoteloraa_token');
     if (token) {
@@ -186,7 +189,7 @@ export const api = {
     try {
       data = JSON.parse(text);
     } catch (e) {
-      throw new Error('Invalid server response');
+      throw new Error('Server connection error. Please check API URL.');
     }
 
     if (!response.ok) {
