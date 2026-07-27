@@ -74,28 +74,50 @@ function Billing() {
     try {
       const data = await api.get('/orders');
       
-      const mappedInvoices = data.map(order => ({
-        id: order.orderNumber || order.id.slice(0, 8).toUpperCase(),
-        orderId: order.id,
-        type: order.table ? 'POS Table' : 'Room Service',
-        guest: order.table ? `Table ${order.table.name}` : (order.user ? order.user.name : 'Walk-in'),
-        amount: order.subtotal || 0,
-        room: order.table?.floor || 'Restaurant',
-        status: order.status === 'COMPLETED' ? 'Paid' : 'Unpaid',
-        discount: order.discountAmount || 0,
-        paidAmount: order.payment ? order.payment.amount : 0,
-        gstRate: 5,
-        serviceChargeRate: 0,
-        items: order.items ? order.items.map(item => ({
-          name: item.menuItem?.name || 'Item',
-          price: item.totalPrice
-        })) : [],
-        payments: order.payment ? [{ 
-          method: order.payment.method, 
-          amount: order.payment.amount, 
-          date: order.payment.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0]
-        }] : []
-      }));
+      const mappedInvoices = data.map(order => {
+        // Normalize payment method from backend enum (CASH, UPI, CARD, BANK_TRANSFER)
+        // to match the keys used in paymentShare stats
+        const normalizeMethod = (method) => {
+          if (!method) return 'Cash';
+          const m = method.toUpperCase();
+          if (m === 'CASH') return 'Cash';
+          if (m === 'UPI') return 'Card/UPI';
+          if (m === 'CARD') return 'Card/UPI';
+          if (m === 'BANK_TRANSFER') return 'Bank Transfer';
+          if (m === 'WALLET') return 'Card/UPI';
+          if (m === 'CREDIT') return 'Room Charge';
+          return 'Cash';
+        };
+
+        // Use local date string (not UTC) so todayStr comparison works correctly
+        const paymentLocalDate = order.payment?.createdAt
+          ? new Date(order.payment.createdAt).toLocaleDateString('en-CA') // 'en-CA' gives YYYY-MM-DD
+          : new Date().toLocaleDateString('en-CA');
+
+        return {
+          id: order.orderNumber || order.id.slice(0, 8).toUpperCase(),
+          orderId: order.id,
+          type: order.table ? 'POS Table' : 'Room Service',
+          guest: order.table ? `Table ${order.table.name}` : (order.user ? order.user.name : 'Walk-in'),
+          amount: order.subtotal || 0,
+          room: order.table?.floor || 'Restaurant',
+          // Fix: backend uses both COMPLETED and PAID for settled orders
+          status: (order.status === 'COMPLETED' || order.status === 'PAID') ? 'Paid' : 'Unpaid',
+          discount: order.discountAmount || 0,
+          paidAmount: order.payment ? order.payment.amount : 0,
+          gstRate: 5,
+          serviceChargeRate: 0,
+          items: order.items ? order.items.map(item => ({
+            name: item.menuItem?.name || 'Item',
+            price: item.totalPrice
+          })) : [],
+          payments: order.payment ? [{
+            method: normalizeMethod(order.payment.method), // normalized key
+            amount: order.payment.amount,
+            date: paymentLocalDate // local date for correct today comparison
+          }] : []
+        };
+      });
 
       setInvoices(mappedInvoices);
 
