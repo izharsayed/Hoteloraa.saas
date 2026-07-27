@@ -70,7 +70,7 @@ function Sidebar({ collapsed, onToggle }) {
         { name: 'Front Desk Check-In', path: '/checkin', icon: UserCheck, module: 'rooms' },
         { name: 'Folios & Check-Out', path: '/checkout', icon: FileSpreadsheet, module: 'rooms' },
         { name: 'Housekeeping', path: '/housekeeping', icon: Sparkles, module: 'housekeeping' },
-        { name: 'Guests & CRM', path: '/crm', icon: Users, module: 'guests' },
+        // { name: 'Guests & CRM', path: '/crm', icon: Users, module: 'guests' },
       ]
     },
     {

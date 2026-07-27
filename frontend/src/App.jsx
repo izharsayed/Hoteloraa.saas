@@ -343,9 +343,9 @@ function App() {
               <Route path="/housekeeping" element={<Housekeeping />} />
             </Route>
 
-            <Route element={<ProtectedRoute module="guests" />}>
+            {/* <Route element={<ProtectedRoute module="guests" />}>
               <Route path="/crm" element={<CRM />} />
-            </Route>
+            </Route> */}
 
             {/* --- Restaurant & POS --- */}
             <Route element={<ProtectedRoute module="tables" />}>
