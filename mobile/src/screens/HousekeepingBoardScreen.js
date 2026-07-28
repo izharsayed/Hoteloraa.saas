@@ -33,19 +33,29 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
       setLoading(true);
       setError(null);
       
-      // 1. Fetch active tasks
-      const tasksRes = await api.get('/housekeeping');
-      const taskList = Array.isArray(tasksRes) ? tasksRes : (tasksRes?.tasks || tasksRes?.data || []);
-      const activeTasks = taskList.filter(t => t && t.status !== 'COMPLETED' && t.status !== 'INSPECTED');
+      // 1. Fetch active housekeeping tasks
+      let activeTasks = [];
+      try {
+        const tasksRes = await api.get('/housekeeping');
+        const taskList = Array.isArray(tasksRes) ? tasksRes : (tasksRes?.tasks || tasksRes?.data || []);
+        activeTasks = taskList.filter(t => t && t.status !== 'COMPLETED' && t.status !== 'INSPECTED');
+      } catch (err) {
+        console.warn('Could not fetch active housekeeping tasks:', err);
+      }
       
-      // 2. Fetch rooms with status 'CLEANING'
-      const dirtyRoomsRes = await api.get('/rooms?status=CLEANING');
-      const dirtyRooms = Array.isArray(dirtyRoomsRes) ? dirtyRoomsRes : (dirtyRoomsRes?.rooms || dirtyRoomsRes?.data || []);
+      // 2. Fetch rooms with status 'CLEANING' (optional sync)
+      let dirtyRooms = [];
+      try {
+        const dirtyRoomsRes = await api.get('/rooms?status=CLEANING');
+        dirtyRooms = Array.isArray(dirtyRoomsRes) ? dirtyRoomsRes : (dirtyRoomsRes?.rooms || dirtyRoomsRes?.data || []);
+      } catch (err) {
+        console.warn('Could not fetch dirty rooms for sync:', err);
+      }
       
       // 3. Sync: check if any dirty rooms lack active tasks
       const tasksToCreate = [];
       dirtyRooms.forEach(room => {
-        if (!room) return;
+        if (!room || !room.id) return;
         const hasActiveTask = activeTasks.some(t => t.room?.id === room.id);
         if (!hasActiveTask) {
           tasksToCreate.push(room);
@@ -64,15 +74,18 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
           )
         );
         // Refresh tasks from server
-        const updatedTasksRes = await api.get('/housekeeping');
-        const updatedTaskList = Array.isArray(updatedTasksRes) ? updatedTasksRes : (updatedTasksRes?.tasks || updatedTasksRes?.data || []);
-        setHousekeepingList(updatedTaskList.filter(t => t && t.status !== 'COMPLETED' && t.status !== 'INSPECTED'));
-      } else {
-        setHousekeepingList(activeTasks);
+        try {
+          const updatedTasksRes = await api.get('/housekeeping');
+          const updatedTaskList = Array.isArray(updatedTasksRes) ? updatedTasksRes : (updatedTasksRes?.tasks || updatedTasksRes?.data || []);
+          activeTasks = updatedTaskList.filter(t => t && t.status !== 'COMPLETED' && t.status !== 'INSPECTED');
+        } catch (err) {
+          console.warn('Failed to refresh tasks after auto-create:', err);
+        }
       }
+
+      setHousekeepingList(activeTasks);
     } catch (e) {
-      console.warn('Error loading housekeeping tasks:', e);
-      setError('Failed to load housekeeping board tasks');
+      console.warn('Error in fetchHousekeepingTasks:', e);
     } finally {
       setLoading(false);
     }
