@@ -36,9 +36,9 @@ export const getNavigationGroups = (user) => {
       category: 'Restaurant & POS',
       businessTypes: ['RESTAURANT', 'HOTEL_RESTAURANT'],
       items: [
-        { name: 'Table Seating', view: 'tables', icon: 'restaurant', module: 'tables', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CAPTAIN'] },
-        { name: 'Kitchen KOT', view: 'kitchen', icon: 'restaurant', module: 'kot', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CHEF', 'CAPTAIN'] },
-        { name: 'POS Terminal', view: 'orders', icon: 'receipt', module: 'orders', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CASHIER'] },
+        { name: 'Table Seating', view: 'tables', icon: 'restaurant', module: 'tables', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
+        { name: 'Kitchen KOT', view: 'kitchen', icon: 'restaurant', module: 'kot', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CHEF'] },
+        { name: 'POS Terminal', view: 'orders', icon: 'receipt', module: 'orders', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
         { name: 'POS Menu Manager', view: 'menu', icon: 'book', module: 'menu', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
         { name: 'POS Billing', view: 'pos', icon: 'storefront', module: 'billing', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CASHIER'] },
       ]
@@ -47,8 +47,8 @@ export const getNavigationGroups = (user) => {
       category: 'Captain Dashboard',
       businessTypes: ['RESTAURANT', 'HOTEL_RESTAURANT'],
       items: [
-        { name: 'New Order (POS)', view: 'captain', icon: 'restaurant', module: 'orders', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CAPTAIN'] },
-        { name: 'Active Orders & History', view: 'captain_history', icon: 'receipt', module: 'orders', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CAPTAIN', 'CASHIER'] },
+        { name: 'New Order (POS)', view: 'captain', icon: 'restaurant', roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
+        { name: 'Active Orders & History', view: 'captain_history', icon: 'receipt', roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
       ]
     },
     /*
