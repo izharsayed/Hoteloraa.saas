@@ -43,28 +43,39 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
         console.warn('Could not fetch active housekeeping tasks:', err);
       }
       
-      // 2. Fetch rooms with status 'CLEANING' (optional sync)
+      // 2. Fetch all rooms to check for status 'CLEANING' or 'CHECKOUT_PENDING'
       let dirtyRooms = [];
       try {
-        const dirtyRoomsRes = await api.get('/rooms?status=CLEANING');
-        dirtyRooms = Array.isArray(dirtyRoomsRes) ? dirtyRoomsRes : (dirtyRoomsRes?.rooms || dirtyRoomsRes?.data || []);
+        const roomsRes = await api.get('/rooms');
+        const allRooms = Array.isArray(roomsRes) ? roomsRes : (roomsRes?.rooms || roomsRes?.data || []);
+        dirtyRooms = allRooms.filter(r => r && (r.status === 'CLEANING' || r.status === 'CHECKOUT_PENDING'));
       } catch (err) {
-        console.warn('Could not fetch dirty rooms for sync:', err);
+        console.warn('Could not fetch rooms for sync:', err);
       }
       
-      // 3. Sync: check if any dirty rooms lack active tasks
+      // 3. Sync: check if any dirty rooms lack active tasks and include them immediately
       const tasksToCreate = [];
       dirtyRooms.forEach(room => {
         if (!room || !room.id) return;
-        const hasActiveTask = activeTasks.some(t => t.room?.id === room.id);
+        const hasActiveTask = activeTasks.some(t => t.room?.id === room.id || t.roomId === room.id);
         if (!hasActiveTask) {
           tasksToCreate.push(room);
+          activeTasks.push({
+            id: `sync-${room.id}`,
+            tenantId: room.tenantId,
+            roomId: room.id,
+            room: room,
+            status: 'PENDING',
+            taskType: 'CLEANING',
+            notes: 'Room requires cleaning after checkout',
+            createdAt: new Date().toISOString(),
+          });
         }
       });
       
-      // 4. Auto-create tasks if needed
+      // 4. Auto-create tasks on server if needed
       if (tasksToCreate.length > 0) {
-        await Promise.all(
+        Promise.all(
           tasksToCreate.map(room => 
             api.post('/housekeeping', {
               roomId: room.id,
@@ -73,14 +84,6 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
             }).catch(err => console.warn('Failed to auto-create housekeeping task:', err))
           )
         );
-        // Refresh tasks from server
-        try {
-          const updatedTasksRes = await api.get('/housekeeping');
-          const updatedTaskList = Array.isArray(updatedTasksRes) ? updatedTasksRes : (updatedTasksRes?.tasks || updatedTasksRes?.data || []);
-          activeTasks = updatedTaskList.filter(t => t && t.status !== 'COMPLETED' && t.status !== 'INSPECTED');
-        } catch (err) {
-          console.warn('Failed to refresh tasks after auto-create:', err);
-        }
       }
 
       setHousekeepingList(activeTasks);

@@ -113,6 +113,17 @@ var _errormiddleware = require('../../middleware/error.middleware');
       },
     });
 
+    // 2b. Automatically create Housekeeping cleaning task for the room
+    await tx.housekeeping.create({
+      data: {
+        tenantId,
+        roomId: reservation.roomId,
+        taskType: 'CLEANING',
+        status: 'PENDING',
+        notes: `Automatic cleaning task after checkout of booking ${reservation.bookingRef}`,
+      },
+    });
+
     // 3. Create Payment record (marked as PAID)
     const payment = await tx.payment.create({
       data: {
