@@ -34,15 +34,18 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
       setError(null);
       
       // 1. Fetch active tasks
-      const tasks = await api.get('/housekeeping');
-      const activeTasks = (tasks || []).filter(t => t.status !== 'COMPLETED' && t.status !== 'INSPECTED');
+      const tasksRes = await api.get('/housekeeping');
+      const taskList = Array.isArray(tasksRes) ? tasksRes : (tasksRes?.tasks || tasksRes?.data || []);
+      const activeTasks = taskList.filter(t => t && t.status !== 'COMPLETED' && t.status !== 'INSPECTED');
       
       // 2. Fetch rooms with status 'CLEANING'
-      const dirtyRooms = await api.get('/rooms?status=CLEANING');
+      const dirtyRoomsRes = await api.get('/rooms?status=CLEANING');
+      const dirtyRooms = Array.isArray(dirtyRoomsRes) ? dirtyRoomsRes : (dirtyRoomsRes?.rooms || dirtyRoomsRes?.data || []);
       
       // 3. Sync: check if any dirty rooms lack active tasks
       const tasksToCreate = [];
-      (dirtyRooms || []).forEach(room => {
+      dirtyRooms.forEach(room => {
+        if (!room) return;
         const hasActiveTask = activeTasks.some(t => t.room?.id === room.id);
         if (!hasActiveTask) {
           tasksToCreate.push(room);
@@ -57,17 +60,18 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
               roomId: room.id,
               taskType: 'CLEANING',
               notes: 'Automated cleanup from checkout'
-            })
+            }).catch(err => console.warn('Failed to auto-create housekeeping task:', err))
           )
         );
         // Refresh tasks from server
-        const updatedTasks = await api.get('/housekeeping');
-        setHousekeepingList((updatedTasks || []).filter(t => t.status !== 'COMPLETED' && t.status !== 'INSPECTED'));
+        const updatedTasksRes = await api.get('/housekeeping');
+        const updatedTaskList = Array.isArray(updatedTasksRes) ? updatedTasksRes : (updatedTasksRes?.tasks || updatedTasksRes?.data || []);
+        setHousekeepingList(updatedTaskList.filter(t => t && t.status !== 'COMPLETED' && t.status !== 'INSPECTED'));
       } else {
         setHousekeepingList(activeTasks);
       }
     } catch (e) {
-      console.warn(e);
+      console.warn('Error loading housekeeping tasks:', e);
       setError('Failed to load housekeeping board tasks');
     } finally {
       setLoading(false);
