@@ -107,7 +107,9 @@ export default function App() {
           unseen.forEach(n => localSeenIds.add(n.id));
         }
       } catch (err) {
-        console.warn('Failed to poll notifications', err);
+        if (err?.message !== 'Network request failed' && !err?.message?.includes('Network request')) {
+          console.warn('Failed to poll notifications', err);
+        }
       }
     };
 
