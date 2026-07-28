@@ -23,9 +23,9 @@ import { Ionicons } from '@expo/vector-icons';
 const { width } = Dimensions.get('window');
 
 const TABLE_STATUS_COLORS = {
-  AVAILABLE: { bg: '#E6FFFA', border: '#81E6D9', text: '#1D4ED8', dot: '#319795' },
-  OCCUPIED: { bg: '#FFF5F5', border: '#FEB2B2', text: '#E53E3E', dot: '#E53E3E' },
-  BILLED: { bg: '#FEFCBF', border: '#FBD38D', text: '#D69E2E', dot: '#D69E2E' },
+  AVAILABLE: { bg: '#F0FDF4', border: '#86EFAC', text: '#15803D', dot: '#22C55E' },
+  OCCUPIED: { bg: '#FEF2F2', border: '#FECACA', text: '#DC2626', dot: '#EF4444' },
+  BILLED: { bg: '#FEFCE8', border: '#FEF08A', text: '#CA8A04', dot: '#EAB308' },
 };
 
 export default function CaptainScreen({ user, onLogout, onOpenDrawer, lastNotificationTime }) {
@@ -365,8 +365,8 @@ export default function CaptainScreen({ user, onLogout, onOpenDrawer, lastNotifi
                     <Text style={styles.emptyOrderText}>No active orders on this table.</Text>
                     <TouchableOpacity style={[styles.actionBtn, styles.btnCreate]} onPress={startNewOrder}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                        <Ionicons name="create-outline" size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
-                        <Text style={styles.actionBtnText}>Create New Order</Text>
+                        <Ionicons name="create-outline" size={16} color="#0C2340" style={{ marginRight: 6 }} />
+                        <Text style={[styles.actionBtnText, { color: '#0C2340' }]}>Create New Order</Text>
                       </View>
                     </TouchableOpacity>
                   </View>
