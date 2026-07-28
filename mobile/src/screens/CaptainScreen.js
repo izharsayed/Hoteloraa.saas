@@ -313,7 +313,7 @@ export default function CaptainScreen({ user, onLogout, onOpenDrawer, lastNotifi
             {selectedTable && (
               <>
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>{selectedTable.name}</Text>
+                  <Text style={styles.modalTitle}>{selectedTable.name?.toString().toLowerCase().includes('table') ? selectedTable.name : `Table ${selectedTable.name}`}</Text>
                   <Text style={styles.modalSubtitle}>Section: {selectedTable.section || 'General'} • Capacity: {selectedTable.capacity}</Text>
                 </View>
 
@@ -365,8 +365,8 @@ export default function CaptainScreen({ user, onLogout, onOpenDrawer, lastNotifi
                     <Text style={styles.emptyOrderText}>No active orders on this table.</Text>
                     <TouchableOpacity style={[styles.actionBtn, styles.btnCreate]} onPress={startNewOrder}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                        <Ionicons name="create-outline" size={16} color="#0C2340" style={{ marginRight: 6 }} />
-                        <Text style={[styles.actionBtnText, { color: '#0C2340' }]}>Create New Order</Text>
+                        <Ionicons name="create-outline" size={18} color="#D4AF37" style={{ marginRight: 6 }} />
+                        <Text style={[styles.actionBtnText, { color: '#D4AF37' }]}>Create New Order</Text>
                       </View>
                     </TouchableOpacity>
                   </View>
@@ -404,7 +404,7 @@ export default function CaptainScreen({ user, onLogout, onOpenDrawer, lastNotifi
               style={styles.closeMenuBtn} 
               onPress={() => {
                 setMenuModalVisible(false);
-                setOrderModalVisible(true);
+                setOrderModalVisible(false);
               }}
             >
               <Ionicons name="arrow-back" size={16} color="#FFFFFF" style={{ marginRight: 4 }} />
@@ -800,7 +800,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   btnCreate: {
-    backgroundColor: '#D4AF37',
+    backgroundColor: '#0C2340',
+    borderWidth: 1,
+    borderColor: '#D4AF37',
     width: '100%',
   },
   btnAppend: {
