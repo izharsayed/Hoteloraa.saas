@@ -26,8 +26,8 @@ export const getNavigationGroups = (user) => {
       items: [
         { name: 'Rooms Directory', view: 'rooms', icon: 'bed', module: 'rooms', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'] },
         { name: 'Reservations', view: 'reservations', icon: 'calendar', module: 'reservations', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'] },
-        { name: 'Front Desk Check-In', view: 'checkin', icon: 'log-in', module: 'checkin', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST', 'CASHIER'] },
-        { name: 'Folios & Check-Out', view: 'checkout', icon: 'document-text', module: 'checkout', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST', 'CASHIER', 'ACCOUNTANT'] },
+        { name: 'Front Desk Check-In', view: 'checkin', icon: 'log-in', module: 'checkin', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'] },
+        { name: 'Folios & Check-Out', view: 'checkout', icon: 'document-text', module: 'checkout', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST', 'ACCOUNTANT'] },
         { name: 'Housekeeping', view: 'housekeeping', icon: 'sparkles', module: 'housekeeping', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'HOUSEKEEPING', 'RECEPTIONIST'] },
         { name: 'Guests & CRM', view: 'crm', icon: 'people', module: 'guests', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'] },
       ]
@@ -38,7 +38,7 @@ export const getNavigationGroups = (user) => {
       items: [
         { name: 'Table Seating', view: 'tables', icon: 'restaurant', module: 'tables', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
         { name: 'Kitchen KOT', view: 'kitchen', icon: 'restaurant', module: 'kot', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CHEF'] },
-        { name: 'POS Terminal', view: 'orders', icon: 'receipt', module: 'orders', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
+        { name: 'POS Terminal', view: 'orders', icon: 'receipt', module: 'orders', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CASHIER'] },
         { name: 'POS Menu Manager', view: 'menu', icon: 'book', module: 'menu', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
         { name: 'POS Billing', view: 'pos', icon: 'storefront', module: 'billing', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CASHIER'] },
       ]
