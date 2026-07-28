@@ -19,7 +19,7 @@ export const ROLES = {
 
 // Module → allowed roles matrix
 export const MODULE_ACCESS = {
-  dashboard:          [ROLES.TENANT_ADMIN, ROLES.MANAGER, ROLES.RECEPTIONIST, ROLES.CASHIER, ROLES.ACCOUNTANT],
+  dashboard:          [ROLES.TENANT_ADMIN, ROLES.MANAGER, ROLES.ACCOUNTANT],
   users:              [ROLES.TENANT_ADMIN],
   roles:              [ROLES.TENANT_ADMIN],
   settings:           [ROLES.TENANT_ADMIN, ROLES.MANAGER],

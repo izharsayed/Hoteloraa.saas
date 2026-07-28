@@ -206,6 +206,12 @@ export default function App() {
     } else if (role === ROLES.CAPTAIN) {
       initialView = 'captain';
       initialGroupName = 'Captain Dashboard';
+    } else if (role === ROLES.CASHIER) {
+      initialView = 'pos';
+      initialGroupName = 'Restaurant & POS';
+    } else if (role === ROLES.RECEPTIONIST) {
+      initialView = 'checkin';
+      initialGroupName = 'Lodging Operations';
     } else if (role === ROLES.SUPER_ADMIN) {
       initialView = 'super_cluster';
       initialGroupName = 'Super Admin Portal';
