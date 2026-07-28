@@ -1,8 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const DEFAULT_API_BASE_URL = __DEV__
-  ? 'http://192.168.1.30:5000/api/v1'
-  : 'https://api.hoteloraa.work-desk.tech/api/v1';
+const DEFAULT_API_BASE_URL = 'https://api.hoteloraa.work-desk.tech/api/v1';
 
 // In-memory cache for fast access
 let currentApiBaseUrl = DEFAULT_API_BASE_URL;
