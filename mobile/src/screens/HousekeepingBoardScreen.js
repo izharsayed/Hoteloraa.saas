@@ -113,13 +113,27 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
 
   const handleAssignStaff = async (taskId, staffId) => {
     try {
+      const task = housekeepingList.find(t => t.id === taskId);
+      const roomId = task?.room?.id || task?.roomId;
+
+      let realTaskId = taskId;
+      if (taskId.startsWith('sync-') && roomId) {
+        // Create actual DB task first
+        const created = await api.post('/housekeeping', {
+          roomId: roomId,
+          taskType: 'CLEANING',
+          notes: 'Automated cleanup task'
+        });
+        realTaskId = created.id;
+      }
+
       // 1. Assign staff member
-      await api.put(`/housekeeping/${taskId}`, {
+      await api.put(`/housekeeping/${realTaskId}`, {
         assignedTo: staffId
       });
       
       // 2. Set status to IN_PROGRESS (Cleaning)
-      await api.patch(`/housekeeping/${taskId}/status`, {
+      await api.patch(`/housekeeping/${realTaskId}/status`, {
         status: 'IN_PROGRESS'
       });
       
@@ -132,11 +146,22 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
     }
   };
 
-  const handleMarkClean = async (taskId) => {
+  const handleMarkClean = async (target) => {
     try {
-      await api.patch(`/housekeeping/${taskId}/status`, {
-        status: 'COMPLETED'
-      });
+      const taskId = typeof target === 'object' ? target?.id : target;
+      const task = typeof target === 'object' ? target : housekeepingList.find(t => t.id === target);
+      const roomId = task?.room?.id || task?.roomId;
+
+      if (taskId && !taskId.startsWith('sync-')) {
+        await api.patch(`/housekeeping/${taskId}/status`, {
+          status: 'COMPLETED'
+        });
+      } else if (roomId) {
+        // Update room status directly to AVAILABLE
+        await api.patch(`/rooms/${roomId}/status`, {
+          status: 'AVAILABLE'
+        });
+      }
       Alert.alert('Done', 'Room marked as cleaned.');
       fetchHousekeepingTasks();
     } catch (err) {
@@ -248,7 +273,7 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
                     </View>
 
                     {/* Done Action */}
-                    <TouchableOpacity style={styles.doneBtn} onPress={() => handleMarkClean(task.id)}>
+                    <TouchableOpacity style={styles.doneBtn} onPress={() => handleMarkClean(task)}>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Ionicons name="checkmark-circle-outline" size={12} color="#FFFFFF" style={{ marginRight: 3 }} />
                         <Text style={styles.doneBtnText}>Done</Text>

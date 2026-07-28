@@ -109,6 +109,7 @@ const checkStaticRoleFallback = (role, module, action) => {
     KOT: ['CREATE', 'READ', 'UPDATE'],
     TABLES: ['READ', 'UPDATE'],
     POS: ['CREATE', 'READ'],
+    HOUSEKEEPING: ['CREATE', 'READ', 'UPDATE'],
     ATTENDANCE: ['CREATE', 'READ'],
     SHIFTS: ['READ'],
   };
@@ -152,6 +153,7 @@ const checkStaticRoleFallback = (role, module, action) => {
     BILLING: ['CREATE', 'READ', 'UPDATE'],
     PAYMENTS: ['CREATE', 'READ'],
     POS: ['CREATE', 'READ', 'UPDATE'],
+    HOUSEKEEPING: ['CREATE', 'READ', 'UPDATE'],
     SETTINGS: ['READ'],
     ATTENDANCE: ['CREATE', 'READ'],
     SHIFTS: ['READ'],
