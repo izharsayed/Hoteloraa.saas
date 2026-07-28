@@ -110,6 +110,18 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
     return `${year}-${month}-${day}`;
   };
 
+  const formatDisplayDate = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
   // Set default dates on load
   useEffect(() => {
     const today = new Date();
@@ -1224,29 +1236,29 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
       <Modal visible={!!selectedBooking} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
-              <View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 15 }}>
+              <View style={{ flex: 1, marginRight: 10 }}>
                 <Text style={styles.modalHeading}>{selectedBooking?.bookingRef || 'REF-N/A'}</Text>
-                <Text style={styles.modalSubheading}>{selectedBooking?.guest?.name || 'Walk-in Guest'}</Text>
+                <Text style={[styles.modalSubheading, { marginTop: 2, marginBottom: 0 }]}>{selectedBooking?.guest?.name || 'Walk-in Guest'}</Text>
               </View>
               <View style={[styles.statusPill, selectedBooking ? getStatusStyle(selectedBooking.status) : null]}>
                 <Text style={[styles.statusPillText, selectedBooking ? getStatusTextStyle(selectedBooking.status) : null]}>
-                  {selectedBooking?.status.replace('_', ' ')}
+                  {selectedBooking?.status?.replace('_', ' ')}
                 </Text>
               </View>
             </View>
 
             {/* Details Grid */}
             <View style={styles.detailsList}>
-              <Text style={styles.detailItem}><Text style={{ fontWeight: 'bold' }}>Phone:</Text> {selectedBooking?.guest?.phone || 'N/A'}</Text>
-              <Text style={styles.detailItem}><Text style={{ fontWeight: 'bold' }}>Room Assignment:</Text> Room {selectedBooking?.room?.number || 'N/A'} ({selectedBooking?.room?.roomType?.name || 'N/A'})</Text>
-              <Text style={styles.detailItem}><Text style={{ fontWeight: 'bold' }}>Stay Duration:</Text> {selectedBooking?.checkInDate} to {selectedBooking?.checkOutDate}</Text>
-              <Text style={styles.detailItem}><Text style={{ fontWeight: 'bold' }}>Rate Plan:</Text> EP • ₹{selectedBooking?.ratePerNight} / night</Text>
+              <Text style={styles.detailItem}><Text style={{ fontWeight: 'bold', color: '#0C2340' }}>Phone:</Text> {selectedBooking?.guest?.phone || 'N/A'}</Text>
+              <Text style={styles.detailItem}><Text style={{ fontWeight: 'bold', color: '#0C2340' }}>Room Assignment:</Text> Room {selectedBooking?.room?.number || 'N/A'} ({selectedBooking?.room?.roomType?.name || 'N/A'})</Text>
+              <Text style={styles.detailItem}><Text style={{ fontWeight: 'bold', color: '#0C2340' }}>Stay Duration:</Text> {formatDisplayDate(selectedBooking?.checkInDate)} to {formatDisplayDate(selectedBooking?.checkOutDate)}</Text>
+              <Text style={styles.detailItem}><Text style={{ fontWeight: 'bold', color: '#0C2340' }}>Rate Plan:</Text> EP • ₹{selectedBooking?.ratePerNight} / night</Text>
               {selectedBooking?.advancePaid ? (
-                <Text style={styles.detailItem}><Text style={{ fontWeight: 'bold' }}>Advance Paid:</Text> ₹{selectedBooking.advancePaid}</Text>
+                <Text style={styles.detailItem}><Text style={{ fontWeight: 'bold', color: '#0C2340' }}>Advance Paid:</Text> ₹{selectedBooking.advancePaid}</Text>
               ) : null}
               {selectedBooking?.notes ? (
-                <Text style={styles.detailItem}><Text style={{ fontWeight: 'bold' }}>Notes:</Text> {selectedBooking.notes}</Text>
+                <Text style={styles.detailItem}><Text style={{ fontWeight: 'bold', color: '#0C2340' }}>Notes:</Text> {selectedBooking.notes}</Text>
               ) : null}
             </View>
 
@@ -1636,10 +1648,11 @@ const styles = StyleSheet.create({
     color: '#D4AF37',
   },
   modalSubheading: {
-    fontSize: 11,
-    color: '#718096',
-    marginTop: -10,
-    marginBottom: 15,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4A5568',
+    marginTop: 2,
+    marginBottom: 10,
   },
   modalLabel: {
     fontSize: 10,
