@@ -14,41 +14,41 @@ export const getNavigationGroups = (user) => {
     {
       category: 'General',
       items: [
-        { name: 'Dashboard', view: 'dashboard', icon: 'bar-chart', module: 'dashboard' },
+        { name: 'Dashboard', view: 'dashboard', icon: 'bar-chart', module: 'dashboard', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST', 'CASHIER', 'ACCOUNTANT'] },
         { name: 'Operations Hub', view: 'manager_hub', icon: 'settings', module: 'settings', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
         { name: 'My Attendance', view: 'attendance', icon: 'time', module: 'attendance' },
-        { name: 'Reports & Analytics', view: 'reports', icon: 'trending-up', module: 'reports' },
+        { name: 'Reports & Analytics', view: 'reports', icon: 'trending-up', module: 'reports', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'ACCOUNTANT'] },
       ]
     },
     {
       category: 'Lodging Operations',
       businessTypes: ['LODGING', 'HOTEL_RESTAURANT'],
       items: [
-        { name: 'Rooms Directory', view: 'rooms', icon: 'bed', module: 'rooms' },
-        { name: 'Reservations', view: 'reservations', icon: 'calendar', module: 'reservations' },
-        { name: 'Front Desk Check-In', view: 'checkin', icon: 'log-in', module: 'checkin', roles: ['TENANT_ADMIN', 'MANAGER', 'RECEPTIONIST', 'CASHIER', 'SUPER_ADMIN'] },
-        { name: 'Folios & Check-Out', view: 'checkout', icon: 'document-text', module: 'checkout', roles: ['TENANT_ADMIN', 'MANAGER', 'RECEPTIONIST', 'CASHIER', 'SUPER_ADMIN'] },
-        { name: 'Housekeeping', view: 'housekeeping', icon: 'sparkles', module: 'housekeeping' },
-        { name: 'Guests & CRM', view: 'crm', icon: 'people', module: 'guests' },
+        { name: 'Rooms Directory', view: 'rooms', icon: 'bed', module: 'rooms', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'] },
+        { name: 'Reservations', view: 'reservations', icon: 'calendar', module: 'reservations', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'] },
+        { name: 'Front Desk Check-In', view: 'checkin', icon: 'log-in', module: 'checkin', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST', 'CASHIER'] },
+        { name: 'Folios & Check-Out', view: 'checkout', icon: 'document-text', module: 'checkout', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST', 'CASHIER', 'ACCOUNTANT'] },
+        { name: 'Housekeeping', view: 'housekeeping', icon: 'sparkles', module: 'housekeeping', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'HOUSEKEEPING', 'RECEPTIONIST'] },
+        { name: 'Guests & CRM', view: 'crm', icon: 'people', module: 'guests', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'] },
       ]
     },
     {
       category: 'Restaurant & POS',
       businessTypes: ['RESTAURANT', 'HOTEL_RESTAURANT'],
       items: [
-        { name: 'Table Seating', view: 'tables', icon: 'restaurant', module: 'tables' },
-        { name: 'Kitchen KOT', view: 'kitchen', icon: 'restaurant', module: 'kot' },
-        { name: 'POS Terminal', view: 'orders', icon: 'receipt', module: 'orders', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CASHIER', 'RECEPTIONIST', 'CAPTAIN'] },
-        { name: 'POS Menu Manager', view: 'menu', icon: 'book', module: 'menu', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CASHIER', 'RECEPTIONIST'] },
-        { name: 'POS Billing', view: 'pos', icon: 'storefront', module: 'billing', roles: ['TENANT_ADMIN', 'MANAGER', 'CASHIER', 'RECEPTIONIST', 'CAPTAIN', 'SUPER_ADMIN'] },
+        { name: 'Table Seating', view: 'tables', icon: 'restaurant', module: 'tables', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CAPTAIN'] },
+        { name: 'Kitchen KOT', view: 'kitchen', icon: 'restaurant', module: 'kot', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CHEF', 'CAPTAIN'] },
+        { name: 'POS Terminal', view: 'orders', icon: 'receipt', module: 'orders', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CASHIER'] },
+        { name: 'POS Menu Manager', view: 'menu', icon: 'book', module: 'menu', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
+        { name: 'POS Billing', view: 'pos', icon: 'storefront', module: 'billing', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CASHIER'] },
       ]
     },
     {
       category: 'Captain Dashboard',
       businessTypes: ['RESTAURANT', 'HOTEL_RESTAURANT'],
       items: [
-        { name: 'New Order (POS)', view: 'captain', icon: 'restaurant', module: 'orders', roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CASHIER', 'RECEPTIONIST'] },
-        { name: 'Active Orders & History', view: 'captain_history', icon: 'receipt', module: 'orders', roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CASHIER', 'RECEPTIONIST'] },
+        { name: 'New Order (POS)', view: 'captain', icon: 'restaurant', module: 'orders', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CAPTAIN'] },
+        { name: 'Active Orders & History', view: 'captain_history', icon: 'receipt', module: 'orders', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'CAPTAIN', 'CASHIER'] },
       ]
     },
     /*
