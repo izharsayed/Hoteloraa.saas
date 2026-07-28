@@ -398,7 +398,7 @@ export default function CaptainScreen({ user, onLogout, onOpenDrawer, lastNotifi
           <View style={styles.menuHeaderRow}>
             <View>
               <Text style={styles.menuTitle}>{isAppending ? 'Add Items' : 'New Order'}</Text>
-              <Text style={styles.menuSubtitle}>{selectedTable ? selectedTable.name : ''}</Text>
+              <Text style={styles.menuSubtitle}>{selectedTable ? (selectedTable.name?.toString().toLowerCase().includes('table') ? selectedTable.name : `Table ${selectedTable.name}`) : ''}</Text>
             </View>
             <TouchableOpacity 
               style={styles.closeMenuBtn} 
@@ -894,12 +894,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   categoryTab: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 15,
-    backgroundColor: '#FEF9F1',
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#EBE5DA',
+    borderColor: '#CBD5E1',
     marginRight: 8,
   },
   categoryTabActive: {
@@ -907,12 +907,14 @@ const styles = StyleSheet.create({
     borderColor: '#0C2340',
   },
   categoryTabText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#718096',
+    color: '#475569',
+    textTransform: 'capitalize',
   },
   categoryTabTextActive: {
     color: '#D4AF37',
+    fontWeight: 'bold',
   },
   menuItemCard: {
     flexDirection: 'row',
@@ -964,20 +966,22 @@ const styles = StyleSheet.create({
     color: '#1F2933',
   },
   menuItemPrice: {
-    fontSize: 13,
-    color: '#D4AF37',
+    fontSize: 14,
+    color: '#B45309',
     fontWeight: 'bold',
     marginTop: 3,
   },
   addItemBtn: {
-    backgroundColor: '#D4AF37',
-    paddingHorizontal: 14,
+    backgroundColor: '#0C2340',
+    borderWidth: 1,
+    borderColor: '#D4AF37',
+    paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
   },
   addItemBtnText: {
-    color: '#0C2340',
-    fontSize: 12,
+    color: '#D4AF37',
+    fontSize: 13,
     fontWeight: 'bold',
   },
   itemQtyControlRow: {
