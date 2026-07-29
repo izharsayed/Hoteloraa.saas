@@ -1336,22 +1336,48 @@ function Step6({ bookingData, guestData, selectedGuest, selectedRoom, nights, id
 
 // ─── Main Wizard ──────────────────────────────────────────────────────────────
 
-function NewReservationWizard({ onClose, onSuccess }) {
-  const [currentStep, setCurrentStep] = useState(1);
-  const TOTAL_STEPS = 6;
-  const STEP_LABELS = ['Details', 'Guest', 'Room', 'Extra', 'Payment', 'Confirm'];
+const ROOM_IMAGES = [
+  'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=600&q=80',
+];
 
-  // Step 1 data
+function NewReservationWizard({ onClose, onSuccess }) {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
+  const [viewStep, setViewStep] = useState('rooms');
+  const [sortBy, setSortBy] = useState('price_low');
+
   const [bookingData, setBookingData] = useState({
-    checkInDate: '', checkOutDate: '', adults: 1, children: 0, numberOfRooms: 1,
-    roomTypeId: '', ratePlan: 'EP', source: 'WALK_IN', expectedArrival: '',
-    ratePerNight: '', extraCharges: 0, discount: 0, taxAmount: 0, advancePaid: 0,
-    advanceMethod: 'CASH', vehicleNumber: '', companyName: '', gstNumber: '',
-    purposeOfVisit: '', specialRequests: [], internalFlags: [], notes: '',
+    checkInDate: todayStr,
+    checkOutDate: tomorrowStr,
+    adults: 2,
+    children: 0,
+    numberOfRooms: 1,
+    roomTypeId: '',
+    ratePlan: 'EP',
+    source: 'WALK_IN',
+    expectedArrival: '',
+    ratePerNight: '',
+    extraCharges: 0,
+    discount: 0,
+    taxAmount: 0,
+    advancePaid: 0,
+    advanceMethod: 'CASH',
+    vehicleNumber: '',
+    companyName: '',
+    gstNumber: '',
+    purposeOfVisit: '',
+    specialRequests: [],
+    internalFlags: [],
+    notes: '',
   });
+
   const changeBooking = (key, val) => setBookingData(p => ({ ...p, [key]: val }));
 
-  // Step 2 data
   const [guestData, setGuestData] = useState({
     name: '', phone: '', email: '', gender: '', dateOfBirth: '', nationality: '',
     address: '', city: '', state: '', country: 'India', postalCode: '',
@@ -1376,17 +1402,11 @@ function NewReservationWizard({ onClose, onSuccess }) {
     }
   }, [idDocuments]);
 
-
-  // Step 3 data
   const [availableRooms, setAvailableRooms] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [roomsLoading, setRoomsLoading] = useState(false);
-  const [filterTypeId, setFilterTypeId] = useState('');
-
-  // Room types
   const [roomTypes, setRoomTypes] = useState([]);
 
-  // Misc
   const [errors, setErrors] = useState([]);
   const [saving, setSaving] = useState(false);
 
@@ -1394,7 +1414,6 @@ function NewReservationWizard({ onClose, onSuccess }) {
     api.get('/room-types').then(d => setRoomTypes(d || [])).catch(() => {});
   }, []);
 
-  // Load available rooms when step 3 is reached or when dates change
   const loadAvailableRooms = useCallback(async () => {
     if (!bookingData.checkInDate || !bookingData.checkOutDate) return;
     setRoomsLoading(true);
@@ -1407,58 +1426,36 @@ function NewReservationWizard({ onClose, onSuccess }) {
   }, [bookingData.checkInDate, bookingData.checkOutDate, bookingData.roomTypeId]);
 
   useEffect(() => {
-    if (currentStep === 3) loadAvailableRooms();
-  }, [currentStep, loadAvailableRooms]);
-
-  // Auto-set rate from room type
-  useEffect(() => {
-    if (selectedRoom && !bookingData.ratePerNight) {
-      changeBooking('ratePerNight', selectedRoom.roomType?.basePrice || '');
-    }
-  }, [selectedRoom]);
+    loadAvailableRooms();
+  }, [loadAvailableRooms]);
 
   const nights = bookingData.checkInDate && bookingData.checkOutDate
     ? Math.max(0, Math.round((new Date(bookingData.checkOutDate) - new Date(bookingData.checkInDate)) / 86400000))
     : 0;
 
-  const validateStep = () => {
-    const errs = [];
-    if (currentStep === 1) {
-      if (!bookingData.checkInDate) errs.push('Check-in date is required');
-      if (!bookingData.checkOutDate) errs.push('Check-out date is required');
-      if (nights <= 0) errs.push('Check-out must be after check-in');
-      if (!bookingData.source) errs.push('Booking source is required');
-    }
-    if (currentStep === 2) {
-      if (!selectedGuest) {
-        if (!guestData.name || guestData.name.length < 2) errs.push('Guest name is required (min 2 chars)');
-        if (!guestData.phone || guestData.phone.length < 7) errs.push('Valid mobile number is required');
-      }
-    }
-    if (currentStep === 3) {
-      if (!selectedRoom) errs.push('Please select a room');
-    }
-    if (currentStep === 5) {
-      if (!bookingData.ratePerNight || Number(bookingData.ratePerNight) <= 0) errs.push('Rate per night must be positive');
-    }
-    setErrors(errs);
-    return errs.length === 0;
-  };
-
-  const handleNext = () => {
-    if (!validateStep()) return;
-    setErrors([]);
-    setCurrentStep(s => Math.min(s + 1, TOTAL_STEPS));
-  };
-
-  const handleBack = () => { setErrors([]); setCurrentStep(s => Math.max(s - 1, 1)); };
+  const sortedRooms = [...availableRooms].sort((a, b) => {
+    const pA = a.roomType?.basePrice || 0;
+    const pB = b.roomType?.basePrice || 0;
+    return sortBy === 'price_high' ? pB - pA : pA - pB;
+  });
 
   const submitReservation = async (status = 'CONFIRMED') => {
-    if (!validateStep()) return;
+    const errs = [];
+    if (!selectedRoom) errs.push('Please select a room');
+    if (!bookingData.checkInDate || !bookingData.checkOutDate) errs.push('Dates are required');
+    if (nights <= 0) errs.push('Check-out date must be after check-in date');
+    if (!selectedGuest) {
+      if (!guestData.name || guestData.name.length < 2) errs.push('Guest name is required');
+      if (!guestData.phone || guestData.phone.length < 7) errs.push('Valid mobile phone is required');
+    }
+    if (errs.length > 0) {
+      setErrors(errs);
+      return;
+    }
+
     setSaving(true);
     try {
       let guestId = selectedGuest?.id;
-
       if (!guestId) {
         try {
           const createdGuest = await api.post('/guests', {
@@ -1475,14 +1472,13 @@ function NewReservationWizard({ onClose, onSuccess }) {
           });
           guestId = createdGuest.id;
         } catch (guestErr) {
-          // 409 = guest with this phone already exists → fetch and reuse them
-          if (guestErr.message && guestErr.message.includes('409') || guestErr.message?.toLowerCase().includes('conflict') || guestErr.message?.toLowerCase().includes('already')) {
+          if (guestErr.message && (guestErr.message.includes('409') || guestErr.message.toLowerCase().includes('conflict') || guestErr.message.toLowerCase().includes('already'))) {
             const existingGuests = await api.get(`/guests?search=${encodeURIComponent(guestData.phone)}`);
             const match = existingGuests?.find(g => g.phone === guestData.phone);
             if (match) {
               guestId = match.id;
             } else {
-              throw new Error('Guest with this phone already exists but could not be found. Please search and select the guest manually.');
+              throw new Error('Guest with this phone already exists. Please search guest.');
             }
           } else {
             throw guestErr;
@@ -1516,24 +1512,18 @@ function NewReservationWizard({ onClose, onSuccess }) {
         adults: bookingData.adults,
         children: bookingData.children,
         numberOfRooms: bookingData.numberOfRooms,
-        ratePerNight: Number(bookingData.ratePerNight),
+        ratePerNight: Number(bookingData.ratePerNight || selectedRoom.roomType?.basePrice || 0),
         ratePlan: bookingData.ratePlan,
         extraCharges: Number(bookingData.extraCharges) || 0,
         discount: Number(bookingData.discount) || 0,
         advancePaid: Number(bookingData.advancePaid) || 0,
         advanceMethod: bookingData.advanceMethod || undefined,
         source: bookingData.source,
-        expectedArrival: bookingData.expectedArrival || undefined,
-        vehicleNumber: bookingData.vehicleNumber || undefined,
-        companyName: bookingData.companyName || undefined,
-        gstNumber: bookingData.gstNumber || undefined,
-        purposeOfVisit: bookingData.purposeOfVisit || undefined,
-        specialRequest: specialRequestText || undefined,
-        notes: bookingData.notes || undefined,
+        specialRequest: specialRequestText || bookingData.notes || undefined,
       };
 
       await api.post('/reservations', payload);
-      onSuccess('Reservation confirmed successfully! 🎉');
+      onSuccess('Reservation created successfully! 🎉');
       onClose();
     } catch (err) {
       setErrors([err.message || 'Failed to create reservation']);
@@ -1543,59 +1533,324 @@ function NewReservationWizard({ onClose, onSuccess }) {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] bg-navy/20 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-      <div className="bg-white w-full max-w-2xl rounded-3xl shadow-[0_20px_60px_-5px_rgba(0,0,0,0.25)] border border-border-cream flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 md:p-6 animate-fadeIn">
+      <div className="bg-white w-full max-w-6xl rounded-3xl shadow-2xl border border-border-cream flex flex-col max-h-[92vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-navy px-6 py-4 flex items-center justify-between flex-shrink-0">
+        <div className="bg-white px-6 py-4 border-b border-border-cream flex items-center justify-between flex-shrink-0">
           <div>
-            <h1 className="font-display font-bold text-white text-lg">New Reservation</h1>
-            <p className="text-gold/70 text-xs">Step {currentStep} of {TOTAL_STEPS}</p>
+            <h1 className="font-display font-bold text-navy text-xl">New Reservation</h1>
+            <p className="text-slate text-xs font-medium mt-0.5">Search rooms and create a new booking</p>
           </div>
-          <button onClick={onClose} className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-all">
+          <button onClick={onClose} className="p-2 text-slate hover:text-navy hover:bg-cream/50 rounded-xl transition-all">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Step Indicator */}
-        <div className="px-6 py-4 border-b border-border-cream bg-cream/10">
-          <StepIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} stepLabels={STEP_LABELS} />
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
-          {errors.length > 0 && (
-            <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-600 mt-0.5 flex-shrink-0" />
-              <div>
-                {errors.map((e, i) => <p key={i} className="text-xs font-semibold text-rose-700">{e}</p>)}
-              </div>
+        {/* Top Search / Filter Bar */}
+        <div className="p-4 bg-white border-b border-border-cream flex-shrink-0">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 items-end">
+            <div>
+              <label className="block text-[10px] font-bold text-slate uppercase tracking-wider mb-1">Check-in</label>
+              <input type="date" value={bookingData.checkInDate} onChange={e => changeBooking('checkInDate', e.target.value)} className="w-full text-xs font-bold text-navy bg-cream/30 border border-border-cream rounded-xl px-2.5 h-10 focus:outline-none focus:ring-1 focus:ring-gold" />
             </div>
-          )}
 
-          {currentStep === 1 && <Step1 data={bookingData} onChange={changeBooking} roomTypes={roomTypes} />}
-          {currentStep === 2 && <Step2 guestData={guestData} onChange={changeGuest} selectedGuest={selectedGuest} onSelectGuest={setSelectedGuest} onClearGuest={() => { setSelectedGuest(null); setIdDocuments([{ id: 'primary', idType: 'AADHAAR', idNumber: '', frontUrl: '', backUrl: '', idProofUrl: '', label: 'Primary Guest ID' }]); }} idDocuments={idDocuments} setIdDocuments={setIdDocuments} />}
-          {currentStep === 3 && <Step3 availableRooms={availableRooms} selectedRoomId={selectedRoom?.id} onSelectRoom={room => { setSelectedRoom(room); if (!bookingData.ratePerNight) changeBooking('ratePerNight', room.roomType?.basePrice || ''); }} loading={roomsLoading} roomTypes={roomTypes} filterTypeId={filterTypeId} onFilterType={setFilterTypeId} />}
-          {currentStep === 4 && <Step5 data={bookingData} onChange={changeBooking} />}
-          {currentStep === 5 && <Step4 data={bookingData} onChange={changeBooking} selectedRoom={selectedRoom} nights={nights} />}
-          {currentStep === 6 && <Step6 bookingData={bookingData} guestData={guestData} selectedGuest={selectedGuest} selectedRoom={selectedRoom} nights={nights} idDocuments={idDocuments} onSave={() => submitReservation('PENDING')} onConfirm={() => submitReservation('CONFIRMED')} saving={saving} />}
+            <div>
+              <label className="block text-[10px] font-bold text-slate uppercase tracking-wider mb-1">Check-out</label>
+              <input type="date" value={bookingData.checkOutDate} onChange={e => changeBooking('checkOutDate', e.target.value)} className="w-full text-xs font-bold text-navy bg-cream/30 border border-border-cream rounded-xl px-2.5 h-10 focus:outline-none focus:ring-1 focus:ring-gold" />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold text-slate uppercase tracking-wider mb-1">Adults</label>
+              <select value={bookingData.adults} onChange={e => changeBooking('adults', Number(e.target.value))} className="w-full text-xs font-bold text-navy bg-cream/30 border border-border-cream rounded-xl px-2.5 h-10 focus:outline-none">
+                <option value={1}>1 Adult</option>
+                <option value={2}>2 Adults</option>
+                <option value={3}>3 Adults</option>
+                <option value={4}>4 Adults</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold text-slate uppercase tracking-wider mb-1">Children</label>
+              <select value={bookingData.children} onChange={e => changeBooking('children', Number(e.target.value))} className="w-full text-xs font-bold text-navy bg-cream/30 border border-border-cream rounded-xl px-2.5 h-10 focus:outline-none">
+                <option value={0}>0 Children</option>
+                <option value={1}>1 Child</option>
+                <option value={2}>2 Children</option>
+                <option value={3}>3 Children</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold text-slate uppercase tracking-wider mb-1">Rooms</label>
+              <select value={bookingData.numberOfRooms} onChange={e => changeBooking('numberOfRooms', Number(e.target.value))} className="w-full text-xs font-bold text-navy bg-cream/30 border border-border-cream rounded-xl px-2.5 h-10 focus:outline-none">
+                <option value={1}>1 Room</option>
+                <option value={2}>2 Rooms</option>
+                <option value={3}>3 Rooms</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold text-slate uppercase tracking-wider mb-1">Room Type</label>
+              <select value={bookingData.roomTypeId} onChange={e => changeBooking('roomTypeId', e.target.value)} className="w-full text-xs font-bold text-navy bg-cream/30 border border-border-cream rounded-xl px-2.5 h-10 focus:outline-none">
+                <option value="">All Room Types</option>
+                {roomTypes.map(rt => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold text-slate uppercase tracking-wider mb-1">Source</label>
+              <select value={bookingData.source} onChange={e => changeBooking('source', e.target.value)} className="w-full text-xs font-bold text-navy bg-cream/30 border border-border-cream rounded-xl px-2.5 h-10 focus:outline-none">
+                {BOOKING_SOURCES.map(s => <option key={s} value={s}>{SOURCE_LABELS[s] || s}</option>)}
+              </select>
+            </div>
+          </div>
         </div>
 
-        {/* Footer Navigation */}
-        {currentStep < 6 && (
-          <div className="px-6 py-4 border-t border-border-cream bg-cream/5 flex items-center justify-between flex-shrink-0">
-            <button onClick={handleBack} disabled={currentStep === 1}
-              className="flex items-center gap-2 text-sm font-bold text-slate border border-border-cream px-4 py-2 rounded-xl hover:bg-cream/20 disabled:opacity-30 active:scale-95 transition-all">
-              <ChevronLeft className="w-4 h-4" /> Back
-            </button>
-            <span className="text-[10px] font-semibold text-slate">
-              {currentStep < 5 ? 'Fill in required fields to continue' : 'Last step before confirmation'}
-            </span>
-            <button onClick={handleNext}
-              className="flex items-center gap-2 text-sm font-bold text-white bg-navy px-5 py-2 rounded-xl hover:bg-navy/90 active:scale-95 transition-all shadow-md">
-              Next <ChevronRight className="w-4 h-4" />
-            </button>
+        {/* Errors Banner */}
+        {errors.length > 0 && (
+          <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-600 mt-0.5 flex-shrink-0" />
+            <div>
+              {errors.map((e, i) => <p key={i} className="text-xs font-semibold text-rose-700">{e}</p>)}
+            </div>
           </div>
         )}
+
+        {/* 2 Panel Body */}
+        <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Panel: Rooms or Guest View */}
+          <div className="lg:col-span-2 space-y-4">
+            {viewStep === 'rooms' ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <h2 className="font-display font-bold text-navy text-lg">Available Rooms <span className="text-slate text-xs font-normal">({availableRooms.length} Rooms Found)</span></h2>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate font-medium">Sort by:</span>
+                    <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="text-xs font-bold text-navy bg-white border border-border-cream rounded-xl px-2.5 py-1 focus:outline-none">
+                      <option value="price_low">Price: Low to High</option>
+                      <option value="price_high">Price: High to Low</option>
+                    </select>
+                  </div>
+                </div>
+
+                {roomsLoading ? (
+                  <div className="text-center py-16 text-slate text-xs font-semibold animate-pulse">
+                    Searching available rooms...
+                  </div>
+                ) : availableRooms.length === 0 ? (
+                  <div className="p-10 text-center bg-white border border-border-cream rounded-2xl">
+                    <Bed className="w-10 h-10 text-slate/40 mx-auto mb-2" />
+                    <p className="text-sm font-bold text-navy">No Rooms Available</p>
+                    <p className="text-xs text-slate mt-1">Try changing check-in dates or room type filter</p>
+                  </div>
+                ) : (
+                  sortedRooms.map((room, index) => {
+                    const isSelected = selectedRoom?.id === room.id;
+                    const roomType = room.roomType || {};
+                    const pricePerNight = Number(roomType.basePrice || 4500);
+                    const roomTotal = pricePerNight * (nights || 1);
+                    const imgUrl = ROOM_IMAGES[index % ROOM_IMAGES.length];
+
+                    return (
+                      <div 
+                        key={room.id} 
+                        className={`group bg-white rounded-xl border transition-all duration-200 p-3 flex flex-col sm:flex-row gap-3 items-center sm:items-stretch shadow-sm hover:shadow-md ${
+                          isSelected ? 'border-2 border-gold ring-2 ring-gold/15 bg-gold-pale/5' : 'border-border-cream/90 hover:border-gold/50'
+                        }`}
+                      >
+                        {/* Compact Thumbnail Image */}
+                        <div className="relative w-full sm:w-36 h-28 rounded-lg overflow-hidden shrink-0 bg-cream/30 border border-border-cream/50 shadow-sm">
+                          <img src={imgUrl} alt={roomType.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          <span className="absolute top-2 left-2 text-[8px] font-bold uppercase tracking-wider bg-emerald-500 text-white px-2 py-0.5 rounded-md shadow-sm flex items-center gap-1">
+                            <span className="w-1 h-1 rounded-full bg-white animate-pulse"></span>
+                            Available
+                          </span>
+                        </div>
+
+                        {/* Room Info */}
+                        <div className="flex-1 min-w-0 flex flex-col justify-between space-y-1.5 py-0.5">
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-display font-bold text-navy text-base">{roomType.name || `Room ${room.number}`}</h3>
+                              <span className="font-mono text-[11px] font-bold text-slate bg-cream border border-border-cream/80 px-1.5 py-0.5 rounded-md">
+                                Room #{room.number}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate/80 line-clamp-1 mt-0.5 font-medium">
+                              {roomType.description || 'Spacious room with modern luxury amenities and city view.'}
+                            </p>
+                          </div>
+
+                          {/* Compact Amenity Badges */}
+                          <div className="flex flex-wrap gap-1 pt-0.5">
+                            <span className="bg-cream/40 border border-border-cream/80 text-navy text-[10px] font-semibold px-2 py-0.5 rounded-md flex items-center gap-1">
+                              <Users className="w-3 h-3 text-gold" /> {roomType.capacity || 2} Guests
+                            </span>
+                            <span className="bg-cream/40 border border-border-cream/80 text-navy text-[10px] font-semibold px-2 py-0.5 rounded-md flex items-center gap-1">
+                              <Bed className="w-3 h-3 text-gold" /> 1 King Bed
+                            </span>
+                            <span className="bg-cream/40 border border-border-cream/80 text-navy text-[10px] font-semibold px-2 py-0.5 rounded-md flex items-center gap-1">
+                              <Building className="w-3 h-3 text-gold" /> 32 m²
+                            </span>
+                            <span className="bg-cream/40 border border-border-cream/80 text-navy text-[10px] font-semibold px-2 py-0.5 rounded-md flex items-center gap-1">
+                              <Globe className="w-3 h-3 text-gold" /> City View
+                            </span>
+                            <span className="bg-cream/40 border border-border-cream/80 text-navy text-[10px] font-semibold px-2 py-0.5 rounded-md flex items-center gap-1">
+                              Free WiFi
+                            </span>
+                            <span className="bg-cream/40 border border-border-cream/80 text-navy text-[10px] font-semibold px-2 py-0.5 rounded-md flex items-center gap-1">
+                              AC
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Price & Action Column */}
+                        <div className="shrink-0 flex sm:flex-col justify-between items-end text-right border-t sm:border-t-0 sm:border-l border-border-cream/70 pt-2 sm:pt-0 sm:pl-3.5 w-full sm:w-36">
+                          <div>
+                            <div className="flex items-baseline justify-end gap-1">
+                              <span className="font-mono font-bold text-xl text-navy">₹{pricePerNight.toLocaleString()}</span>
+                              <span className="text-[11px] text-slate font-medium">/ night</span>
+                            </div>
+                          </div>
+
+                          <div className="w-full mt-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedRoom(room);
+                                changeBooking('ratePerNight', pricePerNight);
+                              }}
+                              className={`w-full px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                                isSelected 
+                                  ? 'bg-gold text-navy shadow-sm hover:bg-gold/90' 
+                                  : 'bg-navy text-white hover:bg-navy/90 active:scale-95 shadow-sm'
+                              }`}
+                            >
+                              {isSelected ? <CheckCircle className="w-3.5 h-3.5" /> : null}
+                              {isSelected ? 'Selected ✓' : 'Select Room'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </>
+            ) : (
+              /* Guest Step Form with Full Camera Capture & ID Proof Stitching */
+              <div className="bg-white rounded-2xl border border-border-cream p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-border-cream pb-3">
+                  <h2 className="font-display font-bold text-navy text-lg">Guest Information &amp; ID Proof</h2>
+                  <button onClick={() => setViewStep('rooms')} className="text-xs text-navy font-semibold hover:underline">
+                    ← Back to Room Selection
+                  </button>
+                </div>
+
+                <Step2 
+                  guestData={guestData} 
+                  onChange={changeGuest} 
+                  selectedGuest={selectedGuest} 
+                  onSelectGuest={setSelectedGuest} 
+                  onClearGuest={() => { 
+                    setSelectedGuest(null); 
+                    setIdDocuments([{ id: 'primary', idType: 'AADHAAR', idNumber: '', frontUrl: '', backUrl: '', idProofUrl: '', label: 'Primary Guest ID' }]); 
+                  }} 
+                  idDocuments={idDocuments} 
+                  setIdDocuments={setIdDocuments} 
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Right Panel: Sticky Summary */}
+          <div>
+            <div className="bg-white rounded-2xl border border-border-cream p-5 shadow-sm space-y-4 sticky top-0">
+              <h2 className="font-display font-bold text-navy text-lg border-b border-border-cream pb-3">Reservation Summary</h2>
+
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between text-slate">
+                  <span>Booking Status</span>
+                  <span className="font-bold text-navy">NEW</span>
+                </div>
+                <div className="flex justify-between text-slate">
+                  <span>Check-in</span>
+                  <span className="font-bold text-navy">{bookingData.checkInDate || '—'}</span>
+                </div>
+                <div className="flex justify-between text-slate">
+                  <span>Check-out</span>
+                  <span className="font-bold text-navy">{bookingData.checkOutDate || '—'}</span>
+                </div>
+                <div className="flex justify-between text-slate">
+                  <span>Nights</span>
+                  <span className="font-bold text-navy">{nights} Night(s)</span>
+                </div>
+                <div className="flex justify-between text-slate">
+                  <span>Guests</span>
+                  <span className="font-bold text-navy">{bookingData.adults} Adults, {bookingData.children} Children</span>
+                </div>
+                <div className="flex justify-between text-slate">
+                  <span>Selected Room</span>
+                  <span className="font-bold text-navy text-right">{selectedRoom ? `${selectedRoom.roomType?.name || 'Room'} (#${selectedRoom.number})` : 'None Selected'}</span>
+                </div>
+                <div className="flex justify-between items-center text-slate pt-1">
+                  <span>Rate Plan</span>
+                  <select value={bookingData.ratePlan} onChange={e => changeBooking('ratePlan', e.target.value)} className="text-xs font-bold text-navy bg-cream px-2 py-1 rounded-lg border border-border-cream focus:outline-none">
+                    {RATE_PLANS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <hr className="border-border-cream" />
+
+              {(() => {
+                const rate = Number(bookingData.ratePerNight || selectedRoom?.roomType?.basePrice || 0);
+                const roomTotal = rate * (nights || 1);
+                const tax = Math.round(roomTotal * 0.12);
+                const discount = Number(bookingData.discount || 0);
+                const total = Math.max(0, roomTotal + tax - discount);
+
+                return (
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between text-slate">
+                      <span>Room Charge ({nights} night{nights > 1 ? 's' : ''})</span>
+                      <span className="font-mono font-bold text-navy">₹{roomTotal.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-slate">
+                      <span>Tax / GST (12%)</span>
+                      <span className="font-mono text-slate">₹{tax.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate">
+                      <span>Discount (₹)</span>
+                      <input type="number" value={bookingData.discount} onChange={e => changeBooking('discount', e.target.value)} className="w-20 text-right text-xs font-mono font-bold bg-cream border border-border-cream rounded-lg px-2 py-1 focus:outline-none" placeholder="0" />
+                    </div>
+                    <hr className="border-border-cream my-2" />
+                    <div className="flex justify-between items-center pt-1">
+                      <span className="font-bold text-navy text-sm uppercase">Total Amount</span>
+                      <span className="font-mono font-bold text-2xl text-navy">₹{total.toLocaleString()}</span>
+                    </div>
+
+                    {viewStep === 'rooms' ? (
+                      <button
+                        disabled={!selectedRoom}
+                        onClick={() => setViewStep('guest')}
+                        className="w-full mt-4 bg-navy text-gold hover:bg-navy/90 disabled:opacity-40 font-bold text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                      >
+                        Continue to Guest Details →
+                      </button>
+                    ) : (
+                      <button
+                        disabled={saving}
+                        onClick={() => submitReservation('CONFIRMED')}
+                        className="w-full mt-4 bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-40 font-bold text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                      >
+                        {saving ? 'Creating Reservation...' : 'Confirm Reservation ✓'}
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
       </div>
     </div>,
     document.body

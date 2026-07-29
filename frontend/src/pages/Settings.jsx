@@ -12,11 +12,59 @@ import {
   Plus,
   Trash2,
   Check,
-  UserPlus
+  UserPlus,
+  LifeBuoy,
+  X,
+  Loader2,
+  CheckCircle,
+  UploadCloud
 } from 'lucide-react';
+import api from '../utils/api';
 
 function SettingsPage() {
-  const [activeTab, setActiveTab] = useState('general'); // 'general' | 'staff' | 'roles'
+  const [activeTab, setActiveTab] = useState('general');
+
+  // Ticket Modal State
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [ticketForm, setTicketForm] = useState({ title: '', category: 'BUG', priority: 'MEDIUM', module: 'OTHER', description: '', attachmentUrl: '' });
+  const [ticketSaving, setTicketSaving] = useState(false);
+  const [ticketSuccess, setTicketSuccess] = useState(false);
+  const [ticketError, setTicketError] = useState('');
+  const [attachmentUploading, setAttachmentUploading] = useState(false);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      setAttachmentUploading(true);
+      setTicketError('');
+      const result = await api.upload('/tickets/upload', formData);
+      setTicketForm(p => ({ ...p, attachmentUrl: result.attachmentUrl }));
+    } catch (err) {
+      setTicketError(err.message || 'Failed to upload screenshot');
+    } finally {
+      setAttachmentUploading(false);
+    }
+  };
+
+  const handleCreateTicket = async (e) => {
+    e.preventDefault();
+    if (!ticketForm.title || !ticketForm.description) return;
+    try {
+      setTicketSaving(true);
+      setTicketError('');
+      await api.post('/tickets', ticketForm);
+      setTicketSuccess(true);
+      setTicketForm({ title: '', category: 'BUG', priority: 'MEDIUM', module: 'OTHER', description: '', attachmentUrl: '' });
+      setTimeout(() => { setTicketSuccess(false); setShowTicketModal(false); }, 2000);
+    } catch (err) {
+      setTicketError(err.message || 'Failed to submit ticket');
+    } finally {
+      setTicketSaving(false);
+    }
+  };
   
   // General State
   const [restaurantModule, setRestaurantModule] = useState(true);
@@ -161,7 +209,81 @@ function SettingsPage() {
           <h1 className="font-display font-bold text-3xl text-navy">PMS settings & Control Panel</h1>
           <p className="text-slate text-sm font-medium mt-1">Configure property settings, manage employee accounts, and adjust RBAC configurations</p>
         </div>
+        <button
+          onClick={() => setShowTicketModal(true)}
+          className="flex items-center gap-2 px-4 py-2 border border-navy/20 hover:border-navy text-navy hover:bg-navy/5 font-semibold rounded-xl text-sm transition-all duration-200 self-start"
+        >
+          <LifeBuoy className="w-4 h-4 text-gold" /> Report Issue
+        </button>
       </div>
+
+      {/* Ticket Modal */}
+      {showTicketModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-border-cream">
+            <div className="flex items-center justify-between p-5 border-b border-border-cream">
+              <div className="flex items-center gap-2">
+                <LifeBuoy className="w-5 h-5 text-gold" />
+                <h2 className="font-display font-bold text-navy text-lg">Report an Issue</h2>
+              </div>
+              <button onClick={() => setShowTicketModal(false)} className="p-2 hover:bg-cream rounded-xl transition-all">
+                <X className="w-4 h-4 text-slate" />
+              </button>
+            </div>
+            {ticketSuccess ? (
+              <div className="p-10 text-center">
+                <CheckCircle className="w-12 h-12 text-success mx-auto mb-3" />
+                <p className="font-bold text-navy text-sm">Ticket submitted successfully!</p>
+              </div>
+            ) : (
+              <form onSubmit={handleCreateTicket} className="p-5 space-y-4">
+                {ticketError && <p className="text-danger text-xs font-semibold">{ticketError}</p>}
+                <div>
+                  <label className="block text-xs font-bold text-slate mb-1 uppercase tracking-wide">Title *</label>
+                  <input value={ticketForm.title} onChange={e => setTicketForm(p => ({...p, title: e.target.value}))} className="w-full border border-border-cream rounded-xl px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-gold/30" placeholder="Brief issue description" required />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate mb-1 uppercase tracking-wide">Category</label>
+                    <select value={ticketForm.category} onChange={e => setTicketForm(p => ({...p, category: e.target.value}))} className="w-full border border-border-cream rounded-xl px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-gold/30">
+                      <option value="BUG">Bug</option>
+                      <option value="FEATURE">Feature Request</option>
+                      <option value="SUPPORT">Support</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate mb-1 uppercase tracking-wide">Priority</label>
+                    <select value={ticketForm.priority} onChange={e => setTicketForm(p => ({...p, priority: e.target.value}))} className="w-full border border-border-cream rounded-xl px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-gold/30">
+                      <option value="LOW">Low</option>
+                      <option value="MEDIUM">Medium</option>
+                      <option value="HIGH">High</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate mb-1 uppercase tracking-wide">Description *</label>
+                  <textarea value={ticketForm.description} onChange={e => setTicketForm(p => ({...p, description: e.target.value}))} rows={4} className="w-full border border-border-cream rounded-xl px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-gold/30 resize-none" placeholder="Describe the issue in detail..." required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate mb-1 uppercase tracking-wide">Screenshot (optional)</label>
+                  <label className="flex items-center gap-2 cursor-pointer border border-dashed border-border-cream rounded-xl px-3 py-2 hover:bg-cream/30 transition-all">
+                    <UploadCloud className="w-4 h-4 text-slate" />
+                    <span className="text-xs text-slate">{attachmentUploading ? 'Uploading...' : ticketForm.attachmentUrl ? 'File uploaded ✓' : 'Click to upload'}</span>
+                    <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                  </label>
+                </div>
+                <div className="flex justify-end gap-3 pt-2">
+                  <button type="button" onClick={() => setShowTicketModal(false)} className="px-4 py-2 text-sm text-slate hover:text-navy border border-border-cream rounded-xl transition-all">Cancel</button>
+                  <button type="submit" disabled={ticketSaving} className="btn-primary text-sm flex items-center gap-2">
+                    {ticketSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <LifeBuoy className="w-4 h-4" />}
+                    {ticketSaving ? 'Submitting...' : 'Submit Ticket'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Tab Switcher */}
       <div className="flex border-b border-border-cream gap-2">

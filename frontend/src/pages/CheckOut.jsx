@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { LogOut, Receipt, ShieldAlert, CreditCard, CheckCircle2, ChevronRight, RefreshCw, X } from 'lucide-react';
 import api from '../utils/api';
 import { useLocation } from 'react-router-dom';
@@ -281,9 +282,14 @@ function CheckOut() {
       </div>
 
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-5 overflow-hidden">
-        {/* Left Side: Occupied Rooms directory */}
-        <div className="lg:col-span-6 flex flex-col min-h-0 soft-card p-4 md:p-5 bg-white h-full overflow-hidden">
-          <h3 className="font-display font-semibold text-base text-navy mb-3 flex-shrink-0">Occupied Rooms</h3>
+        {/* Left Side: Occupied Rooms directory (Vertical Layout) */}
+        <div className="lg:col-span-4 flex flex-col min-h-0 soft-card p-4 md:p-5 bg-white h-full overflow-hidden">
+          <div className="flex justify-between items-center mb-3 flex-shrink-0">
+            <h3 className="font-display font-semibold text-base text-navy">Occupied Rooms</h3>
+            <span className="text-[10px] font-bold text-gold bg-gold-pale px-2 py-0.5 rounded-md border border-gold/20">
+              {occupiedRooms.length} Active
+            </span>
+          </div>
           
           {loading ? (
             <div className="flex items-center justify-center py-12 gap-2 text-slate text-sm font-semibold">
@@ -295,29 +301,42 @@ function CheckOut() {
               {error}
             </div>
           ) : (
-            <div className="flex-1 overflow-y-auto min-h-0 pr-1 grid grid-cols-1 sm:grid-cols-2 gap-3 auto-rows-max">
+            <div className="flex-1 overflow-y-auto min-h-0 pr-1 space-y-2.5">
               {occupiedRooms.map((res) => (
                 <div 
                   key={res.id} 
                   onClick={() => handleSelectRoom(res)}
                   className={`
-                    cursor-pointer p-4 border rounded-2xl flex items-center justify-between transition-all duration-300
+                    cursor-pointer p-3.5 border rounded-2xl flex items-center justify-between transition-all duration-200
                     ${selectedRoom?.id === res.id 
-                      ? 'border-gold bg-gold-pale/50 shadow-md ring-1 ring-gold' 
-                      : 'border-border-cream hover:border-gold bg-white hover:bg-gold-pale/10'
+                      ? 'border-navy bg-navy text-white shadow-md' 
+                      : 'border-border-cream hover:border-gold bg-white hover:bg-gold-pale/10 text-charcoal'
                     }
                   `}
                 >
-                  <div>
-                    <span className="text-[10px] text-slate font-bold uppercase tracking-wider">Room {res.room?.number}</span>
-                    <h4 className="font-display font-bold text-sm text-navy mt-0.5">{res.guest?.name}</h4>
-                    <p className="text-[10px] text-slate mt-1">Checked in: {new Date(res.checkInDate).toLocaleDateString()} ({res.totalNights} night(s))</p>
+                  <div className="min-w-0 flex-1 pr-2">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                        selectedRoom?.id === res.id ? 'bg-gold text-navy' : 'bg-cream/40 text-slate border border-border-cream/60'
+                      }`}>
+                        Room {res.room?.number}
+                      </span>
+                      <span className={`text-[10px] ${selectedRoom?.id === res.id ? 'text-gold/80' : 'text-slate'}`}>
+                        {res.room?.roomType?.name || 'Deluxe'}
+                      </span>
+                    </div>
+                    <h4 className={`font-display font-bold text-sm truncate ${selectedRoom?.id === res.id ? 'text-white' : 'text-navy'}`}>
+                      {res.guest?.name}
+                    </h4>
+                    <p className={`text-[10px] mt-0.5 ${selectedRoom?.id === res.id ? 'text-slate-200' : 'text-slate'}`}>
+                      In: {new Date(res.checkInDate).toLocaleDateString()} ({res.totalNights} night{res.totalNights > 1 ? 's' : ''})
+                    </p>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-slate shrink-0" />
+                  <ChevronRight className={`w-4 h-4 shrink-0 transition-transform ${selectedRoom?.id === res.id ? 'text-gold translate-x-0.5' : 'text-slate'}`} />
                 </div>
               ))}
               {occupiedRooms.length === 0 && (
-                <div className="col-span-2 py-8 text-center text-slate text-sm">
+                <div className="py-8 text-center text-slate text-sm">
                   No currently occupied rooms found.
                 </div>
               )}
@@ -325,42 +344,42 @@ function CheckOut() {
           )}
         </div>
 
-        {/* Right Side: Guest Folio Checkout Summary */}
-        <div className="lg:col-span-6 flex flex-col min-h-0 soft-card p-4 md:p-5 bg-white h-full overflow-hidden">
+        {/* Right Side: Guest Folio Checkout Summary (Expanded Width) */}
+        <div className="lg:col-span-8 flex flex-col min-h-0 soft-card p-4 md:p-5 bg-white h-full overflow-hidden">
           {selectedRoom ? (
             !checkoutComplete ? (
               <div className="flex flex-col h-full min-h-0">
-                {/* Header */}
-                <div className="border-b border-border-cream pb-3 flex-shrink-0 flex justify-between items-start">
-                  <div>
-                    <span className="text-[10px] text-slate font-bold uppercase tracking-wider block">GUEST FOLIO LEDGER</span>
-                    <h3 className="font-display font-bold text-lg text-navy mt-0.5">Room {selectedRoom.room?.number}</h3>
-                    <p className="text-xs text-slate mt-0.5">Guest: <span className="font-semibold text-navy">{selectedRoom.guest?.name}</span></p>
+                {/* Header (Compact Single-Row Design) */}
+                <div className="border-b border-border-cream pb-2 flex-shrink-0 flex justify-between items-center">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[9px] text-slate font-bold uppercase tracking-wider bg-cream/40 px-2 py-0.5 rounded border border-border-cream/60">FOLIO LEDGER</span>
+                    <h3 className="font-display font-bold text-base text-navy">Room {selectedRoom.room?.number}</h3>
+                    <span className="text-slate-300">•</span>
+                    <p className="text-xs text-slate">Guest: <span className="font-semibold text-navy">{selectedRoom.guest?.name}</span></p>
                   </div>
-                  <span className="font-mono text-xs font-bold text-gold bg-gold-pale px-2.5 py-1 rounded border border-gold/20">
+                  <span className="font-mono text-[10px] font-bold text-gold bg-gold-pale px-2 py-0.5 rounded border border-gold/20 shrink-0">
                     {selectedRoom.bookingRef}
                   </span>
                 </div>
 
-                {/* Middle Scrollable Section: Folio Items & Form Inputs */}
-                <div className="flex-1 overflow-y-auto min-h-0 pr-1.5 py-3 space-y-3.5">
-                  {/* Folio item list */}
-                  <div className="space-y-2">
-                    <span className="text-slate text-[10px] font-bold uppercase tracking-wider block">Line Item Charges</span>
-                    <div className="space-y-2 max-h-36 overflow-y-auto pr-1 bg-cream/10 p-2.5 rounded-xl border border-border-cream/40">
-                      {folioList.map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-center text-xs border-b border-border-cream/30 last:border-0 pb-1.5 last:pb-0">
-                          <span className="text-charcoal font-medium truncate max-w-[240px]">{item.desc}</span>
-                          <span className="font-mono text-navy font-semibold shrink-0">₹{item.amount.toLocaleString()}</span>
-                        </div>
-                      ))}
+                {/* 2-Column Horizontal Inner Layout to fit screen without scrolling */}
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 min-h-0 py-3 overflow-y-auto">
+                  {/* Left Column: Charges Ledger & Itemized Extras */}
+                  <div className="space-y-3 flex flex-col min-h-0">
+                    <div className="space-y-1.5 flex-1 flex flex-col min-h-0">
+                      <span className="text-slate text-[10px] font-bold uppercase tracking-wider block">Line Item Charges</span>
+                      <div className="space-y-1.5 flex-1 max-h-48 overflow-y-auto pr-1 bg-cream/10 p-2.5 rounded-xl border border-border-cream/50">
+                        {folioList.map((item, idx) => (
+                          <div key={idx} className="flex justify-between items-center text-xs border-b border-border-cream/30 last:border-0 pb-1 last:pb-0">
+                            <span className="text-charcoal font-medium truncate max-w-[200px]">{item.desc}</span>
+                            <span className="font-mono text-navy font-semibold shrink-0">₹{item.amount.toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Settle Form Inputs */}
-                  <div className="space-y-3 pt-1">
                     {/* Itemized Custom Extras Builder */}
-                    <div className="space-y-1.5 p-3 bg-cream/10 border border-border-cream/50 rounded-xl">
+                    <div className="space-y-1.5 p-2.5 bg-cream/10 border border-border-cream/50 rounded-xl shrink-0">
                       <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Add Extras Itemized</label>
                       <div className="flex gap-2">
                         <input 
@@ -388,7 +407,7 @@ function CheckOut() {
                       </div>
 
                       {customExtras.length > 0 && (
-                        <div className="mt-2 p-2 bg-white/60 border border-border-cream/40 rounded-xl space-y-1.5 max-h-20 overflow-y-auto">
+                        <div className="mt-1.5 p-2 bg-white/80 border border-border-cream/40 rounded-xl space-y-1 max-h-20 overflow-y-auto">
                           {customExtras.map((item) => (
                             <div key={item.id} className="flex justify-between items-center text-[10px] text-charcoal font-medium">
                               <span className="flex items-center gap-1.5 truncate max-w-[150px]">
@@ -400,7 +419,7 @@ function CheckOut() {
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveCustomExtra(item.id)}
-                                  className="text-danger hover:text-danger-dark p-0.5"
+                                  className="text-rose-500 hover:text-rose-700 p-0.5"
                                   title="Remove item"
                                 >
                                   <X className="w-3 h-3" />
@@ -411,115 +430,119 @@ function CheckOut() {
                         </div>
                       )}
                     </div>
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                  {/* Right Column: Settle Form, Totals & Actions */}
+                  <div className="space-y-3 flex flex-col justify-between">
+                    <div className="space-y-2.5">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Total Extras (₹)</label>
+                          <input 
+                            type="text"
+                            readOnly
+                            disabled
+                            value={extraChargesInput}
+                            className="w-full px-3 py-1.5 bg-cream/20 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-bold text-charcoal font-mono cursor-not-allowed"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Add Discount (₹)</label>
+                          <input 
+                            type="number"
+                            min="0"
+                            value={discountInput}
+                            onChange={(e) => setDiscountInput(e.target.value)}
+                            className="w-full px-3 py-1.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                          />
+                        </div>
+                      </div>
+
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Total Extras (₹)</label>
+                        <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Payment Method</label>
+                        <select 
+                          value={paymentMethod}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className="w-full px-3 py-1.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                        >
+                          <option value="CASH">Cash</option>
+                          <option value="CARD">Card</option>
+                          <option value="UPI">UPI</option>
+                          <option value="BANK_TRANSFER">Bank Transfer</option>
+                          <option value="WALLET">Wallet</option>
+                          <option value="CREDIT">Credit</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Notes</label>
                         <input 
                           type="text"
-                          readOnly
-                          disabled
-                          value={extraChargesInput}
-                          className="w-full px-3 py-1.5 bg-cream/20 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-bold text-charcoal font-mono cursor-not-allowed"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Add Discount (₹)</label>
-                        <input 
-                          type="number"
-                          min="0"
-                          value={discountInput}
-                          onChange={(e) => setDiscountInput(e.target.value)}
-                          className="w-full px-3 py-1.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          placeholder="Damage remarks, laundry notes..."
+                          className="w-full px-3 py-1.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-medium text-charcoal"
                         />
                       </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Payment Method</label>
-                      <select 
-                        value={paymentMethod}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                        className="w-full px-3 py-1.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
-                      >
-                        <option value="CASH">Cash</option>
-                        <option value="CARD">Card</option>
-                        <option value="UPI">UPI</option>
-                        <option value="BANK_TRANSFER">Bank Transfer</option>
-                        <option value="WALLET">Wallet</option>
-                        <option value="CREDIT">Credit</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Notes</label>
-                      <textarea 
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Damage remarks, laundry notes, etc."
-                        rows={1}
-                        className="w-full px-3 py-1.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-medium text-charcoal resize-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Fixed Bottom Footer: Totals + Action Buttons */}
-                <div className="border-t border-border-cream pt-2.5 flex-shrink-0 space-y-2 bg-white">
-                  <div className="space-y-1 bg-cream/10 p-2.5 rounded-xl border border-border-cream/40">
-                    <div className="flex justify-between text-[11px] text-slate font-semibold">
-                      <span>Base Charges Subtotal:</span>
-                      <span className="font-mono">₹{baseTotal.toLocaleString()}</span>
-                    </div>
-                    {extraVal > 0 && (
-                      <div className="flex justify-between text-[11px] text-amber-600 font-semibold">
-                        <span>Additional Extras:</span>
-                        <span className="font-mono">₹{extraVal.toLocaleString()}</span>
+                    {/* Summary & Action Buttons */}
+                    <div className="space-y-2.5 pt-2 border-t border-border-cream">
+                      <div className="space-y-1 bg-cream/10 p-2.5 rounded-xl border border-border-cream/50 text-xs">
+                        <div className="flex justify-between text-slate font-semibold text-[11px]">
+                          <span>Subtotal:</span>
+                          <span className="font-mono">₹{baseTotal.toLocaleString()}</span>
+                        </div>
+                        {extraVal > 0 && (
+                          <div className="flex justify-between text-amber-600 font-semibold text-[11px]">
+                            <span>Extras:</span>
+                            <span className="font-mono">+₹{extraVal.toLocaleString()}</span>
+                          </div>
+                        )}
+                        {discVal > 0 && (
+                          <div className="flex justify-between text-rose-600 font-semibold text-[11px]">
+                            <span>Discount:</span>
+                            <span className="font-mono">-₹{discVal.toLocaleString()}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-slate font-semibold text-[11px]">
+                          <span>Tax ({taxRate}% GST):</span>
+                          <span className="font-mono">₹{taxAmount.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center font-bold text-navy pt-1.5 border-t border-dashed border-border-cream/50 text-sm">
+                          <span>Grand Total:</span>
+                          <span className="font-mono text-base text-navy font-bold">
+                            ₹{grandTotal.toLocaleString()}
+                          </span>
+                        </div>
                       </div>
-                    )}
-                    {discVal > 0 && (
-                      <div className="flex justify-between text-[11px] text-rose-600 font-semibold">
-                        <span>Additional Discount:</span>
-                        <span className="font-mono">-₹{discVal.toLocaleString()}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between text-[11px] text-slate font-semibold">
-                      <span>Tax ({taxRate}% GST):</span>
-                      <span className="font-mono">₹{taxAmount.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs font-bold text-navy pt-1.5 border-t border-dashed border-border-cream/50">
-                      <span>Grand Total:</span>
-                      <span className="font-mono text-sm text-navy font-bold">
-                        ₹{grandTotal.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
 
-                  {/* Settle / Checkout trigger */}
-                  <div className="flex gap-2 pt-0.5">
-                    <button 
-                      onClick={handleCheckoutSettle}
-                      disabled={submitting}
-                      className="flex-1 btn-primary py-2.5 text-xs flex items-center justify-center gap-1.5 disabled:opacity-50 font-bold"
-                    >
-                      {submitting ? (
-                        <>
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin text-gold" /> Completing...
-                        </>
-                      ) : (
-                        <>
-                          <CreditCard className="w-3.5 h-3.5 text-gold" /> Settle & Check-Out
-                        </>
-                      )}
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={handleOpenDraftPrint}
-                      className="btn-secondary px-3 py-2.5 text-xs flex items-center justify-center gap-1.5 shrink-0"
-                      title="View & Print Draft Folio"
-                    >
-                      <Receipt className="w-3.5 h-3.5 text-gold" /> Draft
-                    </button>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={handleCheckoutSettle}
+                          disabled={submitting}
+                          className="flex-1 btn-primary py-2.5 text-xs flex items-center justify-center gap-1.5 disabled:opacity-50 font-bold"
+                        >
+                          {submitting ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin text-gold" /> Completing...
+                            </>
+                          ) : (
+                            <>
+                              <CreditCard className="w-3.5 h-3.5 text-gold" /> Settle &amp; Check-Out
+                            </>
+                          )}
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={handleOpenDraftPrint}
+                          className="btn-secondary px-3 py-2.5 text-xs flex items-center justify-center gap-1.5 shrink-0"
+                          title="View &amp; Print Draft Folio"
+                        >
+                          <Receipt className="w-3.5 h-3.5 text-gold" /> Draft
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -563,10 +586,10 @@ function CheckOut() {
           )}
         </div>
       </div>
-      {/* ─── INVOICE PRINT PREVIEW MODAL ───────────────────────────────── */}
-      {showPrintModal && printInvoiceData && (
-        <div className="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 print:p-0">
-          <div className={`bg-white rounded-[2rem] border border-border-cream p-6 md:p-8 w-full ${printFormat === 'pos' ? 'max-w-md' : 'max-w-2xl'} shadow-2xl relative max-h-[90vh] overflow-y-auto print:p-0 print:shadow-none print:border-none animate-fadeIn`}>
+      {/* ─── INVOICE PRINT PREVIEW MODAL (Compact Horizontal Wide Layout) ───────────────────────────────── */}
+      {showPrintModal && printInvoiceData && createPortal(
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className={`bg-white rounded-3xl border border-border-cream p-4 md:p-5 w-full ${printFormat === 'pos' ? 'max-w-md' : 'max-w-3xl'} shadow-2xl relative max-h-[90vh] overflow-y-auto print:p-0 print:shadow-none print:border-none animate-fadeIn my-auto`}>
             {/* Dynamic Print CSS */}
             <style>{`
               @media print {
@@ -579,7 +602,7 @@ function CheckOut() {
                   visibility: visible !important;
                 }
                 /* Reset the modal fixed layout, positioning, background, and borders */
-                .fixed.inset-0.z-50 {
+                .fixed.inset-0.z-50, .fixed.inset-0.z-\\[100\\] {
                   position: absolute !important;
                   left: 0 !important;
                   top: 0 !important;
@@ -591,7 +614,7 @@ function CheckOut() {
                   margin: 0 !important;
                   overflow: visible !important;
                 }
-                .fixed.inset-0.z-50 > div {
+                .fixed.inset-0.z-50 > div, .fixed.inset-0.z-\\[100\\] > div {
                   position: relative !important;
                   width: 100% !important;
                   max-width: none !important;
@@ -622,21 +645,23 @@ function CheckOut() {
                   overflow: visible !important;
                 }
               }
-            `}</style>            {/* Close button - hidden on print */}
+            `}</style>
+
+            {/* Close button - hidden on print */}
             <button
               onClick={() => setShowPrintModal(false)}
-              className="absolute top-6 right-6 text-slate hover:text-navy transition-colors print:hidden"
+              className="absolute top-4 right-4 text-slate hover:text-navy transition-colors print:hidden p-1 rounded-xl hover:bg-cream/50"
             >
               <X className="w-5 h-5" />
             </button>
 
             {/* Format Selector Tab Bar - Hidden on print */}
-            <div className="flex justify-center border-b border-border-cream pb-4 mb-6 print:hidden">
+            <div className="flex justify-center border-b border-border-cream pb-2.5 mb-3 print:hidden">
               <div className="flex bg-surface-linen/50 p-1 rounded-xl border border-border-cream">
                 <button
                   type="button"
                   onClick={() => setPrintFormat('a4')}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                     printFormat === 'a4' ? 'bg-navy text-white shadow-sm' : 'text-slate hover:text-navy'
                   }`}
                 >
@@ -645,7 +670,7 @@ function CheckOut() {
                 <button
                   type="button"
                   onClick={() => setPrintFormat('pos')}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                     printFormat === 'pos' ? 'bg-navy text-white shadow-sm' : 'text-slate hover:text-navy'
                   }`}
                 >
@@ -657,33 +682,33 @@ function CheckOut() {
             {/* Printable Invoice Area */}
             <div id="printable-area" className="text-left">
               {printFormat === 'a4' ? (
-                /* ---------------- STANDARD A4 FORMAT ---------------- */
-                <div className="space-y-4">
+                /* ---------------- STANDARD A4 FORMAT (COMPACT HORIZONTAL 2-COLUMN) ---------------- */
+                <div className="space-y-3">
                   {/* Header */}
-                  <div className="flex justify-between items-start border-b border-border-cream pb-4">
+                  <div className="flex justify-between items-start border-b border-border-cream pb-2.5">
                     <div>
-                      <h2 className="font-display font-bold text-2xl text-navy">HOTELORAA</h2>
-                      <p className="text-[10px] text-gold font-bold uppercase tracking-wider mt-1">Luxury PMS & POS Suite</p>
+                      <h2 className="font-display font-bold text-xl text-navy">HOTELORAA</h2>
+                      <p className="text-[9px] text-gold font-bold uppercase tracking-wider mt-0.5">Luxury PMS &amp; POS Suite</p>
                     </div>
-                    <div className="text-right text-xs">
-                      <h3 className="font-bold text-navy text-sm uppercase">
+                    <div className="text-right text-[11px]">
+                      <h3 className="font-bold text-navy text-xs uppercase">
                         {printInvoiceData.isDraft ? 'Draft Folio Invoice' : 'Settled Folio Receipt'}
                       </h3>
-                      <p className="text-slate mt-1 font-mono">Invoice: INV-{printInvoiceData.bookingRef.split('-')[1] || printInvoiceData.bookingRef}</p>
+                      <p className="text-slate mt-0.5 font-mono">Invoice: INV-{printInvoiceData.bookingRef.split('-')[1] || printInvoiceData.bookingRef}</p>
                       <p className="text-slate font-mono">Date: {new Date().toLocaleDateString()}</p>
                     </div>
                   </div>
 
                   {/* Guest & Stay Info */}
-                  <div className="grid grid-cols-2 gap-4 text-xs border-b border-border-cream pb-4">
+                  <div className="grid grid-cols-2 gap-3 text-[11px] border-b border-border-cream pb-2.5">
                     <div>
-                      <h4 className="font-bold text-navy uppercase tracking-wider mb-2">Guest Details:</h4>
+                      <h4 className="font-bold text-navy uppercase tracking-wider mb-1 text-[10px]">Guest Details:</h4>
                       <p className="font-bold text-charcoal">{printInvoiceData.guestName}</p>
                       {printInvoiceData.guestPhone && <p className="text-slate mt-0.5">Phone: {printInvoiceData.guestPhone}</p>}
                       {printInvoiceData.guestEmail && <p className="text-slate mt-0.5">Email: {printInvoiceData.guestEmail}</p>}
                     </div>
                     <div className="text-right">
-                      <h4 className="font-bold text-navy uppercase tracking-wider mb-2">Stay Info:</h4>
+                      <h4 className="font-bold text-navy uppercase tracking-wider mb-1 text-[10px]">Stay Info:</h4>
                       <p className="font-bold text-charcoal">Room {printInvoiceData.roomNumber} ({printInvoiceData.roomType})</p>
                       <p className="text-slate mt-0.5">Check-In: {new Date(printInvoiceData.checkInDate).toLocaleDateString()}</p>
                       <p className="text-slate mt-0.5">Check-Out: {new Date(printInvoiceData.checkOutDate).toLocaleDateString()}</p>
@@ -691,86 +716,88 @@ function CheckOut() {
                     </div>
                   </div>
 
-                  {/* Items Table */}
-                  <div className="space-y-2">
-                    <h4 className="font-bold text-navy text-xs uppercase tracking-wider">Charge Ledger Details</h4>
-                    <div className="border border-border-cream rounded-2xl overflow-hidden">
-                      <table className="w-full text-left text-xs border-collapse">
-                        <thead>
-                          <tr className="bg-cream/20 text-navy font-bold border-b border-border-cream">
-                            <th className="p-3">Description</th>
-                            <th className="p-3 text-right">Amount</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border-cream/30">
-                          {printInvoiceData.folioItems.map((item, index) => (
-                            <tr key={index}>
-                              <td className="p-3 text-slate font-medium">{item.desc}</td>
-                              <td className="p-3 text-right font-mono font-bold text-charcoal">
-                                {item.amount < 0 ? `-₹${Math.abs(item.amount).toLocaleString()}` : `₹${item.amount.toLocaleString()}`}
-                              </td>
+                  {/* Horizontal 2-Column: Items Table (Left) + Settlement & Totals (Right) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Items Table (Left Column) */}
+                    <div className="space-y-1.5">
+                      <h4 className="font-bold text-navy text-[10px] uppercase tracking-wider">Charge Ledger Details</h4>
+                      <div className="border border-border-cream rounded-xl overflow-hidden">
+                        <table className="w-full text-left text-[11px] border-collapse">
+                          <thead>
+                            <tr className="bg-cream/20 text-navy font-bold border-b border-border-cream">
+                              <th className="p-2">Description</th>
+                              <th className="p-2 text-right">Amount</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-border-cream/30">
+                            {printInvoiceData.folioItems.map((item, index) => (
+                              <tr key={index}>
+                                <td className="p-2 text-slate font-medium">{item.desc}</td>
+                                <td className="p-2 text-right font-mono font-bold text-charcoal">
+                                  {item.amount < 0 ? `-₹${Math.abs(item.amount).toLocaleString()}` : `₹${item.amount.toLocaleString()}`}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Total calculations */}
-                  <div className="grid grid-cols-2 gap-4 pt-4">
-                    <div className="text-xs space-y-2">
-                      <h4 className="font-bold text-navy uppercase tracking-wider">Settlement & Notes</h4>
-                      <div className="bg-cream/5 p-3 rounded-xl border border-border-cream/40 space-y-1.5">
-                        <div className="flex justify-between text-slate font-semibold">
+                    {/* Settlement & Financial Totals (Right Column) */}
+                    <div className="space-y-2.5">
+                      <h4 className="font-bold text-navy text-[10px] uppercase tracking-wider">Settlement &amp; Summary</h4>
+                      <div className="bg-cream/5 p-2.5 rounded-xl border border-border-cream/60 space-y-1 text-xs">
+                        <div className="flex justify-between text-[11px] text-slate font-semibold">
                           <span>Payment Status:</span>
                           <span className={`font-bold ${printInvoiceData.isDraft ? 'text-amber-600' : 'text-success'}`}>
                             {printInvoiceData.isDraft ? 'UNSETTLED (DRAFT)' : 'PAID (SETTLED)'}
                           </span>
                         </div>
                         {!printInvoiceData.isDraft && (
-                          <div className="flex justify-between text-slate font-semibold">
+                          <div className="flex justify-between text-[11px] text-slate font-semibold">
                             <span>Payment Method:</span>
                             <span className="font-bold text-navy">{printInvoiceData.paymentMethod}</span>
                           </div>
                         )}
                         {printInvoiceData.notes && (
-                          <div className="text-[10px] text-slate/70 pt-1.5 border-t border-border-cream/40">
+                          <div className="text-[10px] text-slate/70 pt-1 border-t border-border-cream/40">
                             <span className="font-bold block">Remarks:</span>
                             <span className="italic">"{printInvoiceData.notes}"</span>
                           </div>
                         )}
                       </div>
-                    </div>
-                    <div className="text-xs space-y-2">
-                      <div className="flex justify-between text-slate font-medium">
-                        <span>Subtotal:</span>
-                        <span className="font-mono">₹{printInvoiceData.subtotal.toLocaleString()}</span>
+
+                      <div className="bg-white p-2.5 rounded-xl border border-border-cream/80 space-y-1 text-xs">
+                        <div className="flex justify-between text-slate font-medium text-[11px]">
+                          <span>Subtotal:</span>
+                          <span className="font-mono">₹{printInvoiceData.subtotal.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-slate font-medium text-[11px]">
+                          <span>Tax ({taxRate}% GST):</span>
+                          <span className="font-mono">₹{printInvoiceData.taxAmount.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs font-bold text-navy pt-1.5 border-t border-dashed border-border-cream/50">
+                          <span>Total Amount:</span>
+                          <span className="font-mono text-sm font-bold">₹{printInvoiceData.grandTotal.toLocaleString()}</span>
+                        </div>
+                        {!printInvoiceData.isDraft && (
+                          <>
+                            <div className="flex justify-between text-success font-medium text-[11px]">
+                              <span>Amount Paid:</span>
+                              <span className="font-mono">₹{printInvoiceData.grandTotal.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-[11px] font-bold text-slate pt-1 border-t border-border-cream/20">
+                              <span>Balance Due:</span>
+                              <span className="font-mono text-navy font-bold">₹0</span>
+                            </div>
+                          </>
+                        )}
                       </div>
-                      <div className="flex justify-between text-slate font-medium">
-                        <span>Tax ({taxRate}% GST):</span>
-                        <span className="font-mono">₹{printInvoiceData.taxAmount.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm font-bold text-navy pt-2 border-t border-dashed border-border-cream/50">
-                        <span>Total Amount:</span>
-                        <span className="font-mono text-base font-bold">₹{printInvoiceData.grandTotal.toLocaleString()}</span>
-                      </div>
-                      {!printInvoiceData.isDraft && (
-                        <>
-                          <div className="flex justify-between text-success font-medium">
-                            <span>Amount Paid:</span>
-                            <span className="font-mono">₹{printInvoiceData.grandTotal.toLocaleString()}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs font-bold text-slate pt-1.5 border-t border-border-cream/20">
-                            <span>Balance Due:</span>
-                            <span className="font-mono text-navy font-bold">₹0</span>
-                          </div>
-                        </>
-                      )}
                     </div>
                   </div>
 
                   {/* Footer notice */}
-                  <div className="text-center text-[10px] text-slate/50 pt-8 border-t border-border-cream/30">
+                  <div className="text-center text-[9px] text-slate/50 pt-3 border-t border-border-cream/30">
                     Thank you for staying at our property. Have a safe journey!
                   </div>
                 </div>
@@ -894,24 +921,25 @@ function CheckOut() {
             </div>
 
             {/* Print/Dismiss buttons - hidden on print */}
-            <div className="flex gap-3 mt-8 pt-4 border-t border-border-cream print:hidden">
+            <div className="flex gap-2.5 mt-4 pt-3 border-t border-border-cream print:hidden">
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="w-1/2 btn-primary flex items-center justify-center gap-2"
+                className="w-1/2 btn-primary flex items-center justify-center gap-2 text-xs py-2"
               >
                 <Receipt className="w-4 h-4 text-gold" /> Print Invoice
               </button>
               <button
                 type="button"
                 onClick={() => setShowPrintModal(false)}
-                className="w-1/2 btn-secondary flex items-center justify-center gap-2"
+                className="w-1/2 btn-secondary flex items-center justify-center gap-2 text-xs py-2"
               >
                 Dismiss
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import logoIcon from '../assets/logo-icon.png';
 import logo from '../assets/logo.png';
@@ -44,6 +44,27 @@ function Sidebar({ collapsed, onToggle }) {
 
   const businessType = user.businessType || 'HOTEL_RESTAURANT';
   const role = user.userRole;
+
+  const initials = user.name
+    ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    : 'US';
+
+  const roleLabel = user.userRole
+    ? user.userRole.replace('_', ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
+    : '';
+
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
+        setProfileMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Check if role is allowed for a given module key
   const can = (moduleKey) => {
@@ -235,22 +256,47 @@ function Sidebar({ collapsed, onToggle }) {
         ))}
       </nav>
 
-      {/* Bottom Actions */}
-      <div className="p-2 border-t border-border-cream bg-white shrink-0">
+      {/* Bottom User Profile Dropdown */}
+      <div ref={profileMenuRef} className="p-3 border-t border-border-cream bg-white shrink-0 relative">
+        {/* Dropdown panel — pops upward */}
+        {profileMenuOpen && (
+          <div className="absolute bottom-full left-3 right-3 mb-2 bg-white border border-border-cream rounded-2xl shadow-xl overflow-hidden animate-scaleUp z-50 p-2 space-y-1">
+            <div className="p-3 bg-cream/20 rounded-xl border border-border-cream/50">
+              <p className="text-xs font-bold text-navy truncate">{user.name || 'Staff'}</p>
+              <p className="text-[10px] text-slate font-medium truncate">{roleLabel}</p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 text-danger font-bold text-xs hover:bg-danger-pale p-2.5 rounded-xl transition-all"
+            >
+              <LogOut className="w-4 h-4 shrink-0" />
+              <span>Exit Platform</span>
+            </button>
+          </div>
+        )}
+
+        {/* Profile Trigger Button */}
         <button
-          onClick={handleLogout}
-          title={collapsed ? 'Exit Platform' : undefined}
+          onClick={() => setProfileMenuOpen(o => !o)}
+          title={collapsed ? `${user.name || 'User'} — Click for options` : undefined}
           className={`
-            flex items-center gap-3 text-danger font-medium text-xs
-            hover:bg-danger-pale hover:text-danger active:scale-98 transition-all
-            ${collapsed
-              ? 'w-10 h-10 justify-center rounded-xl mx-auto'
-              : 'w-full px-3 py-2.5 rounded-xl'
-            }
+            flex items-center gap-3 p-2 bg-cream/30 border border-border-cream/80 rounded-2xl
+            hover:bg-cream/60 hover:border-border-cream transition-all cursor-pointer w-full
+            ${collapsed ? 'justify-center' : ''}
           `}
         >
-          <LogOut className="w-4 h-4 shrink-0" />
-          {!collapsed && <span>Exit Platform</span>}
+          <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-navy text-gold font-display font-bold flex items-center justify-center border border-gold/20 shrink-0 text-xs shadow-sm">
+            {initials}
+          </div>
+          {!collapsed && (
+            <>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="text-xs font-bold text-charcoal truncate">{user.name || 'Staff'}</p>
+                <p className="text-[10px] text-slate font-medium truncate">{roleLabel}</p>
+              </div>
+              <ChevronRight className={`w-3.5 h-3.5 text-slate shrink-0 transition-transform duration-200 ${profileMenuOpen ? '-rotate-90' : 'rotate-90'}`} />
+            </>
+          )}
         </button>
       </div>
     </aside>

@@ -2,12 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Override: font-bold uses 600 (semibold) for Poppins/Inter — 700 looks too heavy */
+.font-bold {
+  font-weight: 600 !important;
+}
+
+.font-extrabold {
+  font-weight: 700 !important;
+}
+
 @layer base {
   body {
-    background-color: #FEF9F1;
+    background-color: #FEFBF7;
     background-image: radial-gradient(#EBE5DA 1.5px, transparent 1.5px);
     background-size: 24px 24px;
     color: #1F2933;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
   }
 
   /* Custom scrollbars for a premium look */
@@ -34,7 +50,7 @@
 
   /* Premium luxury card style */
   .soft-card {
-    @apply bg-white/40 backdrop-blur-md border border-border-cream rounded-2xl transition-all duration-300;
+    @apply bg-white border border-border-cream rounded-2xl transition-all duration-300;
   }
 
   .soft-card:hover {
