@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   Platform,
   FlatList,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -26,6 +27,7 @@ export default function ManagerHubScreen({ user, onLogout, onOpenDrawer }) {
     { id: 3, type: 'Presidential Penthouse', basePrice: 15000, currentPrice: 15000 },
   ]);
   
+  const [tempPrices, setTempPrices] = useState({});
   const [weekendMarkup, setWeekendMarkup] = useState('15'); // in %
   const [holidayRate, setHolidayRate] = useState(false);
   const [menuMultiplier, setMenuMultiplier] = useState('0'); // Happy hour discount in %
@@ -241,7 +243,7 @@ export default function ManagerHubScreen({ user, onLogout, onOpenDrawer }) {
           {/* Room Rates List */}
           <Text style={styles.subLabel}>Base Room Price Configurations</Text>
           {roomRates.map((room) => {
-            const [tempPrice, setTempPrice] = useState('');
+            const tempPrice = tempPrices[room.id] || '';
             return (
               <View key={room.id} style={styles.roomRow}>
                 <View style={{ flex: 1 }}>
@@ -258,10 +260,10 @@ export default function ManagerHubScreen({ user, onLogout, onOpenDrawer }) {
                   placeholderTextColor="#718096"
                   keyboardType="numeric"
                   value={tempPrice}
-                  onChangeText={setTempPrice}
+                  onChangeText={(val) => setTempPrices(prev => ({ ...prev, [room.id]: val }))}
                   onSubmitEditing={() => {
                     handleUpdateRates(room.id, tempPrice);
-                    setTempPrice('');
+                    setTempPrices(prev => ({ ...prev, [room.id]: '' }));
                   }}
                 />
               </View>
@@ -392,7 +394,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingBottom: 16,
-    paddingTop: Platform.OS === 'android' ? 36 : 16,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 28) + 8 : 16,
     backgroundColor: '#0C2340',
     borderBottomWidth: 2,
     borderColor: '#D4AF37',
