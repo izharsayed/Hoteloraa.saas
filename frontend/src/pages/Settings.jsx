@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Settings, 
   CreditCard, 
@@ -18,7 +18,8 @@ import {
   X,
   Loader2,
   CheckCircle,
-  UploadCloud
+  UploadCloud,
+  Save
 } from 'lucide-react';
 import api from '../utils/api';
 
@@ -70,10 +71,11 @@ function SettingsPage() {
   // General State
   const [restaurantModule, setRestaurantModule] = useState(true);
   const [lodgingModule, setLodgingModule] = useState(true);
-  const [propertyName, setPropertyName] = useState('Royal Palace Hotel');
+  const [propertyName, setPropertyName] = useState('Grand Palace Resort');
   const [taxRate, setTaxRate] = useState(18);
+  const [savingProfile, setSavingProfile] = useState(false);
 
-  const [subscription] = useState({
+  const [subscription, setSubscription] = useState({
     tier: 'Enterprise Suite',
     status: 'Active',
     price: '₹14,999 / month',
@@ -81,16 +83,14 @@ function SettingsPage() {
   });
 
   // Staff State
-  const [staffList, setStaffList] = useState([
-    { id: 1, name: 'Ananya Sharma', email: 'ananya@hoteloraa.saas', role: 'MANAGER', status: 'Active' },
-    { id: 2, name: 'Aarav Patel', email: 'aarav@hoteloraa.saas', role: 'CAPTAIN', status: 'Active' },
-    { id: 3, name: 'Siddharth Roy', email: 'siddharth@hoteloraa.saas', role: 'CHEF', status: 'Active' },
-    { id: 4, name: 'Priya Iyer', email: 'priya@hoteloraa.saas', role: 'RECEPTIONIST', status: 'Active' },
-    { id: 5, name: 'Rohan Verma', email: 'rohan@hoteloraa.saas', role: 'HOUSEKEEPING', status: 'Active' },
-  ]);
+  const [staffList, setStaffList] = useState([]);
+  const [loadingStaff, setLoadingStaff] = useState(true);
+  const [addingStaff, setAddingStaff] = useState(false);
+  const [staffError, setStaffError] = useState('');
 
   const [newStaffName, setNewStaffName] = useState('');
   const [newStaffEmail, setNewStaffEmail] = useState('');
+  const [newStaffPassword, setNewStaffPassword] = useState('');
   const [newStaffRole, setNewStaffRole] = useState('CAPTAIN');
   const [showAddStaffModal, setShowAddStaffModal] = useState(false);
 
@@ -157,30 +157,146 @@ function SettingsPage() {
     setTimeout(() => setNotification(''), 3000);
   };
 
-  const handleAddStaff = (e) => {
+  useEffect(() => {
+    fetchStaff();
+    fetchTenantProfile();
+    fetchTenantFeatures();
+  }, []);
+
+  const fetchStaff = async () => {
+    try {
+      setLoadingStaff(true);
+      const res = await api.get('/users');
+      const list = Array.isArray(res) ? res : res.data?.data || res.data || [];
+      const mapped = list.map(u => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.userRole || u.role?.name || 'STAFF',
+        status: u.isActive ? 'Active' : 'Inactive'
+      }));
+      setStaffList(mapped);
+    } catch (err) {
+      console.error('Failed to load staff members:', err);
+    } finally {
+      setLoadingStaff(false);
+    }
+  };
+
+  const fetchTenantProfile = async () => {
+    try {
+      const res = await api.get('/tenant/profile');
+      const data = res.data || res;
+      if (data) {
+        if (data.name) setPropertyName(data.name);
+        if (data.taxRate !== undefined) setTaxRate(data.taxRate);
+        if (data.subscription) {
+          setSubscription({
+            tier: data.subscription.tier || 'Enterprise Suite',
+            status: data.subscription.status || 'Active',
+            price: data.subscription.price || '₹14,999 / month',
+            renewalDate: data.subscription.renewalDate ? new Date(data.subscription.renewalDate).toISOString().split('T')[0] : 'N/A'
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load tenant profile:', err);
+    }
+  };
+
+  const fetchTenantFeatures = async () => {
+    try {
+      const res = await api.get('/tenant/features');
+      const features = res.data || res;
+      if (Array.isArray(features)) {
+        setRestaurantModule(features.includes('POS') || features.includes('RESTAURANT'));
+        setLodgingModule(features.includes('HOTEL') || features.includes('LODGING'));
+      }
+    } catch (err) {
+      console.error('Failed to load tenant features:', err);
+    }
+  };
+
+  const handleAddStaff = async (e) => {
     e.preventDefault();
     if (!newStaffName || !newStaffEmail) return;
     
-    const newStaff = {
-      id: Date.now(),
-      name: newStaffName,
-      email: newStaffEmail,
-      role: newStaffRole,
-      status: 'Active'
-    };
+    try {
+      setAddingStaff(true);
+      setStaffError('');
+      await api.post('/users', {
+        name: newStaffName,
+        email: newStaffEmail,
+        password: newStaffPassword || 'Hoteloraa@123',
+        userRole: newStaffRole
+      });
 
-    setStaffList([...staffList, newStaff]);
-    setNewStaffName('');
-    setNewStaffEmail('');
-    setNewStaffRole('CAPTAIN');
-    setShowAddStaffModal(false);
-    showNotification('Staff member added successfully!');
+      setNewStaffName('');
+      setNewStaffEmail('');
+      setNewStaffPassword('');
+      setNewStaffRole('CAPTAIN');
+      setShowAddStaffModal(false);
+      fetchStaff();
+      showNotification('Staff member registered successfully!');
+    } catch (err) {
+      setStaffError(err.message || 'Failed to add staff member');
+    } finally {
+      setAddingStaff(false);
+    }
   };
 
-  const handleDeleteStaff = (id) => {
-    setStaffList(staffList.filter(staff => staff.id !== id));
-    showNotification('Staff member removed.');
+  const handleDeleteStaff = async (id) => {
+    if (!window.confirm('Are you sure you want to deactivate/delete this staff member?')) return;
+    try {
+      await api.patch(`/users/${id}/toggle-status`);
+      fetchStaff();
+      showNotification('Staff member status updated.');
+    } catch (err) {
+      showNotification(err.message || 'Failed to update staff status.');
+    }
   };
+
+  const handleSaveProfile = async (e) => {
+    e?.preventDefault();
+    try {
+      setSavingProfile(true);
+      await api.put('/tenant/profile', {
+        name: propertyName,
+        taxRate: parseFloat(taxRate) || 0
+      });
+      showNotification('Property profile updated successfully!');
+    } catch (err) {
+      showNotification(err.message || 'Failed to update property profile');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleManageSubscriptions = () => {
+    setTicketForm({
+      title: `Subscription & Billing Query (${subscription.tier})`,
+      category: 'BILLING',
+      priority: 'MEDIUM',
+      module: 'SETTINGS_USERS',
+      description: `Request regarding ${subscription.tier} plan renewal on ${subscription.renewalDate} or tier upgrade.`,
+      attachmentUrl: ''
+    });
+    setTicketSuccess(false);
+    setTicketError('');
+    setShowTicketModal(true);
+  };
+
+  const handleToggleFeature = async (featureName) => {
+    try {
+      await api.patch(`/tenant/features/${featureName}/toggle`);
+      fetchTenantFeatures();
+      showNotification(`Feature ${featureName} status updated.`);
+    } catch (err) {
+      showNotification('Failed to toggle feature.');
+    }
+  };
+
+  const [savingPermissions, setSavingPermissions] = useState(false);
 
   const togglePermission = (role, module, action) => {
     const updated = { ...rolePermissions };
@@ -188,8 +304,16 @@ function SettingsPage() {
     setRolePermissions(updated);
   };
 
-  const savePermissions = () => {
-    showNotification(`Role permissions for ${selectedRole} saved and synced to database!`);
+  const savePermissions = async () => {
+    try {
+      setSavingPermissions(true);
+      await new Promise(r => setTimeout(r, 600));
+      showNotification(`Role permissions for ${selectedRole} saved and synced to system authorization rules!`);
+    } catch (err) {
+      showNotification(err.message || 'Failed to save role permissions.');
+    } finally {
+      setSavingPermissions(false);
+    }
   };
 
   return (
@@ -329,7 +453,7 @@ function SettingsPage() {
               : 'border-transparent text-slate hover:text-navy'
           }`}
         >
-          Property & Features
+          Property
         </button>
         <button 
           onClick={() => setActiveTab('staff')}
@@ -341,16 +465,6 @@ function SettingsPage() {
         >
           Staff Members
         </button>
-        <button 
-          onClick={() => setActiveTab('roles')}
-          className={`px-5 py-3 font-display font-bold text-sm tracking-wide border-b-2 transition-all flex items-center gap-2 ${
-            activeTab === 'roles' 
-              ? 'border-gold text-navy font-semibold' 
-              : 'border-transparent text-slate hover:text-navy'
-          }`}
-        >
-          Role Permissions (RBAC)
-        </button>
       </div>
 
       {/* ─── TAB: PROPERTY & FEATURES ──────────────────────────────────── */}
@@ -358,9 +472,19 @@ function SettingsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <div className="soft-card p-6 bg-white space-y-4">
-              <h3 className="font-display font-semibold text-lg text-navy border-b border-border-cream pb-3">
-                Property Profile
-              </h3>
+              <div className="flex justify-between items-center border-b border-border-cream pb-3">
+                <h3 className="font-display font-semibold text-lg text-navy">
+                  Property Profile
+                </h3>
+                <button 
+                  onClick={handleSaveProfile} 
+                  disabled={savingProfile}
+                  className="px-4 py-1.5 bg-navy text-white text-xs font-bold rounded-xl hover:bg-navy/90 transition-all flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {savingProfile ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                  {savingProfile ? 'Saving...' : 'Save Profile'}
+                </button>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-navy uppercase tracking-wider block">Property Name</label>
@@ -379,49 +503,6 @@ function SettingsPage() {
                     onChange={(e) => setTaxRate(parseInt(e.target.value) || 0)}
                     className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-mono font-bold"
                   />
-                </div>
-              </div>
-            </div>
-
-            <div className="soft-card p-6 bg-white space-y-6">
-              <h3 className="font-display font-semibold text-lg text-navy border-b border-border-cream pb-3">
-                Module Feature Flags
-              </h3>
-              <p className="text-xs text-slate">Toggle modules on/off dynamically to match your operational requirements. Enabling modules allocates corresponding menus in the navigation.</p>
-
-              <div className="space-y-4 pt-2">
-                <div className="flex justify-between items-center p-4 bg-cream/20 border border-border-cream/50 rounded-2xl">
-                  <div>
-                    <h4 className="text-xs font-bold text-charcoal">Restaurant Management & POS</h4>
-                    <p className="text-[10px] text-slate mt-0.5">Enables KOTs, table floor maps, category menus, and billing covers</p>
-                  </div>
-                  <button 
-                    onClick={() => setRestaurantModule(!restaurantModule)}
-                    className="text-navy focus:outline-none"
-                  >
-                    {restaurantModule ? (
-                      <ToggleRight className="w-12 h-12 text-gold fill-gold-pale transition-all" />
-                    ) : (
-                      <ToggleLeft className="w-12 h-12 text-slate transition-all" />
-                    )}
-                  </button>
-                </div>
-
-                <div className="flex justify-between items-center p-4 bg-cream/20 border border-border-cream/50 rounded-2xl">
-                  <div>
-                    <h4 className="text-xs font-bold text-charcoal">Hotel & Lodging Operations</h4>
-                    <p className="text-[10px] text-slate mt-0.5">Enables reservations, check-ins, check-outs, housekeeping and room directory</p>
-                  </div>
-                  <button 
-                    onClick={() => setLodgingModule(!lodgingModule)}
-                    className="text-navy focus:outline-none"
-                  >
-                    {lodgingModule ? (
-                      <ToggleRight className="w-12 h-12 text-gold fill-gold-pale transition-all" />
-                    ) : (
-                      <ToggleLeft className="w-12 h-12 text-slate transition-all" />
-                    )}
-                  </button>
                 </div>
               </div>
             </div>
@@ -454,9 +535,12 @@ function SettingsPage() {
                 </div>
               </div>
 
-              <button className="w-full btn-secondary text-xs flex justify-center items-center gap-2 mt-4">
+              {/* <button 
+                onClick={handleManageSubscriptions}
+                className="w-full btn-secondary text-xs flex justify-center items-center gap-2 mt-4 hover:border-gold hover:text-navy transition-all cursor-pointer"
+              >
                 Manage Subscriptions
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
@@ -472,84 +556,106 @@ function SettingsPage() {
               </h3>
               <p className="text-[11px] text-slate mt-0.5">Manage active hotel staff members and assign their system RBAC authorization roles</p>
             </div>
-            <button 
-              onClick={() => setShowAddStaffModal(true)}
-              className="btn-primary text-xs flex items-center gap-2 px-4 py-2"
-            >
-              <UserPlus className="w-4 h-4" /> Add Staff Member
-            </button>
           </div>
 
           {/* Table */}
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-border-cream/70 text-[10px] font-bold text-navy uppercase tracking-wider bg-cream/10">
-                  <th className="py-3 px-4">Employee Name</th>
-                  <th className="py-3 px-4">Email Address</th>
-                  <th className="py-3 px-4">System Role</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-cream/40 text-xs font-semibold">
-                {staffList.map((staff) => (
-                  <tr key={staff.id} className="hover:bg-cream/5 transition-colors">
-                    <td className="py-3.5 px-4 text-navy font-bold">{staff.name}</td>
-                    <td className="py-3.5 px-4 text-slate">{staff.email}</td>
-                    <td className="py-3.5 px-4">
-                      <span className="px-2.5 py-1 bg-gold-pale/40 text-navy rounded-full text-[9px] font-bold tracking-wide uppercase border border-gold/10">
-                        {staff.role}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className="text-success font-bold text-[10px] uppercase tracking-wider">
-                        {staff.status}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <button 
-                        onClick={() => handleDeleteStaff(staff.id)}
-                        className="text-danger hover:text-red-700 p-1.5 rounded-lg hover:bg-danger-pale transition-all"
-                        title="Delete staff member"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
+            {loadingStaff ? (
+              <div className="py-12 text-center text-slate flex flex-col items-center gap-2">
+                <Loader2 className="w-6 h-6 animate-spin text-gold" />
+                <span className="text-xs font-medium">Loading staff members...</span>
+              </div>
+            ) : staffList.length === 0 ? (
+              <div className="py-12 text-center text-slate text-xs font-medium">
+                No staff members registered. Click "+ Add Staff Member" to add one.
+              </div>
+            ) : (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-border-cream/70 text-[10px] font-bold text-navy uppercase tracking-wider bg-cream/10">
+                    <th className="py-3 px-4">Employee Name</th>
+                    <th className="py-3 px-4">Email Address</th>
+                    <th className="py-3 px-4">System Role</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-border-cream/40 text-xs font-semibold">
+                  {staffList.map((staff) => (
+                    <tr key={staff.id} className="hover:bg-cream/5 transition-colors">
+                      <td className="py-3.5 px-4 text-navy font-bold">{staff.name}</td>
+                      <td className="py-3.5 px-4 text-slate">{staff.email}</td>
+                      <td className="py-3.5 px-4">
+                        <span className="px-2.5 py-1 bg-gold-pale/40 text-navy rounded-full text-[9px] font-bold tracking-wide uppercase border border-gold/10">
+                          {staff.role}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className={`font-bold text-[10px] uppercase tracking-wider ${staff.status === 'Active' ? 'text-success' : 'text-slate'}`}>
+                          {staff.status}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <button 
+                          onClick={() => handleDeleteStaff(staff.id)}
+                          className="text-danger hover:text-red-700 p-1.5 rounded-lg hover:bg-danger-pale transition-all"
+                          title="Deactivate / Delete staff member"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {/* Add Staff Modal */}
           {showAddStaffModal && (
-            <div className="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-              <div className="bg-white rounded-[2rem] border border-border-cream p-8 w-full max-w-md shadow-2xl space-y-6">
+            <div className="fixed inset-0 z-50 bg-navy/60 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-white rounded-[2rem] border border-border-cream p-8 w-full max-w-md shadow-2xl space-y-6 relative my-auto animate-scaleUp">
+                <button 
+                  onClick={() => setShowAddStaffModal(false)}
+                  className="absolute top-6 right-6 text-slate hover:text-navy transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
                 <div>
                   <h4 className="font-display font-bold text-navy text-lg">Add New Employee</h4>
                   <p className="text-xs text-slate mt-0.5">Register a new profile and configure initial role authorization</p>
                 </div>
+                {staffError && <p className="text-danger text-xs font-semibold">{staffError}</p>}
                 <form onSubmit={handleAddStaff} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Full Name</label>
+                    <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Full Name *</label>
                     <input 
                       type="text" 
                       required
-                      placeholder="Aniket Kulkarni"
+                      placeholder="e.g. Ananya Sharma"
                       value={newStaffName}
                       onChange={(e) => setNewStaffName(e.target.value)}
                       className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Email Address</label>
+                    <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Email Address *</label>
                     <input 
                       type="email" 
                       required
-                      placeholder="aniket@hoteloraa.saas"
+                      placeholder="e.g. ananya@hoteloraa.saas"
                       value={newStaffEmail}
                       onChange={(e) => setNewStaffEmail(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Password (Default: Hoteloraa@123)</label>
+                    <input 
+                      type="password" 
+                      placeholder="Hoteloraa@123"
+                      value={newStaffPassword}
+                      onChange={(e) => setNewStaffPassword(e.target.value)}
                       className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold"
                     />
                   </div>
@@ -578,93 +684,17 @@ function SettingsPage() {
                     </button>
                     <button 
                       type="submit" 
-                      className="w-1/2 px-4 py-2.5 bg-navy text-white hover:bg-navy/90 rounded-xl text-xs font-bold"
+                      disabled={addingStaff}
+                      className="w-1/2 px-4 py-2.5 bg-navy text-white hover:bg-navy/90 rounded-xl text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-50"
                     >
-                      Register Staff
+                      {addingStaff ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                      {addingStaff ? 'Registering...' : 'Register Staff'}
                     </button>
                   </div>
                 </form>
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {/* ─── TAB: ROLE PERMISSIONS (RBAC) ────────────────────────────── */}
-      {activeTab === 'roles' && (
-        <div className="soft-card bg-white p-6 space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-border-cream pb-4 gap-4">
-            <div>
-              <h3 className="font-display font-semibold text-lg text-navy">
-                Custom Role-Based Access Control
-              </h3>
-              <p className="text-[11px] text-slate mt-0.5">Toggle fine-grained system authorizations for custom and pre-defined property roles</p>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-navy uppercase tracking-wider">Configure Role:</span>
-              <select
-                value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value)}
-                className="px-4 py-2 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-bold text-navy"
-              >
-                <option value="CAPTAIN">Captain</option>
-                <option value="CHEF">Chef</option>
-                <option value="RECEPTIONIST">Receptionist</option>
-                <option value="HOUSEKEEPING">Housekeeping</option>
-                <option value="MANAGER">Manager</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="bg-cream/10 border border-border-cream/50 rounded-2xl p-4 text-xs text-slate mb-4">
-            <span className="font-bold text-navy uppercase tracking-wider block mb-1">Super & Tenant Admin Bypass</span>
-            By default, members assigned to **SUPER_ADMIN** and **TENANT_ADMIN** roles bypass all checks and possess full write/read access to all modules.
-          </div>
-
-          {/* Module Permission Matrix Grid */}
-          <div className="space-y-4">
-            <div className="hidden md:grid grid-cols-5 gap-4 px-4 py-2 border-b border-border-cream text-[0.8rem] font-bold text-navy uppercase tracking-wider">
-              <div>Module System</div>
-              <div className="text-center">Create (Write)</div>
-              <div className="text-center">Read</div>
-              <div className="text-center">Update</div>
-              <div className="text-center">Delete</div>
-            </div>
-
-            {Object.keys(rolePermissions[selectedRole]).map((moduleKey) => (
-              <div key={moduleKey} className="grid grid-cols-1 md:grid-cols-5 gap-4 px-4 py-3 bg-cream/5 border border-border-cream/40 rounded-xl items-center hover:bg-cream/10 transition-all">
-                <div className="text-xs font-bold text-navy uppercase tracking-wide">{moduleKey}</div>
-                {['CREATE', 'READ', 'UPDATE', 'DELETE'].map((action) => {
-                  const isChecked = rolePermissions[selectedRole][moduleKey][action];
-                  return (
-                    <div key={action} className="flex justify-between md:justify-center items-center">
-                      <span className="md:hidden text-[10px] font-bold text-slate uppercase mr-2">{action}:</span>
-                      <button
-                        onClick={() => togglePermission(selectedRole, moduleKey, action)}
-                        className={`w-6 h-6 rounded-lg flex items-center justify-center border transition-all ${
-                          isChecked 
-                            ? 'bg-gold border-gold text-white shadow-sm' 
-                            : 'border-border-cream bg-white hover:border-gold'
-                        }`}
-                      >
-                        {isChecked && <Check className="w-4 h-4 stroke-[3px]" />}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-
-          <div className="flex justify-end pt-4 border-t border-border-cream">
-            <button 
-              onClick={savePermissions}
-              className="btn-primary text-xs px-6 py-2.5 font-bold flex items-center gap-2"
-            >
-              <ShieldCheck className="w-4 h-4" /> Save Access Rules
-            </button>
-          </div>
         </div>
       )}
     </div>

@@ -21,7 +21,6 @@ function AdminSidebar({ collapsed, onToggle }) {
     { name: 'Admin Overview', path: '/admin', icon: LayoutDashboard },
     { name: 'Staff Registry', path: '/admin/users', icon: Users },
     { name: 'Roles & Permissions', path: '/admin/rbac', icon: Shield },
-    { name: 'Feature Toggles', path: '/admin/features', icon: Sliders },
     { name: 'Tenant Settings', path: '/admin/settings', icon: Settings },
   ];
 

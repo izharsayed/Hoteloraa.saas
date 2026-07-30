@@ -414,7 +414,7 @@ function Rooms() {
             <div className="space-y-3">
               <span className="text-slate text-[10px] font-bold uppercase tracking-wider block">Update Status</span>
               <div className="grid grid-cols-3 gap-2">
-                {['Available', 'Occupied', 'Dirty', 'Cleaning', 'Maintenance', 'Reserved'].map((status) => (
+                {['Available', 'Dirty', 'Cleaning', 'Maintenance', 'Reserved'].map((status) => (
                   <button
                     key={status}
                     onClick={() => handleStatusChange(editingRoom.number, status)}

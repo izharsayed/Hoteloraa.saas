@@ -19,7 +19,7 @@ var _errormiddleware = require('../../middleware/error.middleware');
     }
 
     const result = await dashboardService.getDashboard(tenantId, tenant.businessType);
-    _helpers.sendSuccess.call(void 0, res, result, 'Dashboard metrics retrieved successfully');
+    _helpers.sendSuccess.call(void 0, res, { ...result, businessType: tenant.businessType }, 'Dashboard metrics retrieved successfully');
   } catch (err) {
     next(err);
   }

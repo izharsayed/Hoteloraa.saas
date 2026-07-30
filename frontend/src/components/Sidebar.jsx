@@ -43,7 +43,8 @@ function Sidebar({ collapsed, onToggle }) {
     if (userJson) user = JSON.parse(userJson);
   } catch (e) { }
 
-  const businessType = user.businessType || 'HOTEL_RESTAURANT';
+  const rawType = user.tenant?.businessType || user.businessType || 'HOTEL';
+  const businessType = (rawType === 'HOTEL' || rawType === 'LODGING') ? 'LODGING' : rawType;
   const role = user.userRole;
 
   const initials = user.name

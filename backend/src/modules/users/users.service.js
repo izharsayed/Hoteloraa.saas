@@ -33,14 +33,12 @@ const shouldIncludeInactive = (queryOrFlag) => {
  const getUsers = async (tenantId, queryOrFlag = {}) => {
   const query = typeof queryOrFlag === 'object' && queryOrFlag !== null ? queryOrFlag : {};
   const { skip, take } = parsePagination(query);
-  const includeInactive = shouldIncludeInactive(queryOrFlag);
+  // Default to true so deactivated/suspended staff remain visible in staff management directory
+  const includeInactive = query.includeInactive === 'false' ? false : true;
 
   return _database2.default.user.findMany({
     where: {
       tenantId,
-      // By default only return active users so deactivated staff
-      // don't reappear in the directory on refresh.
-      // Pass includeInactive=true to see the full list (e.g. SuperAdmin audit).
       ...(includeInactive ? {} : { isActive: true }),
     },
     select: {

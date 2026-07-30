@@ -149,14 +149,11 @@ function Reports() {
           {/* KPI Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {kpis.map((kpi, index) => (
-              <div key={index} className="soft-card p-6 bg-white flex flex-col justify-between h-40">
+              <div key={index} className="soft-card p-6 bg-white flex flex-col justify-start">
                 <div>
                   <span className="text-xs font-bold text-slate uppercase tracking-wider block">{kpi.name}</span>
                   <h3 className="font-mono font-bold text-2xl text-navy mt-2">{kpi.value}</h3>
-                </div>
-                <div className="border-t border-border-cream/50 pt-3 mt-4 flex items-center justify-between text-xs">
-                  <span className="text-slate text-[10px] leading-relaxed">{kpi.desc}</span>
-                  <span className="text-success font-bold flex items-center gap-0.5"><ArrowUpRight className="w-3.5 h-3.5" />{kpi.change}</span>
+                  <p className="text-[10px] text-slate mt-2 leading-relaxed">{kpi.desc}</p>
                 </div>
               </div>
             ))}

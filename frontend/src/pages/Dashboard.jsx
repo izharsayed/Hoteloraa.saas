@@ -27,14 +27,16 @@ function Dashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [revenueTimeframe, setRevenueTimeframe] = useState('daily');
 
   const userJson = localStorage.getItem('user');
-  let user = { businessType: 'HOTEL_RESTAURANT' };
+  let user = { businessType: 'HOTEL' };
   try {
     if (userJson) user = JSON.parse(userJson);
   } catch (e) {}
 
-  const businessType = user.businessType || 'HOTEL_RESTAURANT';
+  const rawType = data?.businessType || user.tenant?.businessType || user.businessType || 'HOTEL';
+  const businessType = (rawType === 'HOTEL' || rawType === 'LODGING') ? 'LODGING' : rawType;
 
   // Support Ticket Modal States
   const [showTicketModal, setShowTicketModal] = useState(false);
@@ -227,12 +229,13 @@ function Dashboard() {
       };
     });
 
+    const restBreakdown = data?.revenueBreakdown?.[revenueTimeframe] || { total: todayRevenue, dineIn: data?.dineInSales || 0, takeaway: data?.takeawaySales || 0 };
     revenueHighlights = {
-      netSales: todayRevenue,
+      netSales: restBreakdown.total,
       title: 'Restaurant Sales',
       items: [
-        { label: 'Dine-In Sales', value: data?.dineInSales || 0 },
-        { label: 'Takeaways & Delivery', value: data?.takeawaySales || 0 }
+        { label: 'Dine-In Sales', value: restBreakdown.dineIn || 0 },
+        { label: 'Takeaways & Delivery', value: restBreakdown.takeaway || 0 }
       ]
     };
 
@@ -243,12 +246,12 @@ function Dashboard() {
     const todayCheckIns = data?.todayCheckIns || 0;
     const todayRevenue = data?.todayRevenue || 0;
 
-    const occupancyRate = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+    const vacantCount = Math.max(0, totalRooms - occupiedRooms);
 
     metrics = [
       {
         title: 'Total Lodging Occupancy',
-        value: `${occupancyRate}%`,
+        value: String(vacantCount),
         subtitle: `${occupiedRooms} of ${totalRooms} Rooms Booked`,
         icon: Bed,
         color: 'text-navy',
@@ -290,12 +293,13 @@ function Dashboard() {
       };
     });
 
+    const lodgingBreakdown = data?.revenueBreakdown?.[revenueTimeframe] || { total: todayRevenue, bookings: data?.roomBookings || 0, service: data?.roomService || 0 };
     revenueHighlights = {
-      netSales: todayRevenue,
+      netSales: lodgingBreakdown.total,
       title: 'Lodging Sales',
       items: [
-        { label: 'Room Bookings', value: data?.roomBookings || 0 },
-        { label: 'Room Service & Laundry', value: data?.roomService || 0 }
+        { label: 'Room Bookings', value: lodgingBreakdown.bookings || 0 },
+        { label: 'Room Service & Laundry', value: lodgingBreakdown.service || 0 }
       ]
     };
 
@@ -304,12 +308,12 @@ function Dashboard() {
     const lodging = data?.lodging || {};
     const combinedTodayRevenue = data?.combinedTodayRevenue || 0;
 
-    const occupancyRate = lodging.totalRooms > 0 ? Math.round((lodging.occupiedRooms / lodging.totalRooms) * 100) : 0;
+    const lodgingVacantCount = Math.max(0, (lodging.totalRooms || 0) - (lodging.occupiedRooms || 0));
 
     metrics = [
       {
         title: 'Total Lodging Occupancy',
-        value: `${occupancyRate}%`,
+        value: String(lodgingVacantCount),
         subtitle: `${lodging.occupiedRooms || 0} of ${lodging.totalRooms || 0} Rooms Booked`,
         icon: Bed,
         color: 'text-navy',
@@ -361,14 +365,18 @@ function Dashboard() {
       .sort((a, b) => b.createdAt - a.createdAt)
       .slice(0, 8);
 
+    const restBreakdown = restaurant.revenueBreakdown?.[revenueTimeframe] || { total: restaurant.todayRevenue || 0, dineIn: restaurant.dineInSales || 0, takeaway: restaurant.takeawaySales || 0 };
+    const lodgingBreakdown = lodging.revenueBreakdown?.[revenueTimeframe] || { total: lodging.todayRevenue || 0, bookings: lodging.roomBookings || 0, service: lodging.roomService || 0 };
+    const netTotal = (restBreakdown.total || 0) + (lodgingBreakdown.total || 0);
+
     revenueHighlights = {
-      netSales: combinedTodayRevenue,
+      netSales: netTotal,
       title: 'Room & Table Sales',
       items: [
-        { label: 'Room Bookings', value: lodging.roomBookings || 0 },
-        { label: 'Restaurant Dining', value: restaurant.dineInSales || 0 },
-        { label: 'Takeaways & Delivery', value: restaurant.takeawaySales || 0 },
-        { label: 'Room Service & Laundry', value: lodging.roomService || 0 }
+        { label: 'Room Bookings', value: lodgingBreakdown.bookings || 0 },
+        { label: 'Restaurant Dining', value: restBreakdown.dineIn || 0 },
+        { label: 'Takeaways & Delivery', value: restBreakdown.takeaway || 0 },
+        { label: 'Room Service & Laundry', value: lodgingBreakdown.service || 0 }
       ]
     };
   }
@@ -537,22 +545,35 @@ function Dashboard() {
         {/* Brand/Revenue Split Card */}
         <div className="soft-card p-6 flex flex-col justify-between bg-white text-navy hover:border-gold">
           <div>
-            <h3 className="font-display font-bold text-2xl text-navy">{revenueHighlights.title}</h3>
+            <div className="flex justify-between items-center border-b border-border-cream/60 pb-3 mb-6 gap-2">
+              <h3 className="font-display font-bold text-2xl text-navy">{revenueHighlights.title}</h3>
+              <select
+                value={revenueTimeframe}
+                onChange={(e) => setRevenueTimeframe(e.target.value)}
+                className="px-3 py-1.5 bg-cream/10 border border-border-cream rounded-xl text-xs font-bold text-navy focus:outline-none focus:border-gold cursor-pointer"
+              >
+                <option value="daily">Daily (Today)</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+            </div>
 
-            <div className="mt-8 space-y-4">
+            <div className="space-y-4">
               {revenueHighlights.items.map((item, idx) => (
                 <div key={idx} className={`flex justify-between items-center ${idx < revenueHighlights.items.length - 1 ? 'border-b border-border-cream/60 pb-2.5' : ''}`}>
                   <span className="text-sm text-slate font-medium">{item.label}</span>
-                  <span className="font-mono text-base text-navy font-bold">₹{item.value.toLocaleString()}</span>
+                  <span className="font-mono text-base text-navy font-bold">₹{(item.value || 0).toLocaleString()}</span>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="border-t border-border-cream pt-4 mt-6 flex justify-between items-center">
-            <span className="text-sm text-navy font-bold uppercase tracking-wider">Net Sales</span>
+            <span className="text-sm text-navy font-bold uppercase tracking-wider">
+              {revenueTimeframe === 'monthly' ? 'Monthly Net Sales' : revenueTimeframe === 'yearly' ? 'Yearly Net Sales' : 'Net Sales'}
+            </span>
             <span className="font-mono text-2xl text-navy font-extrabold">
-              ₹{revenueHighlights.netSales.toLocaleString()}
+              ₹{(revenueHighlights.netSales || 0).toLocaleString()}
             </span>
           </div>
         </div>
