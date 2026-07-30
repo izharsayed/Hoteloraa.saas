@@ -17,6 +17,7 @@ export const getNavigationGroups = (user) => {
         { name: 'Dashboard', view: 'dashboard', icon: 'bar-chart', module: 'dashboard', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'ACCOUNTANT'] },
         { name: 'Operations Hub', view: 'manager_hub', icon: 'settings', module: 'settings', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
         { name: 'My Attendance', view: 'attendance', icon: 'time', module: 'attendance' },
+        { name: 'Support Tickets', view: 'tickets', icon: 'help-buoy', roles: ['MANAGER', 'TENANT_ADMIN', 'ACCOUNTANT', 'RECEPTIONIST', 'CASHIER', 'CHEF', 'HOUSEKEEPING'] },
         { name: 'Reports & Analytics', view: 'reports', icon: 'trending-up', module: 'reports', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'ACCOUNTANT'] },
       ]
     },

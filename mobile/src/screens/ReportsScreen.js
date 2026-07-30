@@ -18,7 +18,15 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
   const [occupancy, setOccupancy] = useState(null);
   const [revenue, setRevenue] = useState(null);
   const [sales, setSales] = useState([]);
-  const [datesRange, setDatesRange] = useState({ start: '', end: '' });
+  const [datesRange, setDatesRange] = useState(() => {
+    const today = new Date();
+    const startDate = new Date();
+    startDate.setDate(today.getDate() - 6);
+    return {
+      start: startDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+      end: today.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+    };
+  });
 
   const fetchReports = async () => {
     try {
@@ -80,17 +88,25 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
   ];
 
   // 5. Timeline Chart Data (Weekly Occupancy Timeline)
+  const getDemoTimelineData = () => {
+    const demoRates = [62, 68, 70, 75, 78, 82, 78];
+    const today = new Date();
+    const demoTimeline = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      const dayStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+      demoTimeline.push({
+        date: dayStr,
+        rate: demoRates[6 - i]
+      });
+    }
+    return demoTimeline;
+  };
+
   const timelineData = !isDemo && occupancy?.dailyTimeline?.length > 0
     ? occupancy.dailyTimeline
-    : [
-        { date: '13 Jun', rate: 62 },
-        { date: '14 Jun', rate: 68 },
-        { date: '15 Jun', rate: 70 },
-        { date: '16 Jun', rate: 75 },
-        { date: '17 Jun', rate: 78 },
-        { date: '18 Jun', rate: 82 },
-        { date: '19 Jun', rate: 78 }
-      ];
+    : getDemoTimelineData();
 
   // 6. Revenue Split Module Data
   let lodgingRevNum = 85000;
