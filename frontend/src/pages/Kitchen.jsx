@@ -153,8 +153,7 @@ function Kitchen() {
             Active kitchen order tickets. Orders flagged red are delayed and need priority.
           </p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-navy text-gold rounded-xl font-mono text-sm font-semibold border border-gold/20 shadow-sm">
-          <ChefHat className="w-5 h-5" />
+        <div className="flex items-center gap-2 px-4 py-2 bg-navy text-white rounded-xl font-mono text-sm font-semibold border border-gold/20 shadow-sm">
           <span>Active Tickets: {tickets.length}</span>
         </div>
       </div>
@@ -163,7 +162,7 @@ function Kitchen() {
       <div className="flex-1 min-h-0 flex flex-col xl:flex-row gap-6 overflow-hidden">
         
         {/* KOT Columns */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto pr-2">
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         
         {/* Pending Column */}
         <div className="bg-[#FEF9F1] border border-border-cream/80 rounded-2xl flex flex-col h-full min-h-[300px]">
@@ -395,7 +394,7 @@ function Kitchen() {
         <div className="w-full xl:w-80 bg-[#FEF9F1] border border-border-cream/80 rounded-2xl flex flex-col h-full min-h-[300px] shrink-0">
           <div className="p-4 border-b border-border-cream/80 bg-white/50 rounded-t-2xl flex justify-between items-center border-t-4 border-navy">
             <h3 className="text-xs font-bold text-navy uppercase tracking-wider">Aggregated Dishes</h3>
-            <span className="font-mono text-xs px-2 py-0.5 bg-navy text-gold font-bold rounded-lg border border-gold/20">
+            <span className="font-mono text-xs px-2 py-0.5 bg-navy text-white font-bold rounded-lg border border-gold/20">
               {aggregatedItems.reduce((acc, curr) => acc + curr.qty, 0)} Total
             </span>
           </div>

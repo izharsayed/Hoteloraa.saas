@@ -357,7 +357,7 @@ function Orders() {
                         ${colorClass} hover:scale-105 hover:shadow-md
                       `}>
                         <span className="font-bold text-sm">{table.name}</span>
-                        <span className="text-[9px] opacity-75 font-semibold mt-1">{table.capacity} Pax</span>
+                        <span className="text-xs opacity-75 font-semibold mt-1">{table.capacity} Pax</span>
                       </div>
                     </div>
                   );
@@ -570,19 +570,21 @@ function Orders() {
         )
       ) : (
         /* ======================== HISTORY VIEW ======================== */
-        <div className="flex-1 flex flex-col bg-white border border-border-cream rounded-2xl p-6 min-h-0">
-          <div className="flex justify-between items-center border-b border-border-cream pb-3 mb-4 shrink-0">
+        <div className="flex-1 flex flex-col min-h-0 space-y-4">
+          <div className="flex justify-between items-center shrink-0">
             <div>
-              <h3 className="font-display font-bold text-navy text-lg">Active & Recent Orders</h3>
+              <h3 className="font-display font-bold text-navy text-[1.4rem]">Active & Recent Orders</h3>
               <p className="text-slate text-xs mt-0.5">Manage existing running tables, add extra items, void entries or change status</p>
             </div>
             <button 
               onClick={() => loadOrders()}
-              className="px-3 py-1.5 bg-cream/40 text-navy font-bold text-xs rounded-xl hover:bg-cream/60 transition-all border border-border-cream/50"
+              className="px-3.5 py-1.5 bg-white text-navy font-bold text-xs rounded-xl hover:bg-cream/30 transition-all border border-border-cream shadow-sm"
             >
               Refresh Orders
             </button>
           </div>
+
+          <div className="flex-1 flex flex-col bg-white border border-border-cream rounded-2xl p-6 min-h-0">
 
           <div className="flex-1 overflow-y-auto pr-1">
             {orders.length === 0 ? (
@@ -664,7 +666,8 @@ function Orders() {
             )}
           </div>
         </div>
-      )}
+      </div>
+    )}
 
       {/* ======================== EDIT ORDER MODAL ======================== */}
       {editingOrder && (

@@ -346,7 +346,7 @@ function Captain() {
                           ${colorClass} hover:scale-105 hover:shadow-md
                         `}>
                           <span className="font-bold text-sm">{table.name}</span>
-                          <span className="text-[9px] opacity-75 font-semibold mt-1">{table.capacity} Pax</span>
+                          <span className="text-xs opacity-75 font-semibold mt-1">{table.capacity} Pax</span>
                         </div>
                       </div>
                     );

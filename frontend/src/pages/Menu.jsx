@@ -420,67 +420,68 @@ function Menu() {
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto min-h-0 pr-1">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
             {filteredItems.map((item) => (
               <div 
                 key={item.id} 
-                className="soft-card p-4 bg-white flex gap-4 h-48 border border-border-cream/60 hover:border-gold/40 hover:shadow-md transition-all rounded-2xl"
+                className="soft-card p-3.5 bg-white flex gap-3 h-48 border border-border-cream/60 hover:border-gold/40 hover:shadow-md transition-all rounded-2xl min-w-0 overflow-hidden"
               >
                 {/* Left side: Image */}
-                <div className="w-28 h-full shrink-0 relative rounded-xl overflow-hidden border border-border-cream/40 bg-cream/35 flex items-center justify-center">
+                <div className="w-20 sm:w-24 h-full shrink-0 relative rounded-xl overflow-hidden border border-border-cream/40 bg-cream/35 flex items-center justify-center">
                   {item.imageUrl ? (
                     <img src={getImageUrl(item.imageUrl)} alt={item.name} className="w-full h-full object-cover" />
                   ) : (
-                    <Utensils className="w-10 h-10 text-slate/30" />
+                    <Utensils className="w-8 h-8 text-slate/30" />
                   )}
-                  <span className={`absolute top-2 left-2 w-3.5 h-3.5 rounded-full border-2 border-white ${item.isVeg ? 'bg-success' : 'bg-danger'}`} />
+                  <span className={`absolute top-2 left-2 w-3 h-3 rounded-full border-2 border-white ${item.isVeg ? 'bg-success' : 'bg-danger'}`} />
                 </div>
 
                 {/* Right side: details */}
-                <div className="flex-1 flex flex-col justify-between min-w-0">
+                <div className="flex-1 flex flex-col justify-between min-w-0 overflow-hidden">
                   <div className="min-w-0">
                     <div className="flex justify-between items-start gap-1">
                       <div className="min-w-0 flex-1">
                         <span className="text-[8px] text-slate font-bold uppercase tracking-wider font-mono block">ID: {item.id.slice(0, 8)}</span>
                         <h3 className="font-display font-bold text-sm text-navy truncate mt-0.5">{item.name}</h3>
                       </div>
-                      <span className={`px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-wider shrink-0 ${
+                      <span className={`px-1.5 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-wider shrink-0 ${
                         item.isAvailable ? 'bg-success-pale text-success' : 'bg-danger-pale text-danger'
                       }`}>
                         {item.isAvailable ? 'Active' : 'Paused'}
                       </span>
                     </div>
 
-                    <span className="text-[10px] text-gold font-bold uppercase tracking-wide bg-navy/5 px-2 py-0.5 rounded-md mt-1.5 inline-block">
+                    <span className="text-[10px] text-gold font-bold uppercase tracking-wide bg-navy/5 px-2 py-0.5 rounded-md mt-1 inline-block">
                       {item.menuCategory?.name || 'Unassigned'}
                     </span>
-                    <p className="text-slate text-[10px] mt-2 leading-normal line-clamp-2 font-medium">{item.description || 'No description provided.'}</p>
+                    <p className="text-slate text-[10px] mt-1.5 leading-normal line-clamp-2 font-medium">{item.description || 'No description provided.'}</p>
                   </div>
 
                   {/* Actions */}
-                  <div className="border-t border-border-cream/50 pt-2 flex items-center justify-between">
-                    <div className="flex items-center gap-1 bg-cream/10 border border-border-cream/60 rounded-lg px-2 py-1">
+                  <div className="border-t border-border-cream/50 pt-2 flex items-center justify-between gap-1 min-w-0">
+                    <div className="flex items-center gap-0.5 bg-cream/10 border border-border-cream/60 rounded-lg px-1 py-0.5 shrink-0">
                       <span className="text-navy text-[11px] font-bold font-mono">₹</span>
                       <input 
                         type="number"
                         defaultValue={item.price}
                         onBlur={(e) => handlePriceChange(item.id, parseFloat(e.target.value))}
-                        className="w-12 bg-transparent focus:outline-none text-[11px] font-mono font-bold text-navy"
+                        className="w-10 bg-transparent focus:outline-none text-[11px] font-mono font-bold text-navy"
                       />
                     </div>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1 shrink-0">
                       <button 
                         onClick={() => openRecipeModal(item)}
-                        className="px-2 py-1 text-[10px] font-bold rounded-lg border border-gold/40 text-navy bg-gold-pale/30 hover:bg-gold-pale flex items-center gap-1 transition-all"
+                        className="px-1.5 py-1 text-[10px] font-bold rounded-lg border border-gold/40 text-navy bg-gold-pale/30 hover:bg-gold-pale flex items-center gap-1 transition-all shrink-0"
                         title="Configure Recipe Ingredients"
                       >
-                        <BookOpen className="w-3 h-3 text-gold" /> Recipe
+                        <BookOpen className="w-3 h-3 text-gold shrink-0" />
+                        <span className="hidden min-[1400px]:inline">Recipe</span>
                       </button>
                       <button 
                         onClick={() => handleStatusToggle(item.id, item.isAvailable)}
                         className={`
-                          px-2.5 py-1 text-[10px] font-bold rounded-lg border transition-all
+                          px-1.5 py-1 text-[10px] font-bold rounded-lg border transition-all shrink-0
                           ${item.isAvailable 
                             ? 'bg-white border-danger/30 text-danger hover:bg-danger-pale' 
                             : 'bg-white border-success/30 text-success hover:bg-success-pale'
@@ -491,7 +492,7 @@ function Menu() {
                       </button>
                       <button 
                         onClick={() => handleDeleteItem(item.id)}
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg border border-red-100 hover:border-red-200 transition-all"
+                        className="p-1 text-red-500 hover:bg-red-50 rounded-lg border border-red-100 hover:border-red-200 transition-all shrink-0"
                         title="Delete Item"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -848,9 +849,8 @@ function Menu() {
       {recipeItem && (
         <div className="fixed inset-0 bg-navy/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
           <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-border-cream flex justify-between items-center bg-cream/20">
+            <div className="px-6 py-4 border-b border-border-cream flex justify-between items-center bg-cream/20">
               <div>
-                <span className="text-[9px] font-bold text-gold uppercase tracking-wider block">Bill of Materials / Ingredients</span>
                 <h3 className="font-display font-bold text-lg text-navy">{recipeItem.name}</h3>
               </div>
               <button 

@@ -407,7 +407,6 @@ function Rooms() {
             </button>
 
             <div className="border-b border-border-cream pb-3 mb-4">
-              <span className="text-[10px] text-slate font-bold uppercase tracking-wider">ROOM OPERATIONS</span>
               <h3 className="font-display font-bold text-lg text-navy mt-0.5">Room {editingRoom.number}</h3>
               <p className="text-xs text-slate mt-0.5">{editingRoom.type} | Status: <strong className="text-navy">{editingRoom.status}</strong></p>
             </div>
@@ -470,7 +469,6 @@ function Rooms() {
             </button>
 
             <div className="border-b border-border-cream pb-2 mb-3.5">
-              <span className="text-[9px] text-slate font-bold uppercase tracking-wider">ROOM MANAGEMENT</span>
               <h3 className="font-display font-bold text-lg text-navy mt-0.5">Add New Room</h3>
               <p className="text-[11px] text-slate mt-0.5">Configure room specs, floor allocation, photos, and optional amenities</p>
             </div>
@@ -673,7 +671,7 @@ function Rooms() {
                   className="px-6 py-2.5 btn-primary flex items-center justify-center gap-1.5 text-xs"
                   disabled={submitting}
                 >
-                  {submitting ? 'Creating...' : 'Create Room ✓'}
+                  {submitting ? 'Creating...' : 'Create Room'}
                 </button>
               </div>
             </form>
@@ -697,7 +695,6 @@ function Rooms() {
             </button>
 
             <div className="border-b border-border-cream pb-3 mb-5">
-              <span className="text-[10px] text-slate font-bold uppercase tracking-wider">ROOM CONFIGURATION</span>
               <h3 className="font-display font-bold text-xl text-navy mt-0.5">Add Room Type</h3>
               <p className="text-xs text-slate mt-0.5">Define pricing tier, base rate, occupancy rules, and room amenities</p>
             </div>
@@ -784,7 +781,7 @@ function Rooms() {
                   className="px-6 py-2.5 btn-primary flex items-center justify-center gap-1.5 text-xs"
                   disabled={submittingType}
                 >
-                  {submittingType ? 'Creating...' : 'Create Room Type ✓'}
+                  {submittingType ? 'Creating...' : 'Create Room Type'}
                 </button>
               </div>
             </form>

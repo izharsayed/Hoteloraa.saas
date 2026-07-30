@@ -1726,7 +1726,7 @@ function NewReservationWizard({ onClose, onSuccess }) {
                               }`}
                             >
                               {isSelected ? <CheckCircle className="w-3.5 h-3.5" /> : null}
-                              {isSelected ? 'Selected ✓' : 'Select Room'}
+                              {isSelected ? 'Selected' : 'Select Room'}
                             </button>
                           </div>
                         </div>
@@ -1832,9 +1832,9 @@ function NewReservationWizard({ onClose, onSuccess }) {
                       <button
                         disabled={!selectedRoom}
                         onClick={() => setViewStep('guest')}
-                        className="w-full mt-4 bg-navy text-gold hover:bg-navy/90 disabled:opacity-40 font-bold text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                        className="w-full mt-4 bg-navy text-white hover:bg-navy/90 disabled:opacity-40 font-bold text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
                       >
-                        Continue to Guest Details →
+                        Continue to Guest Details
                       </button>
                     ) : (
                       <button
@@ -1842,7 +1842,7 @@ function NewReservationWizard({ onClose, onSuccess }) {
                         onClick={() => submitReservation('CONFIRMED')}
                         className="w-full mt-4 bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-40 font-bold text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
                       >
-                        {saving ? 'Creating Reservation...' : 'Confirm Reservation ✓'}
+                        {saving ? 'Creating Reservation...' : 'Confirm Reservation'}
                       </button>
                     )}
                   </div>
@@ -2093,13 +2093,13 @@ function Reservations() {
             </thead>
             <tbody className="divide-y divide-border-cream/30">
               {loading ? (
-                <tr><td colSpan={8} className="py-12 text-center">
+                <tr><td colSpan={8} className="py-24 text-center">
                   <div className="flex items-center justify-center gap-2 text-slate text-sm font-semibold">
                     <RefreshCw className="w-4 h-4 animate-spin text-gold" /> Loading reservations...
                   </div>
                 </td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={8} className="py-12 text-center">
+                <tr><td colSpan={8} className="py-24 text-center">
                   <CalendarRange className="w-10 h-10 text-slate/20 mx-auto mb-2" />
                   <p className="text-sm font-semibold text-slate">No reservations found</p>
                   <button onClick={() => setShowWizard(true)} className="mt-2 text-gold text-xs font-bold hover:underline">+ Create first booking</button>

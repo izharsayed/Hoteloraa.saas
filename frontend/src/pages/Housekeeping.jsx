@@ -136,14 +136,14 @@ function Housekeeping() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         {/* Left Side: Active Cleaning Tasks */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="soft-card p-6 bg-white">
-            <h3 className="font-display font-semibold text-lg text-navy mb-4">Pending Cleaning Queue</h3>
+        <div className="lg:col-span-2">
+          <div className="soft-card p-6 bg-white h-full min-h-[540px] flex flex-col">
+            <h3 className="font-display font-semibold text-lg text-navy mb-4 flex-shrink-0">Pending Cleaning Queue</h3>
             
             {loading ? (
-              <div className="flex items-center justify-center py-12 gap-2 text-slate text-sm font-semibold">
+              <div className="flex-1 flex items-center justify-center py-12 gap-2 text-slate text-sm font-semibold">
                 <RefreshCw className="w-4 h-4 animate-spin text-gold" />
                 Loading cleaning queue...
               </div>
@@ -152,7 +152,7 @@ function Housekeeping() {
                 {error}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="flex-1 flex flex-col justify-center space-y-4">
                 {housekeepingList.map((task) => {
                   const isDirty = task.status === 'PENDING';
                   const uiStatus = isDirty ? 'Dirty' : 'Cleaning';
@@ -216,9 +216,9 @@ function Housekeeping() {
                   );
                 })}
                 {housekeepingList.length === 0 && (
-                  <div className="py-12 text-center text-slate space-y-2">
-                    <CheckCircle2 className="w-12 h-12 text-success mx-auto" />
-                    <p className="font-bold text-charcoal">All Rooms Cleaned</p>
+                  <div className="flex-1 flex flex-col items-center justify-center py-20 text-center text-slate space-y-2">
+                    <CheckCircle2 className="w-14 h-14 text-success mx-auto mb-1" />
+                    <p className="font-bold text-charcoal text-base">All Rooms Cleaned</p>
                     <p className="text-xs text-slate">Ready for new guest check-ins.</p>
                   </div>
                 )}
@@ -228,11 +228,11 @@ function Housekeeping() {
         </div>
 
         {/* Right Side: Staff list & roster */}
-        <div className="soft-card p-6 bg-white h-fit space-y-4">
-          <h3 className="font-display font-semibold text-navy text-sm border-b border-border-cream pb-3 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-gold" /> Housekeeping Roster
+        <div className="soft-card p-6 bg-white h-full min-h-[540px] space-y-4 flex flex-col">
+          <h3 className="font-display font-semibold text-navy text-sm border-b border-border-cream pb-3 flex-shrink-0">
+            Housekeeping Roster
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-3 flex-1 overflow-y-auto min-h-0">
             {staff.map((u, index) => (
               <div key={u.id || index} className="flex items-center justify-between p-3 bg-cream/20 border border-border-cream/50 rounded-xl">
                 <div className="flex items-center gap-3">

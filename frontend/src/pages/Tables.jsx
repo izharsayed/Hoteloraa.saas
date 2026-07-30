@@ -28,6 +28,16 @@ function Tables() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // Auto-dismiss success toaster after 3 seconds
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        setSuccess('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [success]);
+
   // Add Table Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newTableName, setNewTableName] = useState('');
@@ -301,7 +311,7 @@ function Tables() {
 
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#0B1F3A] hover:bg-[#142d50] text-gold text-xs font-bold rounded-xl transition-all shadow-md"
+            className="flex items-center gap-2 px-4 py-2 bg-[#0B1F3A] hover:bg-[#142d50] text-white text-xs font-bold rounded-xl transition-all shadow-md"
           >
             <Plus className="w-4 h-4" />
             <span>Add Table</span>
@@ -380,7 +390,7 @@ function Tables() {
                         }
                       `}>
                         <span className="font-bold text-xs tracking-tight">{table.name}</span>
-                        <span className="text-[9px] opacity-75 font-semibold mt-0.5">{table.capacity} Pax</span>
+                        <span className="text-xs opacity-75 font-semibold mt-0.5">{table.capacity} Pax</span>
                       </div>
                     </div>
                     <span className="text-[10px] text-slate font-bold uppercase tracking-wider">

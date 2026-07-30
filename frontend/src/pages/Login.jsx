@@ -624,56 +624,6 @@ function Login() {
                   {loading ? 'Signing In...' : 'Sign In'}
                 </button>
               </form>
-
-              {/* Divider */}
-              <div className="relative w-full my-5">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/25"></div>
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-white/70 backdrop-blur-md px-3.5 py-0.5 text-navy font-black uppercase tracking-widest text-[9px] rounded-full border border-white/50 shadow-sm flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
-                    Quick Demo Logins (1-Click)
-                  </span>
-                </div>
-              </div>
-
-              {/* 1-Click Demo Logins Grid */}
-              <div className="w-full grid grid-cols-2 gap-2">
-                {demoRoles.map((role) => {
-                  const isThisLoading = activeRole === role.name;
-                  return (
-                    <button
-                      key={role.name}
-                      type="button"
-                      onClick={() => handleRoleSelect(role)}
-                      disabled={anyLoading}
-                      title={`1-Click Login as ${role.name}`}
-                      className={`
-                        flex items-center gap-2 p-2 rounded-2xl glass-input border border-white/50
-                        hover:bg-white/90 hover:border-[#D4AF37]/50 hover:shadow-md transition-all text-left group cursor-pointer active:scale-95
-                        ${isThisLoading ? 'ring-2 ring-[#D4AF37] bg-white/90' : ''}
-                      `}
-                    >
-                      <div className={`w-7 h-7 rounded-xl bg-gradient-to-br ${role.color} flex items-center justify-center text-white text-[9px] font-black shadow-sm shrink-0`}>
-                        {isThisLoading ? (
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin text-white" />
-                        ) : (
-                          role.badge
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[11px] font-bold text-navy truncate leading-tight group-hover:text-gold transition-colors">{role.name}</p>
-                        <p className="text-[9px] text-slate-700 font-medium truncate leading-tight font-mono">{role.email.split('@')[0]}</p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <p className="text-[9px] text-slate-800 font-bold text-center mt-3">
-                Click any role button above to sign in instantly with pre-configured demo credentials
-              </p>
             </>
           )}
 

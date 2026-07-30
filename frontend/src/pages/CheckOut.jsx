@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { LogOut, Receipt, ShieldAlert, CreditCard, CheckCircle2, ChevronRight, RefreshCw, X } from 'lucide-react';
+import { LogOut, Receipt, ShieldAlert, CreditCard, CheckCircle2, ChevronRight, RefreshCw, X, FileSpreadsheet } from 'lucide-react';
 import api from '../utils/api';
 import { useLocation } from 'react-router-dom';
 
@@ -265,11 +265,11 @@ function CheckOut() {
   const grandTotal = Math.max(0, subtotal + taxAmount);
 
   return (
-    <div className="space-y-4 animate-fadeIn lg:h-[calc(100vh-7.5rem)] lg:flex lg:flex-col lg:overflow-hidden">
+    <div className="h-[calc(100vh-4.25rem)] flex flex-col space-y-3.5 animate-fadeIn overflow-hidden">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 flex-shrink-0">
         <div>
-          <h1 className="font-display font-bold text-3xl text-navy">Folio & Check-Out</h1>
+          <h1 className="font-display font-bold text-2.5xl md:text-3xl text-navy">Folio & Check-Out</h1>
           <p className="text-slate text-xs font-medium mt-0.5">Review guest ledgers, settle room folios, and complete checkout departure</p>
         </div>
         <button 
@@ -281,7 +281,7 @@ function CheckOut() {
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-5 overflow-hidden">
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 overflow-hidden">
         {/* Left Side: Occupied Rooms directory (Vertical Layout) */}
         <div className="lg:col-span-4 flex flex-col min-h-0 soft-card p-4 md:p-5 bg-white h-full overflow-hidden">
           <div className="flex justify-between items-center mb-3 flex-shrink-0">
@@ -336,7 +336,7 @@ function CheckOut() {
                 </div>
               ))}
               {occupiedRooms.length === 0 && (
-                <div className="py-8 text-center text-slate text-sm">
+                <div className="flex-1 flex flex-col items-center justify-center py-12 text-center text-slate text-sm font-semibold">
                   No currently occupied rooms found.
                 </div>
               )}
@@ -579,9 +579,11 @@ function CheckOut() {
               </div>
             )
           ) : (
-            <div className="text-center py-16 space-y-4">
-              <Receipt className="w-12 h-12 text-slate/50 mx-auto" />
-              <p className="text-sm font-semibold text-slate">Select an occupied room on the left to load guest folio records and process checkout</p>
+            <div className="flex-1 flex flex-col items-center justify-center py-16 space-y-4 text-center">
+              <div className="w-16 h-16 rounded-3xl bg-cream flex items-center justify-center text-gold">
+                <FileSpreadsheet className="w-8 h-8" />
+              </div>
+              <p className="text-sm font-semibold text-slate max-w-sm leading-relaxed">Select an occupied room on the left to load guest folio records and process checkout</p>
             </div>
           )}
         </div>

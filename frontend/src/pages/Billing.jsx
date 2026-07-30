@@ -386,54 +386,62 @@ function Billing() {
           </div>
         </div>
 
-        {/* KPI Stats Cards */}
+        {/* KPI Stats Cards — Standard Dashboard Layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="soft-card p-4 border bg-navy/5 border-navy/10 flex flex-col items-center justify-center text-center relative h-22">
-            <div className="absolute top-3 right-3 w-7 h-7 rounded-xl bg-danger-pale flex items-center justify-center shrink-0">
-              <Coins className="w-3.5 h-3.5 text-danger" />
+          <div className="soft-card p-4 md:p-5 bg-white border border-border-cream rounded-2xl flex items-center justify-between shadow-sm">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate block">Outstanding Dues</span>
+              <span className="text-2xl font-display font-bold text-navy mt-0.5 block">₹{outstandingDues.toLocaleString()}</span>
             </div>
-            <span className="text-xs font-bold text-slate uppercase tracking-wider block">Outstanding Dues</span>
-            <span className="text-2xl font-display font-bold text-navy mt-0.5 block">₹{outstandingDues.toLocaleString()}</span>
+            <div className="w-10 h-10 rounded-xl bg-danger-pale text-danger flex items-center justify-center shrink-0 border border-danger/10">
+              <Coins className="w-5 h-5" />
+            </div>
           </div>
 
-          <div className="soft-card p-4 border bg-emerald-50 border-emerald-100 flex flex-col items-center justify-center text-center relative h-22">
-            <div className="absolute top-3 right-3 w-7 h-7 rounded-xl bg-success-pale flex items-center justify-center shrink-0">
-              <TrendingUp className="w-3.5 h-3.5 text-success" />
+          <div className="soft-card p-4 md:p-5 bg-white border border-border-cream rounded-2xl flex items-center justify-between shadow-sm">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate block">Settled Today</span>
+              <span className="text-2xl font-display font-bold text-emerald-600 mt-0.5 block">₹{settlementsToday.toLocaleString()}</span>
             </div>
-            <span className="text-xs font-bold text-slate uppercase tracking-wider block">Settled Today</span>
-            <span className="text-2xl font-display font-bold text-success mt-0.5 block">₹{settlementsToday.toLocaleString()}</span>
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+              <TrendingUp className="w-5 h-5" />
+            </div>
           </div>
 
-          <div className="soft-card p-4 border bg-gold-pale border-gold/20 flex flex-col items-center justify-center text-center relative h-22">
-            <div className="absolute top-3 right-3 w-7 h-7 rounded-xl bg-gold-pale flex items-center justify-center shrink-0">
-              <Receipt className="w-3.5 h-3.5 text-gold" />
+          <div className="soft-card p-4 md:p-5 bg-white border border-border-cream rounded-2xl flex items-center justify-between shadow-sm">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate block">Active Checks</span>
+              <span className="text-2xl font-display font-bold text-navy mt-0.5 block">{pendingChecksCount} <span className="text-xs font-semibold text-slate">pending</span></span>
             </div>
-            <span className="text-xs font-bold text-slate uppercase tracking-wider block">Active Checks</span>
-            <span className="text-2xl font-display font-bold text-navy mt-0.5 block">{pendingChecksCount} pending</span>
+            <div className="w-10 h-10 rounded-xl bg-gold-pale text-gold flex items-center justify-center shrink-0 border border-gold/20">
+              <Receipt className="w-5 h-5" />
+            </div>
           </div>
 
-          <div className="soft-card p-4 border bg-blue-50 border-blue-100 flex flex-col items-center justify-center text-center relative h-22">
-            <div className="absolute top-3 right-3 w-7 h-7 rounded-xl bg-blue-100/60 flex items-center justify-center shrink-0">
-              <PieChart className="w-3.5 h-3.5 text-blue-700" />
-            </div>
-            <span className="text-xs font-bold text-slate uppercase tracking-wider block">Collection Share</span>
-            <div className="w-full max-w-[180px] h-2 rounded-full overflow-hidden flex bg-slate-100 my-1.5 mx-auto">
-              {paymentShare['Cash'] > 0 && <div className="h-full bg-gold" style={{ width: `${(paymentShare['Cash'] / totalShare) * 100}%` }} title={`Cash: ${cashPct}%`} />}
-              {paymentShare['Card/UPI'] > 0 && <div className="h-full bg-navy" style={{ width: `${(paymentShare['Card/UPI'] / totalShare) * 100}%` }} title={`Card/UPI: ${cardPct}%`} />}
-              {paymentShare['Bank Transfer'] > 0 && <div className="h-full bg-slate" style={{ width: `${(paymentShare['Bank Transfer'] / totalShare) * 100}%` }} title={`Bank Transfer: ${bankPct}%`} />}
-              {paymentShare['Room Charge'] > 0 && <div className="h-full bg-warning" style={{ width: `${(paymentShare['Room Charge'] / totalShare) * 100}%` }} title={`Room Charge: ${roomPct}%`} />}
-            </div>
-            <div className="flex items-center justify-center gap-3 text-xs font-semibold text-charcoal">
-              <div className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-gold inline-block shrink-0" />
-                <span className="text-slate">Cash:</span>
-                <span className="font-bold">₹{paymentShare['Cash'].toLocaleString()}</span>
+          <div className="soft-card p-4 md:p-5 bg-white border border-border-cream rounded-2xl flex items-center justify-between shadow-sm">
+            <div className="min-w-0 flex-1 pr-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate block">Collection Share</span>
+              <div className="w-full max-w-[180px] h-2 rounded-full overflow-hidden flex bg-slate-100 my-1.5">
+                {paymentShare['Cash'] > 0 && <div className="h-full bg-gold" style={{ width: `${(paymentShare['Cash'] / totalShare) * 100}%` }} title={`Cash: ${cashPct}%`} />}
+                {paymentShare['Card/UPI'] > 0 && <div className="h-full bg-navy" style={{ width: `${(paymentShare['Card/UPI'] / totalShare) * 100}%` }} title={`Card/UPI: ${cardPct}%`} />}
+                {paymentShare['Bank Transfer'] > 0 && <div className="h-full bg-slate" style={{ width: `${(paymentShare['Bank Transfer'] / totalShare) * 100}%` }} title={`Bank Transfer: ${bankPct}%`} />}
+                {paymentShare['Room Charge'] > 0 && <div className="h-full bg-warning" style={{ width: `${(paymentShare['Room Charge'] / totalShare) * 100}%` }} title={`Room Charge: ${roomPct}%`} />}
               </div>
-              <div className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-navy inline-block shrink-0" />
-                <span className="text-slate">Card/UPI:</span>
-                <span className="font-bold">₹{paymentShare['Card/UPI'].toLocaleString()}</span>
+              <div className="flex items-center gap-3 text-xs font-semibold text-charcoal">
+                <div className="flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gold inline-block shrink-0" />
+                  <span className="text-slate">Cash:</span>
+                  <span className="font-bold">₹{paymentShare['Cash'].toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-navy inline-block shrink-0" />
+                  <span className="text-slate">Card/UPI:</span>
+                  <span className="font-bold">₹{paymentShare['Card/UPI'].toLocaleString()}</span>
+                </div>
               </div>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 border border-blue-100">
+              <PieChart className="w-5 h-5" />
             </div>
           </div>
         </div>
@@ -595,13 +603,13 @@ function Billing() {
         </div>
 
         {/* Right Detail Pane (Popup Modal) */}
-        {selectedInvoice && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 print:static print:block print:p-0">
+        {selectedInvoice && createPortal(
+          <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fadeIn print:static print:block print:p-0 print:bg-transparent">
             <div 
               className="absolute inset-0 transition-opacity print:hidden"
               onClick={() => setSelectedInvoice(null)}
             />
-            <div className="relative bg-white rounded-3xl w-full max-w-4xl max-h-[82vh] shadow-2xl flex flex-col overflow-hidden animate-fadeIn print:w-full print:border-none print:shadow-none print:max-h-none print:rounded-none print:block">
+            <div className="relative bg-white rounded-3xl w-full max-w-4xl max-h-[82vh] shadow-2xl flex flex-col overflow-hidden animate-fadeIn my-auto print:w-full print:border-none print:shadow-none print:max-h-none print:rounded-none print:block">
               <div className="flex justify-between items-center p-3.5 px-5 border-b border-border-cream bg-cream/20 shrink-0 print:hidden">
                 <h3 className="font-display font-bold text-navy text-base">Invoice & Settlement Details</h3>
                 <button 
@@ -966,7 +974,8 @@ function Billing() {
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
       {/* Receipt Preview Modal */}

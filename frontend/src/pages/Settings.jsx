@@ -14,6 +14,7 @@ import {
   Check,
   UserPlus,
   LifeBuoy,
+  AlertCircle,
   X,
   Loader2,
   CheckCircle,
@@ -213,47 +214,63 @@ function SettingsPage() {
           onClick={() => setShowTicketModal(true)}
           className="flex items-center gap-2 px-4 py-2 border border-navy/20 hover:border-navy text-navy hover:bg-navy/5 font-semibold rounded-xl text-sm transition-all duration-200 self-start"
         >
-          <LifeBuoy className="w-4 h-4 text-gold" /> Report Issue
+          <AlertCircle className="w-4 h-4 text-danger" /> Report Issue
         </button>
       </div>
 
       {/* Ticket Modal */}
       {showTicketModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-border-cream">
-            <div className="flex items-center justify-between p-5 border-b border-border-cream">
-              <div className="flex items-center gap-2">
-                <LifeBuoy className="w-5 h-5 text-gold" />
-                <h2 className="font-display font-bold text-navy text-lg">Report an Issue</h2>
-              </div>
-              <button onClick={() => setShowTicketModal(false)} className="p-2 hover:bg-cream rounded-xl transition-all">
-                <X className="w-4 h-4 text-slate" />
-              </button>
+        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-navy/60 flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white border border-border-cream rounded-[2rem] p-8 w-full max-w-2xl shadow-2xl relative my-auto animate-scaleUp max-h-[90vh] overflow-y-auto">
+            <button 
+              onClick={() => setShowTicketModal(false)} 
+              className="absolute top-6 right-6 text-slate hover:text-navy transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2 mb-6">
+              <AlertCircle className="w-5 h-5 text-danger" />
+              <h3 className="font-display font-semibold text-lg text-navy">Report an Issue</h3>
             </div>
+
             {ticketSuccess ? (
-              <div className="p-10 text-center">
+              <div className="py-12 text-center">
                 <CheckCircle className="w-12 h-12 text-success mx-auto mb-3" />
                 <p className="font-bold text-navy text-sm">Ticket submitted successfully!</p>
               </div>
             ) : (
-              <form onSubmit={handleCreateTicket} className="p-5 space-y-4">
+              <form onSubmit={handleCreateTicket} className="space-y-4">
                 {ticketError && <p className="text-danger text-xs font-semibold">{ticketError}</p>}
                 <div>
-                  <label className="block text-xs font-bold text-slate mb-1 uppercase tracking-wide">Title *</label>
-                  <input value={ticketForm.title} onChange={e => setTicketForm(p => ({...p, title: e.target.value}))} className="w-full border border-border-cream rounded-xl px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-gold/30" placeholder="Brief issue description" required />
+                  <label className="block text-xs font-medium text-slate mb-1">Title *</label>
+                  <input 
+                    value={ticketForm.title} 
+                    onChange={e => setTicketForm(p => ({...p, title: e.target.value}))} 
+                    className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl text-xs font-semibold focus:outline-none focus:border-gold" 
+                    placeholder="Brief issue description" 
+                    required 
+                  />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate mb-1 uppercase tracking-wide">Category</label>
-                    <select value={ticketForm.category} onChange={e => setTicketForm(p => ({...p, category: e.target.value}))} className="w-full border border-border-cream rounded-xl px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-gold/30">
+                    <label className="block text-xs font-medium text-slate mb-1">Category</label>
+                    <select 
+                      value={ticketForm.category} 
+                      onChange={e => setTicketForm(p => ({...p, category: e.target.value}))} 
+                      className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl text-xs font-semibold focus:outline-none focus:border-gold"
+                    >
                       <option value="BUG">Bug</option>
                       <option value="FEATURE">Feature Request</option>
                       <option value="SUPPORT">Support</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate mb-1 uppercase tracking-wide">Priority</label>
-                    <select value={ticketForm.priority} onChange={e => setTicketForm(p => ({...p, priority: e.target.value}))} className="w-full border border-border-cream rounded-xl px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-gold/30">
+                    <label className="block text-xs font-medium text-slate mb-1">Priority</label>
+                    <select 
+                      value={ticketForm.priority} 
+                      onChange={e => setTicketForm(p => ({...p, priority: e.target.value}))} 
+                      className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl text-xs font-semibold focus:outline-none focus:border-gold"
+                    >
                       <option value="LOW">Low</option>
                       <option value="MEDIUM">Medium</option>
                       <option value="HIGH">High</option>
@@ -261,21 +278,38 @@ function SettingsPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate mb-1 uppercase tracking-wide">Description *</label>
-                  <textarea value={ticketForm.description} onChange={e => setTicketForm(p => ({...p, description: e.target.value}))} rows={4} className="w-full border border-border-cream rounded-xl px-3 py-2 text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-gold/30 resize-none" placeholder="Describe the issue in detail..." required />
+                  <label className="block text-xs font-medium text-slate mb-1">Description *</label>
+                  <textarea 
+                    value={ticketForm.description} 
+                    onChange={e => setTicketForm(p => ({...p, description: e.target.value}))} 
+                    rows={4} 
+                    className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl text-xs font-semibold focus:outline-none focus:border-gold resize-none" 
+                    placeholder="Describe the issue in detail..." 
+                    required 
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate mb-1 uppercase tracking-wide">Screenshot (optional)</label>
-                  <label className="flex items-center gap-2 cursor-pointer border border-dashed border-border-cream rounded-xl px-3 py-2 hover:bg-cream/30 transition-all">
+                  <label className="block text-xs font-medium text-slate mb-1">Screenshot (optional)</label>
+                  <label className="flex items-center gap-2 cursor-pointer border border-dashed border-border-cream rounded-xl px-4 py-2.5 hover:bg-cream/30 transition-all bg-cream/5">
                     <UploadCloud className="w-4 h-4 text-slate" />
-                    <span className="text-xs text-slate">{attachmentUploading ? 'Uploading...' : ticketForm.attachmentUrl ? 'File uploaded ✓' : 'Click to upload'}</span>
+                    <span className="text-xs text-slate font-medium">{attachmentUploading ? 'Uploading...' : ticketForm.attachmentUrl ? 'File uploaded ✓' : 'Click to upload'}</span>
                     <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                   </label>
                 </div>
-                <div className="flex justify-end gap-3 pt-2">
-                  <button type="button" onClick={() => setShowTicketModal(false)} className="px-4 py-2 text-sm text-slate hover:text-navy border border-border-cream rounded-xl transition-all">Cancel</button>
-                  <button type="submit" disabled={ticketSaving} className="btn-primary text-sm flex items-center gap-2">
-                    {ticketSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <LifeBuoy className="w-4 h-4" />}
+                <div className="flex gap-3 pt-4">
+                  <button 
+                    type="button" 
+                    onClick={() => setShowTicketModal(false)} 
+                    className="w-1/2 px-4 py-2.5 border border-border-cream rounded-xl text-xs font-bold text-slate hover:bg-cream/30 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={ticketSaving} 
+                    className="w-1/2 px-4 py-2.5 bg-navy text-white rounded-xl text-xs font-bold hover:bg-navy/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {ticketSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <AlertCircle className="w-4 h-4 text-danger" />}
                     {ticketSaving ? 'Submitting...' : 'Submit Ticket'}
                   </button>
                 </div>
@@ -295,7 +329,7 @@ function SettingsPage() {
               : 'border-transparent text-slate hover:text-navy'
           }`}
         >
-          <Building className="w-4 h-4" /> Property & Features
+          Property & Features
         </button>
         <button 
           onClick={() => setActiveTab('staff')}
@@ -305,7 +339,7 @@ function SettingsPage() {
               : 'border-transparent text-slate hover:text-navy'
           }`}
         >
-          <Users className="w-4 h-4" /> Staff Members
+          Staff Members
         </button>
         <button 
           onClick={() => setActiveTab('roles')}
@@ -315,7 +349,7 @@ function SettingsPage() {
               : 'border-transparent text-slate hover:text-navy'
           }`}
         >
-          <ShieldCheck className="w-4 h-4" /> Role Permissions (RBAC)
+          Role Permissions (RBAC)
         </button>
       </div>
 
@@ -324,8 +358,8 @@ function SettingsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <div className="soft-card p-6 bg-white space-y-4">
-              <h3 className="font-display font-semibold text-lg text-navy border-b border-border-cream pb-3 flex items-center gap-2">
-                <Building className="w-5 h-5 text-gold" /> Property Profile
+              <h3 className="font-display font-semibold text-lg text-navy border-b border-border-cream pb-3">
+                Property Profile
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -350,8 +384,8 @@ function SettingsPage() {
             </div>
 
             <div className="soft-card p-6 bg-white space-y-6">
-              <h3 className="font-display font-semibold text-lg text-navy border-b border-border-cream pb-3 flex items-center gap-2">
-                <ToggleRight className="w-5 h-5 text-gold" /> Module Feature Flags
+              <h3 className="font-display font-semibold text-lg text-navy border-b border-border-cream pb-3">
+                Module Feature Flags
               </h3>
               <p className="text-xs text-slate">Toggle modules on/off dynamically to match your operational requirements. Enabling modules allocates corresponding menus in the navigation.</p>
 
@@ -394,8 +428,8 @@ function SettingsPage() {
           </div>
 
           <div className="soft-card p-6 bg-white h-fit space-y-6">
-            <h3 className="font-display font-semibold text-navy text-sm border-b border-border-cream pb-3 flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-gold" /> Subscription Details
+            <h3 className="font-display font-semibold text-navy text-sm border-b border-border-cream pb-3">
+              Subscription Details
             </h3>
             <div className="space-y-4">
               <div className="p-4 bg-navy text-white rounded-2xl border border-gold/30 flex justify-between items-start">
@@ -403,7 +437,6 @@ function SettingsPage() {
                   <span className="text-[9px] font-mono font-bold text-gold uppercase tracking-wider">Plan Tier</span>
                   <h4 className="font-display font-bold text-base text-white mt-1">{subscription.tier}</h4>
                 </div>
-                <Sparkles className="w-5 h-5 text-gold" />
               </div>
 
               <div className="space-y-2 text-xs font-medium">
@@ -422,7 +455,7 @@ function SettingsPage() {
               </div>
 
               <button className="w-full btn-secondary text-xs flex justify-center items-center gap-2 mt-4">
-                <ShieldAlert className="w-4 h-4 text-gold" /> Manage Subscriptions
+                Manage Subscriptions
               </button>
             </div>
           </div>
@@ -434,8 +467,8 @@ function SettingsPage() {
         <div className="soft-card bg-white p-6 space-y-6">
           <div className="flex justify-between items-center border-b border-border-cream pb-4">
             <div>
-              <h3 className="font-display font-semibold text-lg text-navy flex items-center gap-2">
-                <Users className="w-5 h-5 text-gold" /> Employee Accounts Registry
+              <h3 className="font-display font-semibold text-lg text-navy">
+                Employee Accounts Registry
               </h3>
               <p className="text-[11px] text-slate mt-0.5">Manage active hotel staff members and assign their system RBAC authorization roles</p>
             </div>
@@ -562,8 +595,8 @@ function SettingsPage() {
         <div className="soft-card bg-white p-6 space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-border-cream pb-4 gap-4">
             <div>
-              <h3 className="font-display font-semibold text-lg text-navy flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-gold" /> Custom Role-Based Access Control
+              <h3 className="font-display font-semibold text-lg text-navy">
+                Custom Role-Based Access Control
               </h3>
               <p className="text-[11px] text-slate mt-0.5">Toggle fine-grained system authorizations for custom and pre-defined property roles</p>
             </div>
@@ -585,13 +618,13 @@ function SettingsPage() {
           </div>
 
           <div className="bg-cream/10 border border-border-cream/50 rounded-2xl p-4 text-xs text-slate mb-4">
-            <span className="font-bold text-navy uppercase tracking-wider block mb-1">💡 Super & Tenant Admin Bypass</span>
+            <span className="font-bold text-navy uppercase tracking-wider block mb-1">Super & Tenant Admin Bypass</span>
             By default, members assigned to **SUPER_ADMIN** and **TENANT_ADMIN** roles bypass all checks and possess full write/read access to all modules.
           </div>
 
           {/* Module Permission Matrix Grid */}
           <div className="space-y-4">
-            <div className="hidden md:grid grid-cols-5 gap-4 px-4 py-2 border-b border-border-cream text-[10px] font-bold text-navy uppercase tracking-wider">
+            <div className="hidden md:grid grid-cols-5 gap-4 px-4 py-2 border-b border-border-cream text-[0.8rem] font-bold text-navy uppercase tracking-wider">
               <div>Module System</div>
               <div className="text-center">Create (Write)</div>
               <div className="text-center">Read</div>

@@ -231,60 +231,78 @@ function Sidebar({ collapsed, onToggle }) {
       {/* Navigation List with Category Dropdowns */}
       <nav className="flex-1 px-2 py-4 space-y-3 overflow-y-auto overflow-x-hidden">
         {navigation.map((group) => {
-          const isOpen = openCategories[group.category] !== false;
+          const isGeneral = group.category === 'General';
+          const isOpen = isGeneral || openCategories[group.category] !== false;
           return (
             <div key={group.category} className="space-y-1">
-              {/* Category Header — clean static label when expanded */}
+              {/* Category Header */}
               {!collapsed ? (
-                <div className="px-3 py-1.5 text-xs font-bold text-slate uppercase tracking-wider">
-                  <span className="truncate">{group.category}</span>
-                </div>
+                isGeneral ? (
+                  <div className="px-3 py-1.5 text-xs font-bold text-slate uppercase tracking-wider">
+                    <span className="truncate">{group.category}</span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => toggleCategory(group.category)}
+                    className="w-full flex items-center justify-between px-3 py-1.5 text-xs font-bold text-slate uppercase tracking-wider hover:text-navy hover:bg-gold-pale/30 rounded-xl transition-all cursor-pointer group/cat"
+                  >
+                    <span className="truncate">{group.category}</span>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 text-slate group-hover/cat:text-navy transition-transform duration-200 ${
+                        isOpen ? 'rotate-0' : '-rotate-90'
+                      }`}
+                    />
+                  </button>
+                )
               ) : (
                 <div className="border-t border-border-cream/60 mx-1 mb-1" />
               )}
 
-              {/* Nav Items */}
-              <div className="space-y-0.5 animate-fadeIn">
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <NavLink
-                      key={item.name}
-                      to={item.path}
-                      end={item.path === '/captain' || item.path === '/'}
-                      onClick={() => {
-                        if (window.innerWidth < 768 && !collapsed) {
-                          onToggle();
-                        }
-                      }}
-                      title={collapsed ? item.name : undefined}
-                      className={({ isActive }) => `
-                        flex items-center gap-3 font-semibold text-[0.9rem] transition-all duration-200 group
-                        ${collapsed
-                          ? 'w-10 h-10 justify-center rounded-xl mx-auto'
-                          : 'px-3 py-2 rounded-xl hover:translate-x-1'
-                        }
-                        ${isActive
-                          ? collapsed
-                            ? 'bg-gold-pale text-navy shadow-sm'
-                            : 'bg-gold-pale text-navy border-l-4 border-gold shadow-sm font-semibold'
-                          : 'text-slate hover:bg-gold-pale/50 hover:text-navy'
-                        }
-                      `}
-                    >
-                      {({ isActive }) => (
-                        <>
-                          <Icon
-                            className={`w-4 h-4 shrink-0 transition-colors duration-200 ${isActive ? 'text-gold' : 'text-slate group-hover:text-navy'}`}
-                          />
-                          {/* Label — only when expanded */}
-                          {!collapsed && <span className="truncate">{item.name}</span>}
-                        </>
-                      )}
-                    </NavLink>
-                  );
-                })}
-              </div>
+              {/* Nav Items — visible always for General or when isOpen or when sidebar is collapsed */}
+              {(isOpen || collapsed) && (
+                <div className="space-y-0.5 animate-fadeIn">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <NavLink
+                        key={item.name}
+                        to={item.path}
+                        end={item.path === '/captain' || item.path === '/'}
+                        onClick={() => {
+                          if (window.innerWidth < 768 && !collapsed) {
+                            onToggle();
+                          }
+                        }}
+                        title={collapsed ? item.name : undefined}
+                        className={({ isActive }) => `
+                          flex items-center gap-3 font-semibold text-[0.9rem] transition-all duration-200 group
+                          ${collapsed
+                            ? 'w-10 h-10 justify-center rounded-xl mx-auto'
+                            : 'px-3 py-2 rounded-xl hover:translate-x-1'
+                          }
+                          ${isActive
+                            ? collapsed
+                              ? 'bg-gold-pale text-navy shadow-sm'
+                              : 'bg-gold-pale text-navy border-l-4 border-gold shadow-sm font-semibold'
+                            : 'text-slate hover:bg-gold-pale/50 hover:text-navy'
+                          }
+                        `}
+                      >
+                        {({ isActive }) => (
+                          <>
+                            <Icon
+                              className={`w-4 h-4 shrink-0 transition-colors duration-200 ${isActive ? 'text-gold' : 'text-slate group-hover:text-navy'}`}
+                            />
+                            {/* Label — only when expanded */}
+                            {!collapsed && <span className="truncate">{item.name}</span>}
+                          </>
+                        )}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })}
