@@ -269,7 +269,7 @@ function CheckOut() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 flex-shrink-0">
         <div>
-          <h1 className="font-display font-bold text-2xl text-navy">Folio & Check-Out</h1>
+          <h1 className="font-display font-bold text-3xl text-navy">Folio & Check-Out</h1>
           <p className="text-slate text-xs font-medium mt-0.5">Review guest ledgers, settle room folios, and complete checkout departure</p>
         </div>
         <button 
@@ -589,7 +589,7 @@ function CheckOut() {
       {/* ─── INVOICE PRINT PREVIEW MODAL (Compact Horizontal Wide Layout) ───────────────────────────────── */}
       {showPrintModal && printInvoiceData && createPortal(
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
-          <div className={`bg-white rounded-3xl border border-border-cream p-4 md:p-5 w-full ${printFormat === 'pos' ? 'max-w-md' : 'max-w-3xl'} shadow-2xl relative max-h-[90vh] overflow-y-auto print:p-0 print:shadow-none print:border-none animate-fadeIn my-auto`}>
+          <div className={`bg-white rounded-3xl border border-border-cream p-4 md:p-5 w-full ${printFormat === 'pos' ? 'max-w-md' : 'max-w-3xl'} shadow-2xl relative max-h-[85vh] overflow-y-auto print:p-0 print:shadow-none print:border-none animate-fadeIn my-auto`}>
             {/* Dynamic Print CSS */}
             <style>{`
               @media print {

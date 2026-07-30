@@ -3,7 +3,7 @@ import {
   Home, 
   Trees, 
   Crown, 
-  DollarSign, 
+  IndianRupee, 
   Users, 
   CheckCircle2, 
   Info,
@@ -44,13 +44,10 @@ function Tables() {
   const getDynamicZones = () => {
     const list = [{ name: 'All', icon: null }];
     
-    // Add default sections
+    // Add default section
     list.push({ name: 'Main Hall', icon: Home });
-    list.push({ name: 'Garden Terrace', icon: Trees });
-    list.push({ name: 'VIP Lounge', icon: Crown });
-    list.push({ name: 'Bar Area', icon: Sunset });
     
-    // Add dynamic floors
+    // Add dynamic floors created by user
     floors.forEach(f => {
       if (!list.some(x => x.name.toLowerCase() === f.name.toLowerCase())) {
         list.push({ name: f.name, icon: Layers });
@@ -292,7 +289,7 @@ function Tables() {
           <p className="text-slate text-sm font-medium mt-1">Real-time table status, customer capacities, and floor operations</p>
         </div>
 
-        {/* Actions & Zone Selector */}
+        {/* Actions */}
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={() => setIsManageFloorsModalOpen(true)}
@@ -309,52 +306,49 @@ function Tables() {
             <Plus className="w-4 h-4" />
             <span>Add Table</span>
           </button>
-
-          <div className="flex flex-wrap items-center gap-2 bg-surface-linen/50 p-1 border border-border-cream rounded-2xl">
-            {zones.map((zone) => {
-              const ZoneIcon = zone.icon;
-              const isSelected = selectedZone === zone.name;
-              return (
-                <button
-                  key={zone.name}
-                  onClick={() => setSelectedZone(zone.name)}
-                  className={`
-                    flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-300
-                    ${isSelected 
-                      ? 'bg-navy text-gold shadow' 
-                      : 'text-slate hover:text-navy hover:bg-white/40'
-                    }
-                  `}
-                >
-                  {ZoneIcon && <ZoneIcon className="w-4 h-4" />}
-                  <span>{zone.name}</span>
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
 
       {/* Main Grid View */}
       <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-6">
         
-        {/* Left blueprint canvas */}
-        <div className="flex-1 soft-card p-8 overflow-y-auto relative bg-[#FEF9F1] bg-[radial-gradient(#EBE5DA_1.5px,transparent_1.5px)] bg-[size:24px_24px] min-h-[400px]">
-          <div className="absolute top-4 left-4 bg-white/80 border border-border-cream px-3 py-1.5 rounded-xl flex items-center gap-4 text-xs font-semibold text-charcoal z-10">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-success"></span> Free</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-danger"></span> Seated</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-warning"></span> Booked</span>
+        {/* Left blueprint canvas (Clean White Background) */}
+        <div className="flex-1 soft-card p-6 overflow-y-auto relative bg-white border border-border-cream min-h-[400px]">
+          
+          {/* Internal Header: Status Legend & Floor Zone Pills */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-border-cream/60">
+            {/* Status Legend */}
+            <div className="bg-cream/20 border border-border-cream px-3 py-1.5 rounded-xl flex items-center gap-4 text-xs font-semibold text-charcoal">
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-success"></span> Free</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-danger"></span> Seated</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-warning"></span> Booked</span>
+            </div>
+
+            {/* Zone / Floor Dropdown Inside Card */}
+            <div>
+              <select
+                value={selectedZone}
+                onChange={(e) => setSelectedZone(e.target.value)}
+                className="px-3.5 py-1.5 bg-white border border-border-cream rounded-xl text-xs font-bold text-navy focus:outline-none focus:border-gold shadow-sm cursor-pointer"
+              >
+                {zones.map((zone) => (
+                  <option key={zone.name} value={zone.name}>
+                    {zone.name === 'All' ? 'All Floors & Zones' : zone.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center h-full text-slate font-semibold text-xs animate-pulse mt-12">Loading tables layout...</div>
+            <div className="flex items-center justify-center h-full text-slate font-semibold text-xs animate-pulse mt-8">Loading tables layout...</div>
           ) : filteredTables.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-slate text-xs font-semibold py-20 mt-12 text-center">
+            <div className="flex flex-col items-center justify-center h-full text-slate text-xs font-semibold py-20 mt-8 text-center">
               No tables found in this zone. Click "Add Table" to create one!
             </div>
           ) : (
             /* Tables layout grid */
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-12 mt-16 pb-8 justify-items-center">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-12 mt-6 pb-8 justify-items-center">
               {filteredTables.map((table) => {
                 const isSelected = selectedTable?.id === table.id;
                 const statusBg = 
@@ -402,14 +396,14 @@ function Tables() {
         </div>
 
         {/* Right Occupancy Analytics Sidebar */}
-        <div className="w-full lg:w-80 shrink-0 soft-card p-6 flex flex-col justify-between overflow-y-auto bg-white">
+        <div className="w-full lg:w-80 shrink-0 soft-card p-4 flex flex-col justify-between overflow-y-auto bg-white">
           {selectedTable ? (
             // Individual Table details
-            <div className="space-y-6 flex flex-col justify-between h-full">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center border-b border-border-cream pb-4">
+            <div className="space-y-4 flex flex-col justify-between h-full">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center border-b border-border-cream pb-3">
                   <div>
-                    <h3 className="font-display font-semibold text-lg text-navy">{selectedTable.name}</h3>
+                    <h3 className="font-display font-semibold text-base text-navy">{selectedTable.name}</h3>
                     <p className="text-[10px] text-slate font-semibold uppercase tracking-wider">
                       {selectedTable.floor && selectedTable.section && selectedTable.floor !== selectedTable.section 
                         ? `${selectedTable.floor} • ${selectedTable.section}` 
@@ -425,26 +419,26 @@ function Tables() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 text-xs">
-                  <div className="p-3 bg-cream/40 rounded-xl border border-border-cream/50">
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="p-2.5 bg-white rounded-xl border border-border-cream shadow-sm">
                     <span className="text-slate block text-[10px] font-bold uppercase tracking-wider">Capacity</span>
                     <span className="font-mono font-bold text-navy text-sm">{selectedTable.capacity} Seats</span>
                   </div>
-                  <div className="p-3 bg-cream/40 rounded-xl border border-border-cream/50">
+                  <div className="p-2.5 bg-white rounded-xl border border-border-cream shadow-sm">
                     <span className="text-slate block text-[10px] font-bold uppercase tracking-wider">Shape</span>
-                    <span className="font-semibold text-navy capitalize text-sm">{getTableShape(selectedTable.capacity)}</span>
+                    <span className="font-mono font-bold text-navy text-sm capitalize">{getTableShape(selectedTable.capacity)}</span>
                   </div>
                 </div>
 
-                {/* Status Switcher Controls */}
-                <div className="space-y-2 pt-2">
-                  <span className="text-slate text-[10px] font-bold uppercase tracking-wider block">Set Table Status</span>
+                {/* Quick Status Action */}
+                <div className="space-y-1.5">
+                  <span className="text-slate text-[10px] font-bold uppercase tracking-wider block">Update Status</span>
                   <div className="grid grid-cols-3 gap-2">
                     <button 
                       onClick={() => handleStatusChange('AVAILABLE')}
                       disabled={submitting}
-                      className={`py-2 text-[10px] font-bold rounded-lg border transition-all ${
-                        selectedTable.status === 'AVAILABLE' 
+                      className={`py-1.5 text-[10px] font-bold rounded-lg border transition-all ${
+                        selectedTable.status === 'AVAILABLE' || selectedTable.status === 'CLEANING'
                           ? 'bg-success text-white border-success' 
                           : 'bg-white border-border-cream text-success hover:bg-success-pale'
                       }`}
@@ -454,7 +448,7 @@ function Tables() {
                     <button 
                       onClick={() => handleStatusChange('OCCUPIED')}
                       disabled={submitting}
-                      className={`py-2 text-[10px] font-bold rounded-lg border transition-all ${
+                      className={`py-1.5 text-[10px] font-bold rounded-lg border transition-all ${
                         selectedTable.status === 'OCCUPIED' 
                           ? 'bg-danger text-white border-danger' 
                           : 'bg-white border-border-cream text-danger hover:bg-danger-pale'
@@ -465,7 +459,7 @@ function Tables() {
                     <button 
                       onClick={() => handleStatusChange('RESERVED')}
                       disabled={submitting}
-                      className={`py-2 text-[10px] font-bold rounded-lg border transition-all ${
+                      className={`py-1.5 text-[10px] font-bold rounded-lg border transition-all ${
                         selectedTable.status === 'RESERVED' 
                           ? 'bg-warning text-white border-warning' 
                           : 'bg-white border-border-cream text-warning hover:bg-warning-pale'
@@ -478,7 +472,7 @@ function Tables() {
 
                 {/* Order Details / Check info */}
                 {selectedTable.status === 'OCCUPIED' && (
-                  <div className="space-y-3 pt-4 border-t border-border-cream">
+                  <div className="space-y-2 pt-3 border-t border-border-cream">
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-bold text-navy uppercase tracking-wider flex items-center gap-1">
                         <Utensils className="w-3.5 h-3.5 text-gold" /> Running Bill
@@ -487,41 +481,41 @@ function Tables() {
                         {selectedTable._count?.orders || 0} ACTIVE
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate bg-cream/20 p-3 rounded-xl border border-border-cream/30">
+                    <div className="text-[11px] text-slate bg-white p-2.5 rounded-xl border border-border-cream shadow-sm">
                       Table currently marked as occupied. Use Captain POS to manage active items and kitchen tickets.
                     </div>
                   </div>
                 )}
               </div>
 
-              <div className="pt-6 space-y-2">
+              <div className="pt-3 space-y-2">
                 <button
                   onClick={() => handleDeleteTable(selectedTable.id)}
                   disabled={submitting}
-                  className="w-full flex items-center justify-center gap-2 py-2 bg-red-50 text-red-600 hover:bg-red-100 font-bold text-xs rounded-xl border border-red-200 transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 font-bold text-xs rounded-xl border border-red-200 transition-all"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                   <span>Delete Table</span>
                 </button>
                 <button 
                   onClick={() => setSelectedTable(null)}
-                  className="w-full btn-secondary text-xs"
+                  className="w-full btn-secondary text-xs py-1.5"
                 >
                   Clear Selection
                 </button>
               </div>
             </div>
           ) : (
-            // Default Overview Analytics
-            <div className="space-y-6 flex flex-col justify-between h-full">
-              <div className="space-y-6">
+            // Default Overview Analytics (Balanced Proportional Typography)
+            <div className="space-y-3 flex flex-col justify-between h-full">
+              <div className="space-y-3">
                 <div>
-                  <h3 className="font-display font-semibold text-lg text-navy border-b border-border-cream pb-3">Floor Analytics</h3>
+                  <h3 className="font-display font-bold text-base text-navy border-b border-border-cream pb-2">Floor Analytics</h3>
                 </div>
 
-                {/* Circular Donut Occupancy */}
-                <div className="flex flex-col items-center py-4 bg-cream/30 rounded-2xl border border-border-cream/30">
-                  <div className="relative w-32 h-32">
+                {/* Circular Donut Occupancy Card (White Styling) */}
+                <div className="flex flex-col items-center py-2.5 bg-white rounded-2xl border border-border-cream shadow-sm">
+                  <div className="relative w-24 h-24">
                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                       {/* Gray track */}
                       <path
@@ -543,49 +537,55 @@ function Tables() {
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="font-mono text-2xl font-bold text-navy leading-none">{occupancyRate}%</span>
-                      <span className="text-[9px] text-slate font-bold uppercase tracking-wider mt-1">Occupied</span>
+                      <span className="font-mono text-xl font-bold text-navy leading-none">{occupancyRate}%</span>
+                      <span className="text-[9px] text-slate font-bold uppercase tracking-wider mt-0.5">Occupied</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Sales metrics */}
-                <div className="space-y-3 bg-navy text-white p-4 rounded-2xl shadow-sm border border-gold/30">
-                  <span className="text-[10px] text-gold font-mono font-bold uppercase tracking-wider">Estimated dining value</span>
-                  <div className="flex justify-between items-end mt-1">
+                <div className="space-y-1.5 bg-navy text-white p-3 rounded-2xl shadow-sm border border-gold/30">
+                  <span className="text-[10px] text-white font-mono font-bold uppercase tracking-wider block">Estimated dining value</span>
+                  <div className="flex justify-between items-end mt-0.5">
                     <div>
-                      <span className="text-slate text-[9px] block">Live Dine Sales</span>
-                      <span className="font-mono text-xl text-white font-bold">₹{liveSales.toLocaleString()}</span>
+                      <span className="text-white/80 text-[10px] block font-medium">Live Dine Sales</span>
+                      <span className="font-mono text-lg text-white font-bold">₹{liveSales.toLocaleString()}</span>
                     </div>
-                    <DollarSign className="w-5 h-5 text-gold mb-1" />
+                    <IndianRupee className="w-4 h-4 text-white mb-0.5" />
                   </div>
                 </div>
 
                 {/* Mini directory list of active tables */}
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <span className="text-slate text-[10px] font-bold uppercase tracking-wider block">Active Dining Tables</span>
-                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                    {tables.filter(t => t.status === 'OCCUPIED').map(table => (
-                      <div 
-                        key={table.id}
-                        onClick={() => handleTableClick(table)}
-                        className="flex justify-between items-center p-2.5 bg-cream/40 border border-border-cream/50 rounded-xl hover:border-gold cursor-pointer transition-all text-xs"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="w-5 h-5 bg-navy text-gold text-[10px] font-bold rounded-lg flex items-center justify-center font-mono">
-                            {table.name.replace(/\D/g, '') || table.name.slice(0,3)}
-                          </span>
-                          <span className="font-semibold text-charcoal">{table.name}</span>
-                        </div>
-                        <span className="font-mono text-navy font-bold">₹1,500</span>
+                  <div className="space-y-1.5 max-h-24 overflow-y-auto pr-1">
+                    {tables.filter(t => t.status === 'OCCUPIED').length === 0 ? (
+                      <div className="text-[11px] text-slate/80 font-medium py-1.5 text-center bg-white border border-border-cream rounded-xl shadow-sm">
+                        No active occupied tables
                       </div>
-                    ))}
+                    ) : (
+                      tables.filter(t => t.status === 'OCCUPIED').map(table => (
+                        <div 
+                          key={table.id}
+                          onClick={() => handleTableClick(table)}
+                          className="flex justify-between items-center p-2 bg-white border border-border-cream shadow-sm rounded-xl hover:border-gold cursor-pointer transition-all text-xs"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-4 h-4 bg-navy text-gold text-[9px] font-bold rounded flex items-center justify-center font-mono">
+                              {table.name.replace(/\D/g, '') || table.name.slice(0,3)}
+                            </span>
+                            <span className="font-semibold text-navy text-[11px]">{table.name}</span>
+                          </div>
+                          <span className="font-mono text-navy font-bold text-[11px]">₹1,500</span>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* Counts footer */}
-              <div className="border-t border-border-cream pt-4 text-[10px] font-bold text-slate flex justify-between uppercase tracking-wider mt-4">
+              <div className="border-t border-border-cream pt-2.5 text-[10px] font-bold text-slate flex justify-between uppercase tracking-wider mt-2">
                 <span className="text-success">{availableTables.length} Free</span>
                 <span className="text-danger">{occupiedTables.length} Seated</span>
                 <span className="text-warning">{reservedTables.length} Booked</span>
@@ -657,9 +657,9 @@ function Tables() {
                   className="w-full px-3 py-2 border border-border-cream rounded-xl text-xs focus:outline-none focus:border-gold bg-white"
                 >
                   <option value="Main Hall">Main Hall</option>
-                  <option value="Garden Terrace">Garden Terrace</option>
-                  <option value="VIP Lounge">VIP Lounge</option>
-                  <option value="Bar Area">Bar Area</option>
+                  {floors.map(f => (
+                    <option key={f.id} value={f.name}>{f.name}</option>
+                  ))}
                 </select>
               </div>
             </div>

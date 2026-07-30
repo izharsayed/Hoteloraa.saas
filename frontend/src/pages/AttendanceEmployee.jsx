@@ -110,16 +110,16 @@ const AttendanceEmployee = () => {
   const isCheckedOut = todayRecord && todayRecord.checkOutTime;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="w-full space-y-6 animate-fadeIn">
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-navy">My Attendance</h1>
+          <h1 className="font-display font-bold text-3xl text-navy">My Attendance</h1>
           <p className="text-slate text-sm">Manage your daily check-ins and view your timesheet.</p>
         </div>
-        <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border border-border-cream flex items-center gap-4">
-          <Clock className="w-5 h-5 text-gold" />
-          <div className="font-display font-bold text-xl text-navy">
+        <div className="bg-white px-3.5 py-1.5 rounded-xl shadow-sm border border-border-cream flex items-center gap-2">
+          <Clock className="w-4 h-4 text-gold shrink-0" />
+          <div className="font-mono font-bold text-sm text-navy">
             {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </div>
         </div>

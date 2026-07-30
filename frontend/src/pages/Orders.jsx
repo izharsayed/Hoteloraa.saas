@@ -338,7 +338,7 @@ function Orders() {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto soft-card p-6 bg-[#FEF9F1] bg-[radial-gradient(#EBE5DA_1.5px,transparent_1.5px)] bg-[size:24px_24px] rounded-2xl min-h-[300px]">
+            <div className="flex-1 overflow-y-auto soft-card p-6 bg-white border border-border-cream rounded-2xl min-h-[300px]">
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 gap-6 justify-items-center mt-4">
                 {tables.map((table) => {
                   const colorClass = 
@@ -406,7 +406,7 @@ function Orders() {
                     onClick={() => setSelectedCategoryId('All')}
                     className={`px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all ${
                       selectedCategoryId === 'All' 
-                        ? 'bg-navy text-gold shadow-sm' 
+                        ? 'bg-navy text-white shadow-sm' 
                         : 'bg-cream/40 text-slate hover:text-navy border border-border-cream/50'
                     }`}
                   >
@@ -418,7 +418,7 @@ function Orders() {
                       onClick={() => setSelectedCategoryId(cat.id)}
                       className={`px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all whitespace-nowrap ${
                         selectedCategoryId === cat.id 
-                          ? 'bg-navy text-gold shadow-sm' 
+                          ? 'bg-navy text-white shadow-sm' 
                           : 'bg-cream/40 text-slate hover:text-navy border border-border-cream/50'
                       }`}
                     >

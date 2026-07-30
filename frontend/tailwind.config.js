@@ -39,7 +39,7 @@ module.exports = {
       fontFamily: {
         display: ['Poppins', 'sans-serif'],
         sans: ['Inter', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        mono: ['Roboto Mono', 'Inter', 'sans-serif'],
       },
       fontSize: {
         '2xs': ['0.8rem',   { lineHeight: '1.15rem' }],

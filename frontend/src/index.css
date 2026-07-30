@@ -26,23 +26,37 @@
     font-family: 'Poppins', sans-serif;
   }
 
-  /* Custom scrollbars for a premium look */
+  /* Force clean normal 0 without dots or slashes */
+  *, body, input, select, textarea, span, p, div, button {
+    font-variant-numeric: normal !important;
+    font-feature-settings: "zero" 0, "slnt" 0 !important;
+  }
+
+  /* Custom scrollbars for a premium luxury golden look */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #EBE5DA;
+    background: rgba(235, 229, 218, 0.3);
     border-radius: 999px;
   }
 
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #D4AF37 0%, #C5A059 100%);
+    border-radius: 999px;
+    box-shadow: 0 0 4px rgba(197, 160, 89, 0.4);
+  }
+
   ::-webkit-scrollbar-thumb:hover {
-    background: #D4AF37;
+    background: linear-gradient(180deg, #F0C436 0%, #D4AF37 100%);
+  }
+
+  /* Firefox scrollbar color support */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #C5A059 rgba(235, 229, 218, 0.3);
   }
 }
 

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import logoIcon from '../assets/logo-icon.png';
 import logo from '../assets/logo.png';
 import {
@@ -28,6 +28,7 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Clock,
   MapPin,
 } from 'lucide-react';
@@ -113,7 +114,7 @@ function Sidebar({ collapsed, onToggle }) {
         { name: 'Active Orders & History', path: '/captain/history', icon: ClipboardList, roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
       ]
     },
-    /* {
+    {
       category: 'Procurement',
       businessTypes: ['RESTAURANT', 'HOTEL_RESTAURANT'],
       items: [
@@ -121,7 +122,7 @@ function Sidebar({ collapsed, onToggle }) {
         { name: 'Vendors', path: '/vendors', icon: Truck, module: 'vendors' },
         { name: 'Purchase Orders', path: '/purchases', icon: ShoppingCart, module: 'purchases' },
       ]
-    }, */
+    },
     {
       category: 'Administration',
       items: [
@@ -152,6 +153,37 @@ function Sidebar({ collapsed, onToggle }) {
       })
     }))
     .filter((group) => group.items.length > 0);
+
+  const location = useLocation();
+
+  // State for category dropdown accordion collapse/expand
+  const [openCategories, setOpenCategories] = useState(() => {
+    const initial = {};
+    rawNavigation.forEach(g => {
+      initial[g.category] = true;
+    });
+    return initial;
+  });
+
+  // Auto-expand category matching current active route
+  useEffect(() => {
+    navigation.forEach(group => {
+      const hasActive = group.items.some(item => {
+        if (item.path === '/') return location.pathname === '/';
+        return location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+      });
+      if (hasActive) {
+        setOpenCategories(prev => ({ ...prev, [group.category]: true }));
+      }
+    });
+  }, [location.pathname]);
+
+  const toggleCategory = (categoryName) => {
+    setOpenCategories(prev => ({
+      ...prev,
+      [categoryName]: !prev[categoryName]
+    }));
+  };
 
   const handleLogout = async () => {
     await api.logout();
@@ -196,64 +228,66 @@ function Sidebar({ collapsed, onToggle }) {
         </div>
       )}
 
-      {/* Navigation List */}
-      <nav className="flex-1 px-2 py-4 space-y-4 overflow-y-auto overflow-x-hidden">
-        {navigation.map((group) => (
-          <div key={group.category} className="space-y-0.5">
-            {/* Category label — only when expanded */}
-            {!collapsed && (
-              <h4 className="text-[10px] font-bold text-slate uppercase tracking-wider px-3 mb-1">
-                {group.category}
-              </h4>
-            )}
-            {/* Divider when collapsed */}
-            {collapsed && (
-              <div className="border-t border-border-cream/60 mx-1 mb-1" />
-            )}
+      {/* Navigation List with Category Dropdowns */}
+      <nav className="flex-1 px-2 py-4 space-y-3 overflow-y-auto overflow-x-hidden">
+        {navigation.map((group) => {
+          const isOpen = openCategories[group.category] !== false;
+          return (
+            <div key={group.category} className="space-y-1">
+              {/* Category Header — clean static label when expanded */}
+              {!collapsed ? (
+                <div className="px-3 py-1.5 text-xs font-bold text-slate uppercase tracking-wider">
+                  <span className="truncate">{group.category}</span>
+                </div>
+              ) : (
+                <div className="border-t border-border-cream/60 mx-1 mb-1" />
+              )}
 
-            <div className="space-y-0.5">
-              {group.items.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.name}
-                    to={item.path}
-                    end={item.path === '/captain' || item.path === '/'}
-                    onClick={() => {
-                      if (window.innerWidth < 768 && !collapsed) {
-                        onToggle();
-                      }
-                    }}
-                    title={collapsed ? item.name : undefined}
-                    className={({ isActive }) => `
-                      flex items-center gap-3 font-medium text-xs transition-all duration-200 group
-                      ${collapsed
-                        ? 'w-10 h-10 justify-center rounded-xl mx-auto'
-                        : 'px-3 py-2 rounded-xl hover:translate-x-1'
-                      }
-                      ${isActive
-                        ? collapsed
-                          ? 'bg-gold-pale text-navy shadow-sm'
-                          : 'bg-gold-pale text-navy border-l-4 border-gold shadow-sm font-semibold'
-                        : 'text-slate hover:bg-gold-pale/50 hover:text-navy'
-                      }
-                    `}
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <Icon
-                          className={`w-4 h-4 shrink-0 transition-colors duration-200 ${isActive ? 'text-gold' : 'text-slate group-hover:text-navy'}`}
-                        />
-                        {/* Label — only when expanded */}
-                        {!collapsed && <span className="truncate">{item.name}</span>}
-                      </>
-                    )}
-                  </NavLink>
-                );
-              })}
+              {/* Nav Items */}
+              <div className="space-y-0.5 animate-fadeIn">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <NavLink
+                      key={item.name}
+                      to={item.path}
+                      end={item.path === '/captain' || item.path === '/'}
+                      onClick={() => {
+                        if (window.innerWidth < 768 && !collapsed) {
+                          onToggle();
+                        }
+                      }}
+                      title={collapsed ? item.name : undefined}
+                      className={({ isActive }) => `
+                        flex items-center gap-3 font-semibold text-[0.9rem] transition-all duration-200 group
+                        ${collapsed
+                          ? 'w-10 h-10 justify-center rounded-xl mx-auto'
+                          : 'px-3 py-2 rounded-xl hover:translate-x-1'
+                        }
+                        ${isActive
+                          ? collapsed
+                            ? 'bg-gold-pale text-navy shadow-sm'
+                            : 'bg-gold-pale text-navy border-l-4 border-gold shadow-sm font-semibold'
+                          : 'text-slate hover:bg-gold-pale/50 hover:text-navy'
+                        }
+                      `}
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <Icon
+                            className={`w-4 h-4 shrink-0 transition-colors duration-200 ${isActive ? 'text-gold' : 'text-slate group-hover:text-navy'}`}
+                          />
+                          {/* Label — only when expanded */}
+                          {!collapsed && <span className="truncate">{item.name}</span>}
+                        </>
+                      )}
+                    </NavLink>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </nav>
 
       {/* Bottom User Profile Dropdown */}

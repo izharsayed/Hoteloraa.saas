@@ -130,3 +130,144 @@ const parsePagination = (query = {}) => {
     data: { isActive: false },
   });
 }; exports.deleteItem = deleteItem;
+
+// ── Recipe & Order Stock Deduction Extensions ────────────────────────────────
+
+const _notificationsservice = require('../notifications/notifications.service');
+
+const convertQuantity = (amount, fromUnit, toUnit) => {
+  if (!fromUnit || !toUnit || fromUnit === toUnit) return amount;
+  
+  // Weight conversion
+  if ((fromUnit === 'GRAM' || fromUnit === 'GM') && (toUnit === 'KG' || toUnit === 'KILOGRAM')) return amount / 1000;
+  if ((fromUnit === 'KG' || fromUnit === 'KILOGRAM') && (toUnit === 'GRAM' || toUnit === 'GM')) return amount * 1000;
+
+  // Volume conversion
+  if (fromUnit === 'ML' && (toUnit === 'LITRE' || toUnit === 'LITER')) return amount / 1000;
+  if ((fromUnit === 'LITRE' || fromUnit === 'LITER') && toUnit === 'ML') return amount * 1000;
+
+  return amount;
+};
+
+const deductStockForOrder = async (tenantId, orderId, orderItems) => {
+  if (!orderItems || orderItems.length === 0) return;
+
+  for (const item of orderItems) {
+    const ingredients = await _database2.default.menuItemIngredient.findMany({
+      where: { menuItemId: item.menuItemId },
+      include: { inventoryItem: true },
+    });
+
+    for (const ing of ingredients) {
+      const rawRequiredQty = ing.quantityRequired * item.quantity;
+      const invItem = ing.inventoryItem;
+      if (!invItem || !invItem.isActive) continue;
+
+      // Convert recipe unit to inventory base unit
+      const requiredQtyInBase = convertQuantity(rawRequiredQty, ing.unit, invItem.unit);
+      const newQty = Math.max(0, invItem.quantity - requiredQtyInBase);
+
+      await _database2.default.inventoryItem.update({
+        where: { id: invItem.id },
+        data: { quantity: newQty },
+      });
+
+      await _database2.default.inventoryLog.create({
+        data: {
+          tenantId,
+          inventoryItemId: invItem.id,
+          orderId: orderId,
+          changeType: 'ORDER_DEDUCTION',
+          quantityChange: -requiredQtyInBase,
+          previousQuantity: invItem.quantity,
+          newQuantity: newQty,
+          unit: invItem.unit,
+          reason: `Auto deduction for Order #${orderId.slice(0, 8)} (${rawRequiredQty} ${ing.unit})`,
+        },
+      });
+
+      if (newQty <= invItem.minimumStock) {
+        await _notificationsservice.createNotification(tenantId, {
+          role: 'MANAGER',
+          title: 'Low Stock Alert',
+          message: `Stock for "${invItem.name}" dropped to ${newQty} ${invItem.unit} (Threshold: ${invItem.minimumStock})`,
+          type: 'WARNING',
+        }).catch(() => {});
+      }
+    }
+  }
+}; exports.deductStockForOrder = deductStockForOrder;
+
+const restockForCancelledOrder = async (tenantId, orderId) => {
+  const logs = await _database2.default.inventoryLog.findMany({
+    where: { tenantId, orderId, changeType: 'ORDER_DEDUCTION' },
+    include: { inventoryItem: true },
+  });
+
+  for (const log of logs) {
+    const invItem = log.inventoryItem;
+    if (!invItem) continue;
+
+    const qtyToRestore = Math.abs(log.quantityChange);
+    const newQty = invItem.quantity + qtyToRestore;
+
+    await _database2.default.inventoryItem.update({
+      where: { id: invItem.id },
+      data: { quantity: newQty },
+    });
+
+    await _database2.default.inventoryLog.create({
+      data: {
+        tenantId,
+        inventoryItemId: invItem.id,
+        orderId: orderId,
+        changeType: 'RESTOCK_CANCEL',
+        quantityChange: qtyToRestore,
+        previousQuantity: invItem.quantity,
+        newQuantity: newQty,
+        unit: log.unit,
+        reason: `Restocked due to Order cancellation #${orderId.slice(0, 8)}`,
+      },
+    });
+  }
+}; exports.restockForCancelledOrder = restockForCancelledOrder;
+
+const getInventoryLogs = async (tenantId) => {
+  return _database2.default.inventoryLog.findMany({
+    where: { tenantId },
+    include: {
+      inventoryItem: { select: { id: true, name: true, sku: true, unit: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 100,
+  });
+}; exports.getInventoryLogs = getInventoryLogs;
+
+const getMenuItemIngredients = async (tenantId, menuItemId) => {
+  return _database2.default.menuItemIngredient.findMany({
+    where: { menuItemId, menuItem: { tenantId } },
+    include: {
+      inventoryItem: { select: { id: true, name: true, sku: true, unit: true, quantity: true, costPrice: true } },
+    },
+  });
+}; exports.getMenuItemIngredients = getMenuItemIngredients;
+
+const setMenuItemIngredients = async (tenantId, menuItemId, ingredients) => {
+  await _database2.default.menuItemIngredient.deleteMany({
+    where: { menuItemId },
+  });
+
+  if (!ingredients || ingredients.length === 0) return [];
+
+  const data = ingredients.map(ing => ({
+    menuItemId,
+    inventoryItemId: ing.inventoryItemId,
+    quantityRequired: parseFloat(ing.quantityRequired),
+    unit: ing.unit || 'PIECE',
+  }));
+
+  await _database2.default.menuItemIngredient.createMany({ data });
+
+  return exports.getMenuItemIngredients(tenantId, menuItemId);
+}; exports.setMenuItemIngredients = setMenuItemIngredients;
+

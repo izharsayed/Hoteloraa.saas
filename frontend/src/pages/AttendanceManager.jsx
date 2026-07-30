@@ -92,7 +92,7 @@ const AttendanceManager = () => {
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-navy">Team Attendance</h1>
+          <h1 className="font-display font-bold text-3xl text-navy">Team Attendance</h1>
           <p className="text-slate text-sm">Monitor staff check-ins and manage timesheets today.</p>
         </div>
         <button 

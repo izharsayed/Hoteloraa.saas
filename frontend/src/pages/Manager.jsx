@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   ShieldCheck, 
   TrendingUp, 
-  DollarSign, 
+  IndianRupee, 
   Calendar, 
   Clock, 
   Plus, 
@@ -161,19 +161,19 @@ function ManagerPage() {
         {/* ADR */}
         <div className="soft-card p-6 bg-white flex justify-between items-center">
           <div className="space-y-1">
-            <p className="text-[10px] font-bold text-slate uppercase tracking-wider">Average Daily Rate (ADR)</p>
+            <p className="text-xs font-bold text-slate uppercase tracking-wider">Average Daily Rate (ADR)</p>
             <h3 className="font-display font-bold text-2xl text-navy">₹{adr.toLocaleString()}</h3>
             <span className="text-[10px] text-slate font-medium">Daily average per occupied room</span>
           </div>
           <div className="w-12 h-12 bg-cream rounded-2xl flex items-center justify-center border border-border-cream/50 text-gold">
-            <DollarSign className="w-6 h-6" />
+            <IndianRupee className="w-6 h-6" />
           </div>
         </div>
 
         {/* RevPAR */}
         <div className="soft-card p-6 bg-white flex justify-between items-center">
           <div className="space-y-1">
-            <p className="text-[10px] font-bold text-slate uppercase tracking-wider">RevPAR</p>
+            <p className="text-xs font-bold text-slate uppercase tracking-wider">RevPAR</p>
             <h3 className="font-display font-bold text-2xl text-navy">₹{revpar.toLocaleString()}</h3>
             <span className="text-[10px] text-slate font-medium">Revenue per available room</span>
           </div>
@@ -185,7 +185,7 @@ function ManagerPage() {
         {/* Restaurant Covers */}
         <div className="soft-card p-6 bg-white flex justify-between items-center">
           <div className="space-y-1">
-            <p className="text-[10px] font-bold text-slate uppercase tracking-wider">Dining Covers Served</p>
+            <p className="text-xs font-bold text-slate uppercase tracking-wider">Dining Covers Served</p>
             <h3 className="font-display font-bold text-2xl text-navy">{covers}</h3>
             <span className="text-[10px] text-slate font-medium">Restaurant guest count today</span>
           </div>

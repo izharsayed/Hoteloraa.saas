@@ -24,6 +24,8 @@ const PAGE_SIZE = 10;
 function Inventory() {
   const [items, setItems] = useState([]);
   const [vendors, setVendors] = useState([]);
+  const [logs, setLogs] = useState([]);
+  const [activeTab, setActiveTab] = useState('stock'); // 'stock' | 'logs'
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -55,12 +57,14 @@ function Inventory() {
     try {
       setLoading(true);
       setError('');
-      const [itemsData, vendorsData] = await Promise.all([
+      const [itemsData, vendorsData, logsData] = await Promise.all([
         api.get('/inventory'),
-        api.get('/vendors').catch(() => [])
+        api.get('/vendors').catch(() => []),
+        api.get('/inventory/logs').catch(() => [])
       ]);
       setItems(itemsData || []);
       setVendors(vendorsData || []);
+      setLogs(logsData || []);
     } catch (err) {
       setError(err.message || 'Failed to load inventory');
     } finally {
@@ -353,125 +357,207 @@ function Inventory() {
         </div>
       </div>
 
-      {/* Stock Table */}
+      {/* Stock & Logs Tabs */}
       <div className="soft-card p-6">
-        {/* Table header + filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <h3 className="font-display font-semibold text-lg text-navy">Master Stock Index</h3>
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* Status filter pills */}
-            <div className="flex rounded-xl border border-border-cream overflow-hidden text-[10px] font-bold">
-              {[['all','All'], ['good','Good'], ['low','Low Stock']].map(([val, label]) => (
-                <button key={val} onClick={() => { setFilterStatus(val); setPage(1); }}
-                  className={`px-3 py-1.5 transition-all ${filterStatus === val ? 'bg-navy text-white' : 'bg-white text-slate hover:bg-cream/40'}`}>
-                  {label}
-                </button>
-              ))}
-            </div>
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate" />
-              <input type="text" placeholder="Search name / SKU..."
-                value={searchQuery}
-                onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
-                className="pl-9 pr-4 py-2 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs bg-cream/20 w-48" />
-            </div>
-          </div>
+        {/* Navigation Tabs */}
+        <div className="flex border-b border-border-cream/80 mb-6 gap-6">
+          <button
+            onClick={() => setActiveTab('stock')}
+            className={`pb-3 text-sm font-bold border-b-2 transition-all ${
+              activeTab === 'stock' ? 'border-navy text-navy font-display' : 'border-transparent text-slate hover:text-navy'
+            }`}
+          >
+            Master Stock Index
+          </button>
+          <button
+            onClick={() => setActiveTab('logs')}
+            className={`pb-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === 'logs' ? 'border-navy text-navy font-display' : 'border-transparent text-slate hover:text-navy'
+            }`}
+          >
+            Order Deduction & Audit Logs
+            <span className="px-2 py-0.5 rounded-full bg-gold-pale text-navy text-[10px] font-mono font-bold">
+              {logs.length}
+            </span>
+          </button>
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-16 gap-3 text-slate">
-            <Loader2 className="w-6 h-6 animate-spin text-gold" />
-            <span className="text-sm font-semibold">Loading stock data...</span>
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-border-cream text-[10px] font-bold text-slate uppercase tracking-wider">
-                    <th className="pb-3">Item ID</th>
-                    <th className="pb-3">Description</th>
-                    <th className="pb-3 text-center">Quantity</th>
-                    <th className="pb-3 text-center">Min. Stock</th>
-                    <th className="pb-3 text-right">Cost / Unit</th>
-                    <th className="pb-3">Vendor</th>
-                    <th className="pb-3 text-center">Status</th>
-                    <th className="pb-3 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-cream/40 text-xs font-semibold">
-                  {paged.length === 0 ? (
-                    <tr>
-                      <td colSpan="8" className="text-center py-12 text-slate">
-                        {searchQuery || filterStatus !== 'all' ? 'No items match your filter.' : 'No inventory items yet. Click "+ Add Inventory Item" to get started.'}
-                      </td>
-                    </tr>
-                  ) : paged.map(item => {
-                    const isLow = item.quantity <= item.minimumStock;
-                    const unit = UNIT_LABELS[item.unit] || item.unit?.toLowerCase();
-                    return (
-                      <tr key={item.id} className="hover:bg-gold-pale/10 transition-colors group">
-                        <td className="py-3.5 font-mono font-bold text-navy text-[11px]">{item.sku || item.id.slice(0, 8)}</td>
-                        <td className="py-3.5 text-charcoal max-w-[180px] truncate" title={item.name}>{item.name}</td>
-                        <td className="py-3.5 text-center font-mono font-bold text-charcoal">{item.quantity} <span className="text-slate font-normal">{unit}</span></td>
-                        <td className="py-3.5 text-center font-mono text-slate">{item.minimumStock} <span className="text-slate/60 font-normal">{unit}</span></td>
-                        <td className="py-3.5 text-right font-mono text-slate">
-                          {item.costPrice ? `₹${Number(item.costPrice).toLocaleString('en-IN')}` : '—'}
-                        </td>
-                        <td className="py-3.5 text-slate max-w-[130px] truncate" title={getVendorName(item.description)}>
-                          {getVendorName(item.description)}
-                        </td>
-                        <td className="py-3.5 text-center">
-                          <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
-                            isLow ? 'bg-danger-pale text-danger border border-danger/20' : 'bg-success/10 text-success border border-success/20'
-                          }`}>
-                            {isLow ? 'Low Stock' : 'Good'}
-                          </span>
-                        </td>
-                        <td className="py-3.5 text-center">
-                          <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => setAdjustItem(item)} title="Adjust Stock"
-                              className="p-1.5 hover:bg-gold/10 rounded-lg text-gold transition-colors">
-                              <TrendingDown className="w-3.5 h-3.5" />
-                            </button>
-                            <button onClick={() => openEdit(item)} title="Edit Item"
-                              className="p-1.5 hover:bg-navy/10 rounded-lg text-navy transition-colors">
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-                            <button onClick={() => setDeleteConfirm(item)} title="Delete Item"
-                              className="p-1.5 hover:bg-danger/10 rounded-lg text-danger transition-colors">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-border-cream/40">
-                <span className="text-[10px] text-slate font-semibold">
-                  Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} items
-                </span>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                    className="p-1.5 rounded-lg border border-border-cream disabled:opacity-40 hover:bg-cream/40 transition-all">
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <span className="px-3 text-xs font-bold text-navy">{page} / {totalPages}</span>
-                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                    className="p-1.5 rounded-lg border border-border-cream disabled:opacity-40 hover:bg-cream/40 transition-all">
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
+        {activeTab === 'stock' ? (
+          <div>
+            {/* Table header + filters */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <h3 className="font-display font-semibold text-base text-navy">Stock Items & Thresholds</h3>
+              <div className="flex items-center gap-3 flex-wrap">
+                {/* Status filter pills */}
+                <div className="flex rounded-xl border border-border-cream overflow-hidden text-[10px] font-bold">
+                  {[['all','All'], ['good','Good'], ['low','Low Stock']].map(([val, label]) => (
+                    <button key={val} onClick={() => { setFilterStatus(val); setPage(1); }}
+                      className={`px-3 py-1.5 transition-all ${filterStatus === val ? 'bg-navy text-white' : 'bg-white text-slate hover:bg-cream/40'}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate" />
+                  <input type="text" placeholder="Search name / SKU..."
+                    value={searchQuery}
+                    onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+                    className="pl-9 pr-4 py-2 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs bg-cream/20 w-48" />
                 </div>
               </div>
+            </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-16 gap-3 text-slate">
+                <Loader2 className="w-6 h-6 animate-spin text-gold" />
+                <span className="text-sm font-semibold">Loading stock data...</span>
+              </div>
+            ) : (
+              <div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-border-cream text-[10px] font-bold text-slate uppercase tracking-wider">
+                        <th className="pb-3">Item ID</th>
+                        <th className="pb-3">Description</th>
+                        <th className="pb-3 text-center">Quantity</th>
+                        <th className="pb-3 text-center">Min. Stock</th>
+                        <th className="pb-3 text-right">Cost / Unit</th>
+                        <th className="pb-3">Vendor</th>
+                        <th className="pb-3 text-center">Status</th>
+                        <th className="pb-3 text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border-cream/40 text-xs font-semibold">
+                      {paged.length === 0 ? (
+                        <tr>
+                          <td colSpan="8" className="text-center py-12 text-slate">
+                            {searchQuery || filterStatus !== 'all' ? 'No items match your filter.' : 'No inventory items yet. Click "+ Add Inventory Item" to get started.'}
+                          </td>
+                        </tr>
+                      ) : paged.map(item => {
+                        const isLow = item.quantity <= item.minimumStock;
+                        const unit = UNIT_LABELS[item.unit] || item.unit?.toLowerCase();
+                        return (
+                          <tr key={item.id} className="hover:bg-gold-pale/10 transition-colors group">
+                            <td className="py-3.5 font-mono font-bold text-navy text-[11px]">{item.sku || item.id.slice(0, 8)}</td>
+                            <td className="py-3.5 text-charcoal max-w-[180px] truncate" title={item.name}>{item.name}</td>
+                            <td className="py-3.5 text-center font-mono font-bold text-charcoal">{item.quantity} <span className="text-slate font-normal">{unit}</span></td>
+                            <td className="py-3.5 text-center font-mono text-slate">{item.minimumStock} <span className="text-slate/60 font-normal">{unit}</span></td>
+                            <td className="py-3.5 text-right font-mono text-slate">
+                              {item.costPrice ? `₹${Number(item.costPrice).toLocaleString('en-IN')}` : '—'}
+                            </td>
+                            <td className="py-3.5 text-slate max-w-[130px] truncate" title={getVendorName(item.description)}>
+                              {getVendorName(item.description)}
+                            </td>
+                            <td className="py-3.5 text-center">
+                              <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                                isLow ? 'bg-danger-pale text-danger border border-danger/20' : 'bg-success/10 text-success border border-success/20'
+                              }`}>
+                                {isLow ? 'Low Stock' : 'Good'}
+                              </span>
+                            </td>
+                            <td className="py-3.5 text-center">
+                              <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onClick={() => setAdjustItem(item)} title="Adjust Stock"
+                                  className="p-1.5 hover:bg-gold/10 rounded-lg text-gold transition-colors">
+                                  <TrendingDown className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => openEdit(item)} title="Edit Item"
+                                  className="p-1.5 hover:bg-navy/10 rounded-lg text-navy transition-colors">
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => setDeleteConfirm(item)} title="Delete Item"
+                                  className="p-1.5 hover:bg-danger/10 rounded-lg text-danger transition-colors">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border-cream/40">
+                    <span className="text-[10px] text-slate font-semibold">
+                      Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} items
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                        className="p-1.5 rounded-lg border border-border-cream disabled:opacity-40 hover:bg-cream/40 transition-all">
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <span className="px-3 text-xs font-bold text-navy">{page} / {totalPages}</span>
+                      <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                        className="p-1.5 rounded-lg border border-border-cream disabled:opacity-40 hover:bg-cream/40 transition-all">
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
-          </>
+          </div>
+        ) : (
+          /* Logs Tab View */
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-border-cream text-[10px] font-bold text-slate uppercase tracking-wider">
+                  <th className="pb-3">Timestamp</th>
+                  <th className="pb-3">Inventory Item</th>
+                  <th className="pb-3 text-center">Type</th>
+                  <th className="pb-3 text-right">Quantity Change</th>
+                  <th className="pb-3 text-right">Stock Level</th>
+                  <th className="pb-3">Reason / Details</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-cream/40 text-xs font-semibold">
+                {logs.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-12 text-slate font-medium">
+                      No stock deduction or adjustment logs yet. Orders placed with configured recipes will appear here automatically.
+                    </td>
+                  </tr>
+                ) : logs.map(log => {
+                  const isDeduction = log.quantityChange < 0;
+                  return (
+                    <tr key={log.id} className="hover:bg-gold-pale/10 transition-colors">
+                      <td className="py-3.5 text-slate font-mono text-[11px]">
+                        {new Date(log.createdAt).toLocaleString()}
+                      </td>
+                      <td className="py-3.5 font-bold text-navy">
+                        {log.inventoryItem?.name || 'Unknown Item'}
+                      </td>
+                      <td className="py-3.5 text-center">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                          log.changeType === 'ORDER_DEDUCTION' ? 'bg-amber-100 text-amber-800' :
+                          log.changeType === 'RESTOCK_CANCEL' ? 'bg-blue-100 text-blue-800' :
+                          'bg-emerald-100 text-emerald-800'
+                        }`}>
+                          {log.changeType?.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className={`py-3.5 text-right font-mono font-bold ${isDeduction ? 'text-red-600' : 'text-emerald-600'}`}>
+                        {isDeduction ? '' : '+'}{log.quantityChange} {UNIT_LABELS[log.unit] || log.unit}
+                      </td>
+                      <td className="py-3.5 text-right font-mono text-slate">
+                        {log.newQuantity} <span className="text-slate/60">{UNIT_LABELS[log.unit] || log.unit}</span>
+                      </td>
+                      <td className="py-3.5 text-slate font-medium max-w-[200px] truncate" title={log.reason}>
+                        {log.reason || '—'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

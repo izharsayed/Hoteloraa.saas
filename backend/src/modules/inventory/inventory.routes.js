@@ -9,7 +9,10 @@ const router = _express.Router.call(void 0, );
 router.use(_authmiddleware.authenticate);
 
 router.get('/',           _authmiddleware.checkPermission.call(void 0, 'INVENTORY', 'READ'),   inventoryController.getItems);
+router.get('/logs',       _authmiddleware.checkPermission.call(void 0, 'INVENTORY', 'READ'),   inventoryController.getInventoryLogs);
 router.get('/low-stock',  _authmiddleware.checkPermission.call(void 0, 'INVENTORY', 'READ'),   inventoryController.getLowStockItems);
+router.get('/recipe/:menuItemId', _authmiddleware.checkPermission.call(void 0, 'MENU', 'READ'), inventoryController.getMenuItemIngredients);
+router.post('/recipe/:menuItemId', _authmiddleware.checkPermission.call(void 0, 'MENU', 'UPDATE'), inventoryController.setMenuItemIngredients);
 router.get('/:id',        _authmiddleware.checkPermission.call(void 0, 'INVENTORY', 'READ'),   inventoryController.getItemById);
 router.post('/',          _authmiddleware.checkPermission.call(void 0, 'INVENTORY', 'CREATE'), _validatemiddleware.validate.call(void 0, _inventorydto.createItemSchema), inventoryController.createItem);
 router.put('/:id',        _authmiddleware.checkPermission.call(void 0, 'INVENTORY', 'UPDATE'), _validatemiddleware.validate.call(void 0, _inventorydto.updateItemSchema), inventoryController.updateItem);

@@ -101,7 +101,7 @@ function Purchases() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-display font-bold text-charcoal">Purchase Orders</h1>
+          <h1 className="font-display font-bold text-3xl text-navy">Purchase Orders</h1>
           <p className="text-sm text-slate mt-0.5">Track and manage all procurement orders</p>
         </div>
         <button

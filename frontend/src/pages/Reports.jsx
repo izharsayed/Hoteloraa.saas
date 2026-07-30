@@ -70,18 +70,24 @@ function Reports() {
     { name: 'Room Service Revenue', value: roomServiceRev, change: '+8.1%', desc: 'In-room food & beverage orders' }
   ];
 
-  // 5. Timeline Chart Data
+  // 5. Timeline Chart Data (Dynamic 7-day date matching)
+  const getDynamicTimeline = () => {
+    const list = [];
+    const rates = [62, 68, 70, 75, 78, 82, 78];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      list.push({
+        date: d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+        rate: rates[6 - i]
+      });
+    }
+    return list;
+  };
+
   const timelineData = !isDemo && occupancy?.dailyTimeline?.length > 0
     ? occupancy.dailyTimeline
-    : [
-        { date: '13 Jun', rate: 62 },
-        { date: '14 Jun', rate: 68 },
-        { date: '15 Jun', rate: 70 },
-        { date: '16 Jun', rate: 75 },
-        { date: '17 Jun', rate: 78 },
-        { date: '18 Jun', rate: 82 },
-        { date: '19 Jun', rate: 78 }
-      ];
+    : getDynamicTimeline();
 
   // 6. Revenue Split Module Data
   let lodgingRevNum = 85000;
@@ -145,7 +151,7 @@ function Reports() {
             {kpis.map((kpi, index) => (
               <div key={index} className="soft-card p-6 bg-white flex flex-col justify-between h-40">
                 <div>
-                  <span className="text-[10px] text-slate font-bold uppercase tracking-wider block">{kpi.name}</span>
+                  <span className="text-xs font-bold text-slate uppercase tracking-wider block">{kpi.name}</span>
                   <h3 className="font-mono font-bold text-2xl text-navy mt-2">{kpi.value}</h3>
                 </div>
                 <div className="border-t border-border-cream/50 pt-3 mt-4 flex items-center justify-between text-xs">
@@ -168,41 +174,56 @@ function Reports() {
                 </span>
               </div>
 
-              <div className="space-y-3">
-                <div className="h-44 relative flex items-end justify-between gap-3 border-b border-border-cream pb-1">
-                  {/* Horizontal Grid lines */}
-                  <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-                    {[100, 75, 50, 25].map(val => (
-                      <div key={val} className="w-full border-t border-dashed border-slate/10 flex items-center justify-between text-[8px] font-bold text-slate/40">
-                        <span>{val}%</span>
-                        <span>{val}%</span>
-                      </div>
-                    ))}
+              <div className="space-y-4">
+                <div className="flex items-stretch gap-3">
+                  {/* Left Y-Axis Scale Labels */}
+                  <div className="flex flex-col justify-between text-[9px] font-mono font-bold text-slate/50 pb-5 text-right w-8 select-none">
+                    <span>100%</span>
+                    <span>75%</span>
+                    <span>50%</span>
+                    <span>25%</span>
+                    <span>0%</span>
                   </div>
 
-                  {/* Bars */}
-                  {timelineData.map((d, idx) => (
-                    <div key={idx} className="relative z-10 flex-1 h-full flex flex-col justify-end items-center group">
-                      {/* Tooltip */}
-                      <div className="absolute opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none bg-navy text-gold text-[9px] font-mono font-bold px-2 py-0.5 rounded shadow-lg whitespace-nowrap z-20"
-                        style={{ bottom: `${d.rate}%`, marginBottom: '4px' }}>
-                        {d.rate}%
+                  {/* Chart Main Area */}
+                  <div className="flex-1 space-y-2">
+                    <div className="h-44 relative flex items-end justify-between gap-2 border-b border-l border-border-cream/80 px-2 pb-0.5">
+                      {/* Horizontal Dashed Gridlines */}
+                      <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pr-1">
+                        <div className="w-full border-t border-dashed border-slate/10"></div>
+                        <div className="w-full border-t border-dashed border-slate/10"></div>
+                        <div className="w-full border-t border-dashed border-slate/10"></div>
+                        <div className="w-full border-t border-dashed border-slate/10"></div>
+                        <div className="w-full border-t border-slate/20"></div>
                       </div>
-                      
-                      {/* Bar */}
-                      <div 
-                        className="w-full bg-gold/20 hover:bg-gold rounded-t-lg transition-all duration-300 cursor-pointer origin-bottom hover:scale-x-105 shadow-sm"
-                        style={{ height: `${d.rate}%` }}
-                      ></div>
-                    </div>
-                  ))}
-                </div>
 
-                {/* Labels under the grid */}
-                <div className="flex justify-between gap-3 text-center">
-                  {timelineData.map((d, idx) => (
-                    <span key={idx} className="flex-1 text-[10px] text-slate font-bold font-mono select-none">{d.date}</span>
-                  ))}
+                      {/* Bars */}
+                      {timelineData.map((d, idx) => (
+                        <div key={idx} className="relative z-10 flex-1 h-full flex flex-col justify-end items-center group">
+                          {/* Tooltip */}
+                          <div 
+                            className="absolute opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none bg-navy text-gold text-[10px] font-mono font-bold px-2 py-0.5 rounded-md shadow-md whitespace-nowrap z-20"
+                            style={{ bottom: `${d.rate}%`, marginBottom: '6px' }}
+                          >
+                            {d.rate}%
+                          </div>
+                          
+                          {/* Bar Element */}
+                          <div 
+                            className="w-full max-w-[28px] bg-gradient-to-t from-gold/30 to-gold/70 group-hover:from-gold group-hover:to-gold-light rounded-t-md transition-all duration-300 cursor-pointer shadow-sm"
+                            style={{ height: `${d.rate}%` }}
+                          ></div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* X-Axis Date Labels under the grid */}
+                    <div className="flex justify-between gap-2 px-2 text-center">
+                      {timelineData.map((d, idx) => (
+                        <span key={idx} className="flex-1 text-[10px] text-slate font-bold font-mono select-none">{d.date}</span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

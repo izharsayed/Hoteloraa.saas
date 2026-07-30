@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   CalendarRange, Plus, Search, Calendar, ChevronRight, ChevronLeft, UserPlus, X,
-  User, Phone, Mail, Bed, FileText, Users, DollarSign, Camera, Upload, Trash2,
+  User, Phone, Mail, Bed, FileText, Users, IndianRupee, Camera, Upload, Trash2,
   Image, Check, Clock, MapPin, Building, Car, Briefcase, Star, CheckCircle,
   AlertCircle, Printer, Send, CreditCard, Banknote, Smartphone, RefreshCw,
   Shield, Globe, Hash, ChevronDown, Filter, Hotel, Info, XCircle
@@ -993,7 +993,7 @@ function Step4({ data, onChange, selectedRoom, nights }) {
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <label className="block text-[10px] font-bold uppercase tracking-wider text-slate">Rate Per Night (₹) *</label>
-          <div className="relative"><DollarSign className="absolute left-3 top-2.5 w-4 h-4 text-slate/40" />
+          <div className="relative"><IndianRupee className="absolute left-3 top-2.5 w-4 h-4 text-slate/40" />
             <input type="number" min="0" placeholder="0" value={data.ratePerNight}
               onChange={e => onChange('ratePerNight', Number(e.target.value))}
               className="w-full pl-9 pr-3 py-2.5 border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold bg-cream/20 text-sm font-bold transition-all" />
@@ -1977,6 +1977,13 @@ function Reservations() {
 
   const statuses = ['All', 'PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED'];
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedStatus]);
+
   const filtered = bookings.filter(b => {
     if (selectedStatus !== 'All' && b.status !== selectedStatus) return false;
     if (searchQuery) {
@@ -1990,6 +1997,9 @@ function Reservations() {
     }
     return true;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+  const paginatedBookings = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const stats = {
     total: bookings.length,
@@ -2037,9 +2047,9 @@ function Reservations() {
           { label: 'Checked In', val: stats.checkedIn, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-100' },
           { label: 'Pending', val: stats.pending, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-100' },
         ].map((s, i) => (
-          <div key={i} className={`soft-card p-4 border ${s.bg} flex flex-col justify-between h-24`}>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate">{s.label}</span>
-            <span className={`font-mono text-3xl font-bold ${s.color}`}>{s.val}</span>
+          <div key={i} className={`soft-card p-3 px-4 border ${s.bg} flex flex-col justify-between h-20`}>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate">{s.label}</span>
+            <span className={`font-mono text-2xl font-bold ${s.color}`}>{s.val}</span>
           </div>
         ))}
       </div>
@@ -2052,14 +2062,18 @@ function Reservations() {
             value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-2 border border-border-cream/80 rounded-xl focus:outline-none focus:border-gold bg-cream/20 text-sm font-semibold transition-all" />
         </div>
-        <div className="flex gap-1.5 flex-wrap">
-          {statuses.map(s => (
-            <button key={s} onClick={() => setSelectedStatus(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all
-                ${selectedStatus === s ? 'bg-navy text-white' : 'bg-cream/30 text-slate hover:text-navy border border-border-cream'}`}>
-              {s === 'All' ? 'All' : (STATUS_CONFIG[s]?.label || s)}
-            </button>
-          ))}
+        <div className="shrink-0">
+          <select 
+            value={selectedStatus} 
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="px-3 py-2 bg-cream/10 border border-border-cream rounded-xl text-xs font-bold text-navy focus:outline-none focus:border-gold cursor-pointer transition-all"
+          >
+            {statuses.map(s => (
+              <option key={s} value={s}>
+                {s === 'All' ? 'All Statuses' : (STATUS_CONFIG[s]?.label || s)}
+              </option>
+            ))}
+          </select>
         </div>
         <button onClick={fetchReservations} className="flex items-center gap-2 text-xs font-bold text-navy border border-border-cream px-3 py-2 rounded-xl hover:bg-cream/10 active:scale-95 transition-all flex-shrink-0">
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
@@ -2073,7 +2087,7 @@ function Reservations() {
             <thead>
               <tr className="border-b border-border-cream bg-cream/10">
                 {['', 'Booking Ref', 'Guest', 'Room', 'Dates', 'Amount', 'Status', 'Actions'].map((h, i) => (
-                  <th key={i} className={`px-4 py-3 text-[10px] font-bold text-slate uppercase tracking-wider whitespace-nowrap ${i === 0 ? 'w-10 text-center' : ''}`}>{h}</th>
+                  <th key={i} className={`px-4 py-3 text-xs font-bold text-slate uppercase tracking-wider whitespace-nowrap ${i === 0 ? 'w-10 text-center' : ''}`}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -2090,7 +2104,7 @@ function Reservations() {
                   <p className="text-sm font-semibold text-slate">No reservations found</p>
                   <button onClick={() => setShowWizard(true)} className="mt-2 text-gold text-xs font-bold hover:underline">+ Create first booking</button>
                 </td></tr>
-              ) : filtered.map(b => {
+              ) : paginatedBookings.map(b => {
                 const nights = b.checkInDate && b.checkOutDate
                   ? Math.max(0, Math.round((new Date(b.checkOutDate) - new Date(b.checkInDate)) / 86400000)) : 0;
                 const cfg = STATUS_CONFIG[b.status] || { label: b.status, color: 'bg-slate-100 text-slate-600' };
@@ -2233,7 +2247,7 @@ function Reservations() {
                             {/* Stay Bill Details */}
                             <div className="space-y-3">
                               <h4 className="font-bold text-navy uppercase tracking-wider text-[10px] flex items-center gap-1.5 border-b border-border-cream/30 pb-1.5">
-                                <DollarSign className="w-3.5 h-3.5 text-gold" /> Financial Summary
+                                <IndianRupee className="w-3.5 h-3.5 text-gold" /> Financial Summary
                               </h4>
                               <div className="space-y-1.5 text-xs text-slate">
                                 <div className="flex justify-between">
@@ -2319,8 +2333,35 @@ function Reservations() {
           </table>
         </div>
         {filtered.length > 0 && (
-          <div className="px-4 py-3 border-t border-border-cream bg-cream/5">
-            <span className="text-[10px] font-semibold text-slate">Showing {filtered.length} of {bookings.length} reservations</span>
+          <div className="px-4 py-3 border-t border-border-cream bg-cream/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold text-slate">
+            <span>
+              {filtered.length <= itemsPerPage ? (
+                <>Showing <strong className="text-navy">{filtered.length}</strong> {filtered.length === 1 ? 'reservation' : 'reservations'}</>
+              ) : (
+                <>Showing <strong className="text-navy">{Math.min((currentPage - 1) * itemsPerPage + 1, filtered.length)}</strong>–<strong className="text-navy">{Math.min(currentPage * itemsPerPage, filtered.length)}</strong> of <strong className="text-navy">{filtered.length}</strong> reservations</>
+              )}
+            </span>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-1.5 rounded-lg border border-border-cream hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronLeft className="w-4 h-4 text-navy" />
+                </button>
+                <span className="px-3 py-1 bg-white rounded-lg border border-border-cream/80 text-xs font-bold text-navy">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-1.5 rounded-lg border border-border-cream hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronRight className="w-4 h-4 text-navy" />
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

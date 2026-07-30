@@ -65,7 +65,7 @@ function Vendors() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-display font-bold text-charcoal">Vendors</h1>
+          <h1 className="font-display font-bold text-3xl text-navy">Vendors</h1>
           <p className="text-sm text-slate mt-0.5">Manage your supplier contacts and partnerships</p>
         </div>
         <button

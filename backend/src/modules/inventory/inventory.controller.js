@@ -77,3 +77,37 @@ var _helpers = require('../../shared/helpers');
     next(err);
   }
 }; exports.deleteItem = deleteItem;
+
+ const getInventoryLogs = async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenantId;
+    const result = await inventoryService.getInventoryLogs(tenantId, req.query);
+    _helpers.sendSuccess.call(void 0, res, result, 'Inventory logs retrieved successfully');
+  } catch (err) {
+    next(err);
+  }
+}; exports.getInventoryLogs = getInventoryLogs;
+
+ const getMenuItemIngredients = async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenantId;
+    const { menuItemId } = req.params;
+    const result = await inventoryService.getMenuItemIngredients(tenantId, menuItemId);
+    _helpers.sendSuccess.call(void 0, res, result, 'Recipe ingredients retrieved successfully');
+  } catch (err) {
+    next(err);
+  }
+}; exports.getMenuItemIngredients = getMenuItemIngredients;
+
+ const setMenuItemIngredients = async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenantId;
+    const { menuItemId } = req.params;
+    const { ingredients } = req.body;
+    const result = await inventoryService.setMenuItemIngredients(tenantId, menuItemId, ingredients);
+    _helpers.sendSuccess.call(void 0, res, result, 'Recipe ingredients updated successfully');
+  } catch (err) {
+    next(err);
+  }
+}; exports.setMenuItemIngredients = setMenuItemIngredients;
+

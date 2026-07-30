@@ -422,7 +422,7 @@ function Rooms() {
                     className={`
                       py-2 px-2.5 text-xs font-bold rounded-xl border text-center transition-all cursor-pointer truncate
                       ${editingRoom.status === status 
-                        ? 'bg-navy border-navy text-gold shadow-sm' 
+                        ? 'bg-navy border-navy text-white shadow-sm' 
                         : 'bg-white border-border-cream text-charcoal hover:bg-gold-pale/30 hover:border-gold/40'
                       }
                     `}
@@ -458,24 +458,24 @@ function Rooms() {
       {/* Add Room Modal (Horizontal 2-Column Layout) */}
       {showAddModal && createPortal(
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
-          <div className="bg-white border border-border-cream rounded-[2rem] w-full max-w-3xl p-6 md:p-8 shadow-2xl relative my-auto">
+          <div className="bg-white border border-border-cream rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-y-auto p-5 md:p-6 shadow-2xl relative my-auto">
             <button 
               onClick={() => {
                 setShowAddModal(false);
                 resetAddForm();
               }}
-              className="absolute top-6 right-6 text-slate hover:text-navy transition-colors p-1.5 rounded-xl hover:bg-cream/50"
+              className="absolute top-4 right-4 text-slate hover:text-navy transition-colors p-1.5 rounded-xl hover:bg-cream/50"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
 
-            <div className="border-b border-border-cream pb-3 mb-5">
-              <span className="text-[10px] text-slate font-bold uppercase tracking-wider">ROOM MANAGEMENT</span>
-              <h3 className="font-display font-bold text-xl text-navy mt-0.5">Add New Room</h3>
-              <p className="text-xs text-slate mt-0.5">Configure room specs, floor allocation, photos, and optional amenities</p>
+            <div className="border-b border-border-cream pb-2 mb-3.5">
+              <span className="text-[9px] text-slate font-bold uppercase tracking-wider">ROOM MANAGEMENT</span>
+              <h3 className="font-display font-bold text-lg text-navy mt-0.5">Add New Room</h3>
+              <p className="text-[11px] text-slate mt-0.5">Configure room specs, floor allocation, photos, and optional amenities</p>
             </div>
 
-            <form onSubmit={handleAddRoom} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <form onSubmit={handleAddRoom} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Left Column: Core Setup */}
               <div className="space-y-3.5">
                 <div className="space-y-1">
@@ -642,7 +642,7 @@ function Rooms() {
                             }}
                             className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
                               active 
-                                ? 'bg-navy text-gold border-navy shadow-sm' 
+                                ? 'bg-navy text-white border-navy shadow-sm' 
                                 : 'bg-white text-slate border-border-cream hover:bg-gold-pale/20'
                             }`}
                           >

@@ -99,7 +99,7 @@ const AttendanceSettings = () => {
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-navy flex items-center gap-2">
+          <h1 className="font-display font-bold text-3xl text-navy flex items-center gap-2">
             <Settings className="w-6 h-6 text-gold" />
             Attendance Settings
           </h1>

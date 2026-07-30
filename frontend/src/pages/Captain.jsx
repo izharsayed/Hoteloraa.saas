@@ -308,7 +308,7 @@ function Captain() {
           <div className="flex-1 space-y-4 min-h-0 flex flex-col">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 shrink-0">
               <div>
-                <h2 className="font-display font-bold text-xl text-navy">Select Active Table</h2>
+                <h2 className="font-display font-bold text-3xl text-navy">Select Active Table</h2>
                 <p className="text-slate text-xs font-medium mt-0.5">Click a table to open menu and record customer orders</p>
               </div>
               <div className="flex items-center gap-4 text-xs font-semibold text-charcoal bg-white/50 border border-border-cream px-3 py-1.5 rounded-xl">
@@ -318,31 +318,41 @@ function Captain() {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto soft-card p-6 bg-[#FEF9F1] bg-[radial-gradient(#EBE5DA_1.5px,transparent_1.5px)] bg-[size:24px_24px] rounded-2xl min-h-[300px]">
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 gap-6 justify-items-center mt-4">
-                {tables.map((table) => {
-                  const colorClass = 
-                    table.status === 'OCCUPIED' ? 'bg-danger/10 border-danger text-danger' : 
-                    table.status === 'RESERVED' ? 'bg-warning/10 border-warning text-warning' : 
-                    'bg-success/10 border-success text-success';
-                  
-                  return (
-                    <div 
-                      key={table.id}
-                      onClick={() => handleTableSelect(table)}
-                      className="flex flex-col items-center gap-2 cursor-pointer group"
-                    >
-                      <div className={`
-                        w-24 h-24 rounded-2xl border-2 flex flex-col items-center justify-center font-mono shadow-sm transition-all duration-300
-                        ${colorClass} hover:scale-105 hover:shadow-md
-                      `}>
-                        <span className="font-bold text-sm">{table.name}</span>
-                        <span className="text-[9px] opacity-75 font-semibold mt-1">{table.capacity} Pax</span>
+            <div className="flex-1 overflow-y-auto soft-card p-6 bg-white border border-border-cream rounded-2xl min-h-[300px]">
+              {tables.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center space-y-2">
+                  <div className="w-12 h-12 rounded-2xl bg-cream flex items-center justify-center text-slate">
+                    <Utensils className="w-6 h-6 text-gold" />
+                  </div>
+                  <h4 className="font-display font-semibold text-navy text-sm">No Tables Found</h4>
+                  <p className="text-xs text-slate max-w-xs">No dining tables match the currently selected area or category filter.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 gap-6 justify-items-center mt-4">
+                  {tables.map((table) => {
+                    const colorClass = 
+                      table.status === 'OCCUPIED' ? 'bg-danger/10 border-danger text-danger' : 
+                      table.status === 'RESERVED' ? 'bg-warning/10 border-warning text-warning' : 
+                      'bg-success/10 border-success text-success';
+                    
+                    return (
+                      <div 
+                        key={table.id}
+                        onClick={() => handleTableSelect(table)}
+                        className="flex flex-col items-center gap-2 cursor-pointer group"
+                      >
+                        <div className={`
+                          w-24 h-24 rounded-2xl border-2 flex flex-col items-center justify-center font-mono shadow-sm transition-all duration-300
+                          ${colorClass} hover:scale-105 hover:shadow-md
+                        `}>
+                          <span className="font-bold text-sm">{table.name}</span>
+                          <span className="text-[9px] opacity-75 font-semibold mt-1">{table.capacity} Pax</span>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -386,7 +396,7 @@ function Captain() {
                     onClick={() => setSelectedCategoryId('All')}
                     className={`px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all ${
                       selectedCategoryId === 'All' 
-                        ? 'bg-navy text-gold shadow-sm' 
+                        ? 'bg-navy text-white shadow-sm' 
                         : 'bg-cream/40 text-slate hover:text-navy border border-border-cream/50'
                     }`}
                   >
@@ -398,7 +408,7 @@ function Captain() {
                       onClick={() => setSelectedCategoryId(cat.id)}
                       className={`px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all whitespace-nowrap ${
                         selectedCategoryId === cat.id 
-                          ? 'bg-navy text-gold shadow-sm' 
+                          ? 'bg-navy text-white shadow-sm' 
                           : 'bg-cream/40 text-slate hover:text-navy border border-border-cream/50'
                       }`}
                     >

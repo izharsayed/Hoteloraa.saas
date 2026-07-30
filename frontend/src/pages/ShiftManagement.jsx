@@ -167,7 +167,7 @@ const ShiftManagement = () => {
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-navy">Shift Management</h1>
+          <h1 className="font-display font-bold text-3xl text-navy">Shift Management</h1>
           <p className="text-slate text-sm">Create and manage working shifts and assign employees.</p>
         </div>
         <button
