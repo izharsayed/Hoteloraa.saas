@@ -15,7 +15,7 @@ export const getNavigationGroups = (user) => {
       category: 'General',
       items: [
         { name: 'Dashboard', view: 'dashboard', icon: 'bar-chart', module: 'dashboard', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'ACCOUNTANT'] },
-        { name: 'Operations Hub', view: 'manager_hub', icon: 'settings', module: 'settings', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
+        // { name: 'Operations Hub', view: 'manager_hub', icon: 'settings', module: 'settings', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
         { name: 'My Attendance', view: 'attendance', icon: 'time', module: 'attendance' },
         { name: 'Support Tickets', view: 'tickets', icon: 'help-buoy', roles: ['MANAGER', 'TENANT_ADMIN', 'ACCOUNTANT', 'RECEPTIONIST', 'CASHIER', 'CHEF', 'HOUSEKEEPING'] },
         { name: 'Reports & Analytics', view: 'reports', icon: 'trending-up', module: 'reports', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'ACCOUNTANT'] },
@@ -29,7 +29,7 @@ export const getNavigationGroups = (user) => {
         { name: 'Reservations', view: 'reservations', icon: 'calendar', module: 'reservations', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'] },
         { name: 'Front Desk Check-In', view: 'checkin', icon: 'log-in', module: 'checkin', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'] },
         { name: 'Folios & Check-Out', view: 'checkout', icon: 'document-text', module: 'checkout', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST', 'ACCOUNTANT'] },
-        { name: 'Housekeeping', view: 'housekeeping', icon: 'sparkles', module: 'housekeeping', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'HOUSEKEEPING', 'RECEPTIONIST'] },
+        { name: 'Housekeeping', view: 'housekeeping', icon: 'sparkles', module: 'housekeeping', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'HOUSEKEEPING'] },
         { name: 'Guests & CRM', view: 'crm', icon: 'people', module: 'guests', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'] },
       ]
     },

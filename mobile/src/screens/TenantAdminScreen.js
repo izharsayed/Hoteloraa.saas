@@ -496,24 +496,26 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
                       <Text style={styles.detailValue}>{staff.lastLogin || 'Never'}</Text>
                     </View>
 
-                    <View style={styles.itemActions}>
-                       <TouchableOpacity
-                        style={[styles.actionBtn, staff.isActive ? styles.actionSuspendBtn : styles.actionActiveBtn]}
-                        onPress={() => handleToggleStaffStatus(staff.id)}
-                      >
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                          <Ionicons 
-                            name={staff.isActive ? "lock-closed-outline" : "lock-open-outline"} 
-                            size={12} 
-                            color={staff.isActive ? "#C53030" : "#2B6CB0"} 
-                            style={{ marginRight: 6 }} 
-                          />
-                          <Text style={styles.actionBtnText}>
-                            {staff.isActive ? 'Suspend Account' : 'Activate Account'}
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    </View>
+                    {staff.userRole !== 'TENANT_ADMIN' && staff.id !== user.id ? (
+                      <View style={styles.itemActions}>
+                         <TouchableOpacity
+                          style={[styles.actionBtn, staff.isActive ? styles.actionSuspendBtn : styles.actionActiveBtn]}
+                          onPress={() => handleToggleStaffStatus(staff.id)}
+                        >
+                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                            <Ionicons 
+                              name={staff.isActive ? "lock-closed-outline" : "lock-open-outline"} 
+                              size={12} 
+                              color={staff.isActive ? "#C53030" : "#2B6CB0"} 
+                              style={{ marginRight: 6 }} 
+                            />
+                            <Text style={styles.actionBtnText}>
+                              {staff.isActive ? 'Suspend Account' : 'Activate Account'}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      </View>
+                    ) : null}
                   </View>
                 ))}
             </View>
@@ -723,7 +725,10 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
 
               <Text style={styles.fieldLabel}>Employee Role Class</Text>
               <View style={styles.rowChoices}>
-                {['MANAGER', 'RECEPTIONIST', 'CAPTAIN', 'CHEF', 'HOUSEKEEPING', 'CASHIER'].map(roleOpt => (
+                {(user.businessType === 'LODGING'
+                  ? ['MANAGER', 'RECEPTIONIST', 'HOUSEKEEPING']
+                  : ['MANAGER', 'RECEPTIONIST', 'CAPTAIN', 'CHEF', 'HOUSEKEEPING', 'CASHIER']
+                ).map(roleOpt => (
                   <TouchableOpacity
                     key={roleOpt}
                     style={[styles.choiceBtn, newStaffRole === roleOpt && styles.choiceBtnActive]}

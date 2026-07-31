@@ -48,8 +48,8 @@ export default function HousekeepingScreen({ user, onLogout, onOpenDrawer }) {
 
   const fetchTasks = async () => {
     try {
-      // Fetch tasks assigned to the current housekeeper
-      const data = await api.get('/housekeeping/my-tasks');
+      // Fetch all active housekeeping tasks for the tenant workspace
+      const data = await api.get('/housekeeping');
       setTasks(data || []);
     } catch (err) {
       Alert.alert('Error', err.message || 'Failed to load housekeeping tasks.');

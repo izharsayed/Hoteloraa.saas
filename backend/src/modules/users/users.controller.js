@@ -49,6 +49,10 @@ var _helpers = require('../../shared/helpers');
   try {
     const tenantId = req.user.tenantId;
     const { id } = req.params;
+    if (req.user.id === id) {
+      res.status(400).json({ success: false, message: 'You cannot suspend or modify your own account status.' });
+      return;
+    }
     const result = await usersService.toggleUserStatus(tenantId, id);
     _helpers.sendSuccess.call(void 0, res, result, 'User status toggled successfully');
   } catch (err) {

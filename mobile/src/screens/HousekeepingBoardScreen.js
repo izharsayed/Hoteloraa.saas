@@ -23,10 +23,6 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
   ]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // Dropdown Picker Modal
-  const [pickerVisible, setPickerVisible] = useState(false);
-  const [selectedTaskForAssign, setSelectedTaskForAssign] = useState(null);
 
   const fetchHousekeepingTasks = async () => {
     try {
@@ -111,40 +107,7 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
     fetchStaff();
   }, []);
 
-  const handleAssignStaff = async (taskId, staffId) => {
-    try {
-      const task = housekeepingList.find(t => t.id === taskId);
-      const roomId = task?.room?.id || task?.roomId;
 
-      let realTaskId = taskId;
-      if (taskId.startsWith('sync-') && roomId) {
-        // Create actual DB task first
-        const created = await api.post('/housekeeping', {
-          roomId: roomId,
-          taskType: 'CLEANING',
-          notes: 'Automated cleanup task'
-        });
-        realTaskId = created.id;
-      }
-
-      // 1. Assign staff member
-      await api.put(`/housekeeping/${realTaskId}`, {
-        assignedTo: staffId
-      });
-      
-      // 2. Set status to IN_PROGRESS (Cleaning)
-      await api.patch(`/housekeeping/${realTaskId}/status`, {
-        status: 'IN_PROGRESS'
-      });
-      
-      Alert.alert('Staff Assigned', 'Housekeeper successfully assigned to the room.');
-      setPickerVisible(false);
-      fetchHousekeepingTasks();
-    } catch (err) {
-      console.warn(err);
-      Alert.alert('Assignment Failed', err.message || 'Failed to assign housekeeper.');
-    }
-  };
 
   const handleMarkClean = async (target) => {
     try {
@@ -251,20 +214,6 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
                       </View>
                     </View>
 
-                    {/* Staff dropdown trigger */}
-                    <TouchableOpacity
-                      style={styles.staffDropdownBtn}
-                      onPress={() => {
-                        setSelectedTaskForAssign(task);
-                        setPickerVisible(true);
-                      }}
-                    >
-                      <View style={{ flexDirection: 'row', alignItems: 'center', maxWidth: 110 }}>
-                        <Ionicons name="person-outline" size={12} color="#718096" style={{ marginRight: 4 }} />
-                        <Text style={styles.staffDropdownText} numberOfLines={1}>{assignedStaffName}</Text>
-                      </View>
-                    </TouchableOpacity>
-
                     {/* Status Pill */}
                     <View style={[styles.statusPill, isDirty ? styles.statusPillDirty : styles.statusPillCleaning]}>
                       <Text style={[styles.statusPillText, isDirty ? styles.statusPillTextDirty : styles.statusPillTextCleaning]}>
@@ -286,64 +235,10 @@ export default function HousekeepingBoardScreen({ user, onLogout, onOpenDrawer }
           )}
         </View>
 
-        {/* Housekeeping Roster Card */}
-        <View style={styles.card}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-            <Ionicons name="sparkles" size={16} color="#D4AF37" style={{ marginRight: 6 }} />
-            <Text style={[styles.cardHeading, { marginBottom: 0 }]}>Housekeeping Roster</Text>
-          </View>
-          <View style={styles.rosterWrapper}>
-            {staff.map((u, idx) => (
-              <View key={u.id || idx} style={styles.rosterRow}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <View style={styles.rosterAvatar}>
-                    <Text style={styles.rosterAvatarText}>
-                      {u.name.split(' ').map(n => n[0]).join('')}
-                    </Text>
-                  </View>
-                  <View style={{ marginLeft: 10 }}>
-                    <Text style={styles.rosterName}>{u.name}</Text>
-                    <Text style={styles.rosterRole}>Housekeeper</Text>
-                  </View>
-                </View>
-                <View style={styles.onlineIndicator}>
-                  <View style={styles.onlineDot} />
-                  <Text style={styles.onlineText}>Online</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
+
       </ScrollView>
 
-      {/* STAFF PICKER MODAL */}
-      <Modal visible={pickerVisible} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalHeading}>Assign Housekeeper</Text>
-            <Text style={styles.modalSubheading}>Select staff member to assign to Room {selectedTaskForAssign?.room?.number}</Text>
-            
-            <ScrollView style={{ maxHeight: 220, marginVertical: 10 }}>
-              {staff.map((u) => (
-                <TouchableOpacity
-                  key={u.id}
-                  style={styles.pickerOption}
-                  onPress={() => handleAssignStaff(selectedTaskForAssign.id, u.id)}
-                >
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Ionicons name="person-outline" size={14} color="#718096" style={{ marginRight: 6 }} />
-                    <Text style={styles.pickerOptionText}>{u.name}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
 
-            <TouchableOpacity style={styles.closeBtn} onPress={() => setPickerVisible(false)}>
-              <Text style={styles.closeBtnText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
