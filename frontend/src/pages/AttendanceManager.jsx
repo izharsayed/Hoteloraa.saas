@@ -74,9 +74,31 @@ const AttendanceManager = () => {
     }
   };
 
-  const handleExport = () => {
-    const query = new URLSearchParams(filter).toString();
-    window.open(`${api.defaults.baseURL}/attendance/export?${query}`, '_blank');
+  const handleExport = async () => {
+    try {
+      const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '');
+      const query = new URLSearchParams(filter).toString();
+      const res = await fetch(`${API_BASE}/attendance/export?${query}`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      // Add UTF-8 BOM for Excel compatibility
+      const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+      const bomBlob = new Blob([bom, blob], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(bomBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `attendance_report_${filter.date || new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export error:', err);
+      alert('Failed to export report. Please try again.');
+    }
   };
 
   if (loading && !dashboard) {

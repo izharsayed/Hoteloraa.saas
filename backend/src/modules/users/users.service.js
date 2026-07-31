@@ -194,8 +194,28 @@ const shouldIncludeInactive = (queryOrFlag) => {
   });
 }; exports.updateUser = updateUser;
 
- const toggleUserStatus = async (tenantId, id) => {
+ const toggleUserStatus = async (tenantId, id, requestingUserId) => {
   const user = await exports.getUserById.call(void 0, tenantId, id);
+
+  // If user is currently active and being deactivated
+  if (user.isActive) {
+    if (requestingUserId && user.id === requestingUserId) {
+      throw _errormiddleware.createError.call(void 0, 'You cannot suspend your own account', 400);
+    }
+
+    if (user.userRole === 'TENANT_ADMIN') {
+      const activeAdminCount = await _database2.default.user.count({
+        where: {
+          tenantId,
+          isActive: true,
+          userRole: 'TENANT_ADMIN',
+        },
+      });
+      if (activeAdminCount <= 1) {
+        throw _errormiddleware.createError.call(void 0, 'Cannot suspend the last remaining active Tenant Administrator for this property', 400);
+      }
+    }
+  }
 
   return _database2.default.user.update({
     where: { id },

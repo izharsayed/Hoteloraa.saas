@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Bed, CheckCircle2, AlertCircle, Wrench, Ban, RefreshCw, Filter, SlidersHorizontal, X, Plus, Trash2, Upload, Camera } from 'lucide-react';
-import api from '../utils/api';
+import api, { assetUrl } from '../utils/api';
 
 function Rooms() {
   const [selectedType, setSelectedType] = useState('All');
@@ -548,7 +548,7 @@ function Rooms() {
 
                     {newRoomPhotoUrl && (
                       <div className="relative w-14 h-11 rounded-lg border border-border-cream overflow-hidden bg-white shrink-0 group">
-                        <img src={`http://localhost:5000${newRoomPhotoUrl}`} alt="Room Preview" className="w-full h-full object-cover" />
+                        <img src={assetUrl(newRoomPhotoUrl)} alt="Room Preview" className="w-full h-full object-cover" />
                         <button 
                           type="button" 
                           onClick={() => setNewRoomPhotoUrl('')}

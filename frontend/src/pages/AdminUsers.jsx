@@ -80,6 +80,21 @@ function AdminUsers() {
   const handleToggleStatus = async (userId) => {
     setError('');
     setSuccess('');
+    const target = users.find(u => u.id === userId);
+    if (target && target.isActive) {
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (target.id === currentUser.id) {
+        setError('You cannot suspend your own account.');
+        return;
+      }
+      if (target.userRole === 'TENANT_ADMIN') {
+        const activeAdmins = users.filter(u => u.userRole === 'TENANT_ADMIN' && u.isActive).length;
+        if (activeAdmins <= 1) {
+          setError('Cannot suspend the last active Tenant Administrator for this property.');
+          return;
+        }
+      }
+    }
     try {
       await api.patch(`/users/${userId}/toggle-status`, {});
       setSuccess('User status updated');
@@ -106,14 +121,14 @@ function AdminUsers() {
   return (
     <>
       <div className="space-y-6 animate-fadeIn">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="font-display font-bold text-3xl text-navy">Staff Directory</h1>
+            <h1 className="font-display font-bold text-2xl sm:text-3xl text-navy">Staff Directory</h1>
             <p className="text-slate text-sm font-medium mt-1">Manage property users, roles, and status flags.</p>
           </div>
-          <button 
+          <button
             onClick={() => setShowAddForm(true)}
-            className="btn-primary flex items-center gap-1 text-xs"
+            className="btn-primary flex items-center gap-1.5 text-xs self-start sm:self-auto whitespace-nowrap"
           >
             <Plus className="w-4 h-4" /> Onboard Staff
           </button>
@@ -125,47 +140,56 @@ function AdminUsers() {
         {/* Staff Grid */}
         {loading ? (
           <div className="text-center py-10 text-slate font-semibold text-xs animate-pulse">Loading staff records...</div>
+        ) : users.length === 0 ? (
+          <div className="text-center py-20 text-slate text-sm font-semibold">No staff members found.</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
             {users.map((staff) => {
               const initials = staff.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+              const isActive = staff.isActive;
               return (
-                <div key={staff.id} className="soft-card p-5 flex flex-col justify-between h-48 hover:border-gold transition-all duration-300">
-                  <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-full bg-cream border border-border-cream text-gold flex items-center justify-center font-display font-bold text-sm shrink-0">
+                <div key={staff.id} className="soft-card p-5 flex flex-col gap-4 hover:border-gold/60 hover:shadow-md transition-all duration-300 bg-white">
+                  {/* Top: Avatar + Info */}
+                  <div className="flex items-start gap-3.5">
+                    <div className={`w-11 h-11 rounded-full flex items-center justify-center font-display font-bold text-sm shrink-0 border ${
+                      isActive
+                        ? 'bg-gold-pale/60 text-navy border-gold/30'
+                        : 'bg-slate/10 text-slate border-slate/20'
+                    }`}>
                       {initials}
                     </div>
-                    <div className="min-w-0">
-                      <h3 className="font-display font-semibold text-sm text-charcoal truncate">{staff.name}</h3>
-                      <p className="text-[10px] text-slate font-semibold tracking-wider uppercase flex items-center gap-1 mt-0.5"><Shield className="w-3 h-3 text-gold" /> {staff.userRole}</p>
-                      <p className="text-[10px] text-slate mt-1 truncate">{staff.email}</p>
-                      {staff.phone && <p className="text-[10px] text-slate">{staff.phone}</p>}
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-display font-bold text-sm text-charcoal leading-tight truncate">{staff.name}</h3>
+                      <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-navy/5 border border-navy/10 text-[9px] font-extrabold text-navy uppercase tracking-wide">
+                        <Shield className="w-2.5 h-2.5 text-gold" /> {staff.userRole}
+                      </span>
+                      <p className="text-[10px] text-slate mt-1.5 truncate">{staff.email}</p>
+                      {staff.phone && (
+                        <p className="text-[10px] text-slate/80 mt-0.5">{staff.phone}</p>
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center border-t border-border-cream/50 pt-3 mt-3">
-                    <button 
+                  {/* Bottom: Actions */}
+                  <div className="flex items-center justify-between border-t border-border-cream/60 pt-3 mt-auto">
+                    <button
                       onClick={() => setResettingUser(staff)}
-                      className="p-2 text-slate hover:text-navy rounded-lg hover:bg-cream/40 flex items-center gap-1.5 text-[10px] font-bold"
+                      className="flex items-center gap-1.5 text-[10px] font-bold text-slate hover:text-navy px-2 py-1.5 rounded-lg hover:bg-cream/50 transition-all"
                     >
                       <Key className="w-3.5 h-3.5" /> Password
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleToggleStatus(staff.id)}
-                      className={`flex items-center gap-1.5 text-[10px] font-bold py-1.5 px-3 rounded-xl transition-all ${
-                        staff.isActive 
-                          ? 'bg-success-pale text-success border border-success/10 hover:bg-danger-pale hover:text-danger hover:border-danger/10'
-                          : 'bg-danger-pale text-danger border border-danger/10 hover:bg-success-pale hover:text-success hover:border-success/10'
+                      className={`flex items-center gap-1.5 text-[10px] font-bold py-1.5 px-3 rounded-xl border transition-all ${
+                        isActive
+                          ? 'bg-success-pale text-success border-success/20 hover:bg-danger-pale hover:text-danger hover:border-danger/20'
+                          : 'bg-slate/10 text-slate border-slate/20 hover:bg-success-pale hover:text-success hover:border-success/20'
                       }`}
                     >
-                      {staff.isActive ? (
-                        <>
-                          <ToggleRight className="w-4 h-4 shrink-0" /> Active
-                        </>
+                      {isActive ? (
+                        <><ToggleRight className="w-4 h-4 shrink-0" /> Active</>
                       ) : (
-                        <>
-                          <ToggleLeft className="w-4 h-4 shrink-0" /> Suspended
-                        </>
+                        <><ToggleLeft className="w-4 h-4 shrink-0" /> Suspended</>
                       )}
                     </button>
                   </div>

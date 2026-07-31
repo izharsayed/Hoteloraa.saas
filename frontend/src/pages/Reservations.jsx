@@ -6,7 +6,7 @@ import {
   AlertCircle, Printer, Send, CreditCard, Banknote, Smartphone, RefreshCw,
   Shield, Globe, Hash, ChevronDown, Filter, Hotel, Info, XCircle
 } from 'lucide-react';
-import api from '../utils/api';
+import api, { assetUrl } from '../utils/api';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 
@@ -332,8 +332,8 @@ function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest
 
       const getAbsoluteUrl = (url) => {
         if (!url) return '';
-        if (url.startsWith('http') || url.startsWith('data:')) return url;
-        return `http://localhost:5000${url}`;
+        if (url.startsWith('data:')) return url;
+        return assetUrl(url);
       };
 
       imgFront.src = getAbsoluteUrl(frontUrl);
@@ -744,7 +744,7 @@ function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest
                         </div>
                       ) : doc.frontUrl ? (
                         <div className="border border-border-cream rounded-xl p-2 bg-white flex flex-col items-center justify-center gap-2 h-44 relative">
-                          <img src={`http://localhost:5000${doc.frontUrl}`} alt="Front" className="w-full h-28 object-contain rounded-lg border" />
+                          <img src={assetUrl(doc.frontUrl)} alt="Front" className="w-full h-28 object-contain rounded-lg border" />
                           <button type="button" onClick={() => updateDocField(doc.id, 'frontUrl', '')}
                             className="absolute top-3 right-3 p-1 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-lg shadow-sm transition-all">
                             <Trash2 className="w-3.5 h-3.5" />
@@ -786,7 +786,7 @@ function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest
                         </div>
                       ) : doc.backUrl ? (
                         <div className="border border-border-cream rounded-xl p-2 bg-white flex flex-col items-center justify-center gap-2 h-44 relative">
-                          <img src={`http://localhost:5000${doc.backUrl}`} alt="Back" className="w-full h-28 object-contain rounded-lg border" />
+                          <img src={assetUrl(doc.backUrl)} alt="Back" className="w-full h-28 object-contain rounded-lg border" />
                           <button type="button" onClick={() => updateDocField(doc.id, 'backUrl', '')}
                             className="absolute top-3 right-3 p-1 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-lg shadow-sm transition-all">
                             <Trash2 className="w-3.5 h-3.5" />
@@ -816,7 +816,7 @@ function Step2({ guestData, onChange, onSelectGuest, selectedGuest, onClearGuest
                   {doc.idProofUrl && (
                     <div className="mt-3 p-2 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-3 animate-fadeIn">
                       <div className="flex items-center gap-2.5">
-                        <img src={`http://localhost:5000${doc.idProofUrl}`} alt="Stitched ID"
+                        <img src={assetUrl(doc.idProofUrl)} alt="Stitched ID"
                           className="w-16 h-10 object-cover rounded-lg border border-emerald-200 shadow-sm" />
                         <div>
                           <span className="text-[10px] font-bold text-emerald-800 block">Stitched & Merged ID ✓</span>
@@ -2208,9 +2208,9 @@ function Reservations() {
                                 {b.guest?.idProofUrl ? (
                                   <div className="space-y-1">
                                     <span className="text-[9px] font-bold text-slate uppercase block">Stitched ID Card</span>
-                                    <a href={`http://localhost:5000${b.guest.idProofUrl}`} target="_blank" rel="noreferrer"
+                                    <a href={assetUrl(b.guest.idProofUrl)} target="_blank" rel="noreferrer"
                                       className="group block relative w-full h-24 border border-border-cream rounded-xl overflow-hidden shadow-sm hover:border-gold transition-all bg-white">
-                                      <img src={`http://localhost:5000${b.guest.idProofUrl}`} alt="Guest ID"
+                                      <img src={assetUrl(b.guest.idProofUrl)} alt="Guest ID"
                                         className="w-full h-full object-contain group-hover:scale-105 transition-all duration-300" />
                                       <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all text-white font-bold text-[10px] gap-1">
                                         <Search className="w-3 h-3" /> View Large
@@ -2308,9 +2308,9 @@ function Reservations() {
                                         </div>
                                       </div>
                                       {cg.idProofUrl && cg.idProofUrl !== 'N/A' && (
-                                        <a href={`http://localhost:5000${cg.idProofUrl}`} target="_blank" rel="noreferrer"
+                                        <a href={assetUrl(cg.idProofUrl)} target="_blank" rel="noreferrer"
                                           className="group relative w-20 h-14 border border-border-cream rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm hover:border-gold transition-all">
-                                          <img src={`http://localhost:5000${cg.idProofUrl}`} alt="Co-guest ID"
+                                          <img src={assetUrl(cg.idProofUrl)} alt="Co-guest ID"
                                             className="w-full h-full object-contain group-hover:scale-105 transition-all duration-300" />
                                           <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all text-white text-[8px] font-bold">
                                             View

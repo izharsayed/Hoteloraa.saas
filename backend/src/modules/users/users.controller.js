@@ -48,8 +48,9 @@ var _helpers = require('../../shared/helpers');
  const toggleUserStatus = async (req, res, next) => {
   try {
     const tenantId = req.user.tenantId;
+    const requestingUserId = req.user.id;
     const { id } = req.params;
-    const result = await usersService.toggleUserStatus(tenantId, id);
+    const result = await usersService.toggleUserStatus(tenantId, id, requestingUserId);
     _helpers.sendSuccess.call(void 0, res, result, 'User status toggled successfully');
   } catch (err) {
     next(err);

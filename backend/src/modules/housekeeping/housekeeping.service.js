@@ -278,3 +278,19 @@ const roomLocks = new Map();
     recentActiveTasks: recentTasks,
   };
 }; exports.getDashboard = getDashboard;
+
+// ────────────────────────────────────────────────────────────────
+// GET HOUSEKEEPING STAFF — active users with housekeeping role
+// ────────────────────────────────────────────────────────────────
+const getHousekeepingStaff = async (tenantId) => {
+  const staff = await _database2.default.user.findMany({
+    where: {
+      tenantId,
+      isActive: true,
+      userRole: { in: ['HOUSEKEEPING', 'HOUSEKEEPER'] },
+    },
+    select: { id: true, name: true, email: true, userRole: true },
+    orderBy: { name: 'asc' },
+  });
+  return staff;
+}; exports.getHousekeepingStaff = getHousekeepingStaff;

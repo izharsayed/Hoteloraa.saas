@@ -440,7 +440,7 @@ function Orders() {
                       {item.imageUrl ? (
                         <img 
                           src={(() => {
-                            if (item.imageUrl.startsWith('/uploads')) return `http://localhost:5000${item.imageUrl}`;
+                            if (item.imageUrl.startsWith('/uploads')) return assetUrl(item.imageUrl);
                             if (item.imageUrl.startsWith('/images/dishes/')) {
                               const fileName = item.imageUrl.split('/').pop();
                               return dishImages[`../assets/images/dishes/${fileName}`] || item.imageUrl;

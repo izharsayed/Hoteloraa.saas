@@ -68,11 +68,12 @@ function Housekeeping() {
 
   const fetchStaff = async () => {
     try {
-      const users = await api.get('/users');
-      const hkUsers = (users || []).filter(u => u.userRole === 'HOUSEKEEPING' || u.userRole === 'HOUSEKEEPER');
-      setStaff(hkUsers.map(u => ({ id: u.id, name: u.name })));
+      // Use the dedicated housekeeping/staff endpoint — accessible to HOUSEKEEPING role
+      // (the /users endpoint requires USERS READ which housekeepers don't have)
+      const users = await api.get('/housekeeping/staff');
+      setStaff((users || []).map(u => ({ id: u.id, name: u.name })));
     } catch (e) {
-      console.warn('Could not fetch staff from server:', e.message);
+      console.warn('Could not fetch housekeeping staff:', e.message);
     }
   };
 
