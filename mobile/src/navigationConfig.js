@@ -91,7 +91,7 @@ export const getNavigationGroups = (user) => {
         { name: 'Admin Overview', view: 'tenant_overview', icon: 'bar-chart', roles: ['TENANT_ADMIN'] },
         { name: 'Staff Registry', view: 'tenant_staff', icon: 'people', roles: ['TENANT_ADMIN'] },
         { name: 'Roles & Permissions', view: 'tenant_rbac', icon: 'shield-checkmark', roles: ['TENANT_ADMIN'] },
-        { name: 'Feature Toggles', view: 'tenant_features', icon: 'options', roles: ['TENANT_ADMIN'] },
+        // { name: 'Feature Toggles', view: 'tenant_features', icon: 'options', roles: ['TENANT_ADMIN'] },
         { name: 'Tenant Settings', view: 'tenant_settings', icon: 'construct', roles: ['TENANT_ADMIN'] },
       ]
     }
