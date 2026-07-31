@@ -7,6 +7,16 @@ function Housekeeping() {
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const user = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch {
+      return {};
+    }
+  })();
+  const userRole = user?.userRole || '';
+  const isHousekeeper = userRole === 'HOUSEKEEPING' || userRole === 'HOUSEKEEPER';
   
   const fetchPromiseRef = useRef(null);
 
@@ -176,20 +186,22 @@ function Housekeeping() {
 
                       {/* Staff Assignment / Status */}
                       <div className="flex flex-wrap items-center gap-3 shrink-0">
-                        {/* Staff selection */}
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-slate" />
-                          <select 
-                            value={task.assignedTo || 'Unassigned'}
-                            onChange={(e) => handleAssignStaff(task.id, e.target.value)}
-                            className="px-3.5 py-2 border border-border-cream rounded-xl text-xs font-bold text-navy focus:outline-none focus:border-gold bg-cream/10 cursor-pointer"
-                          >
-                            <option value="Unassigned">Assign Staff</option>
-                            {staff.map(u => (
-                              <option key={u.id} value={u.id}>{u.name}</option>
-                            ))}
-                          </select>
-                        </div>
+                        {/* Staff selection — only visible on manager/admin side */}
+                        {!isHousekeeper && (
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-slate" />
+                            <select 
+                              value={task.assignedTo || 'Unassigned'}
+                              onChange={(e) => handleAssignStaff(task.id, e.target.value)}
+                              className="px-3.5 py-2 border border-border-cream rounded-xl text-xs font-bold text-navy focus:outline-none focus:border-gold bg-cream/10 cursor-pointer"
+                            >
+                              <option value="Unassigned">Assign Staff</option>
+                              {staff.map(u => (
+                                <option key={u.id} value={u.id}>{u.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
 
                         {/* Status badge */}
                         <span className={`
