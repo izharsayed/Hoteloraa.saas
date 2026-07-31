@@ -791,26 +791,17 @@ export default function ReservationsScreen({ user, onLogout, onOpenDrawer, onNav
                 <Text style={styles.sectionDividerText}>Guest Details</Text>
 
                 <Text style={styles.modalLabel}>Guest Phone Number *</Text>
-                <View style={{ flexDirection: 'row', marginBottom: 10 }}>
-                  <TextInput
-                    style={[styles.modalInput, { flex: 1, marginBottom: 0 }]}
-                    placeholder="Guest Phone"
-                    placeholderTextColor="#A0AEC0"
-                    keyboardType="phone-pad"
-                    value={guestPhone}
-                    onChangeText={(val) => {
-                      setGuestPhone(val);
-                      handleUpdateDocField('primary', 'phone', val);
-                    }}
-                  />
-                  <TouchableOpacity style={styles.searchGuestBtn} onPress={handleSearchGuest} disabled={searchingGuest}>
-                    {searchingGuest ? (
-                      <ActivityIndicator size="small" color="#FEF9F1" />
-                    ) : (
-                      <Text style={styles.searchGuestBtnText}>Search</Text>
-                    )}
-                  </TouchableOpacity>
-                </View>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Guest Phone"
+                  placeholderTextColor="#A0AEC0"
+                  keyboardType="phone-pad"
+                  value={guestPhone}
+                  onChangeText={(val) => {
+                    setGuestPhone(val);
+                    handleUpdateDocField('primary', 'phone', val);
+                  }}
+                />
 
                 <Text style={styles.modalLabel}>Guest Name *</Text>
                 <TextInput

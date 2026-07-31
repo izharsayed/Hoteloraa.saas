@@ -30,7 +30,7 @@ export const getNavigationGroups = (user) => {
         { name: 'Front Desk Check-In', view: 'checkin', icon: 'log-in', module: 'checkin', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'] },
         { name: 'Folios & Check-Out', view: 'checkout', icon: 'document-text', module: 'checkout', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST', 'ACCOUNTANT'] },
         { name: 'Housekeeping', view: 'housekeeping', icon: 'sparkles', module: 'housekeeping', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'HOUSEKEEPING'] },
-        { name: 'Guests & CRM', view: 'crm', icon: 'people', module: 'guests', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'] },
+        // { name: 'Guests & CRM', view: 'crm', icon: 'people', module: 'guests', roles: ['MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN', 'RECEPTIONIST'] },
       ]
     },
     {

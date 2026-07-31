@@ -80,10 +80,12 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
     ? `₹${Math.round(revenue.otherRevenue * 0.6).toLocaleString('en-IN')}`
     : '₹15,400';
 
+  const isLodgingOnly = user?.businessType === 'LODGING';
+
   const kpis = [
     { name: 'Average Daily Rate (ADR)', value: adrValue, change: '↗ +3.4%', desc: 'Average rent paid per occupied room', icon: 'cash-outline' },
     { name: 'RevPAR', value: revparValue, change: '↗ +4.2%', desc: 'Revenue per available room', icon: 'trending-up-outline' },
-    { name: 'POS Dining Covers', value: diningCovers.toString(), change: '↗ +12.4%', desc: 'Number of restaurant customers served', icon: 'restaurant-outline' },
+    ...(isLodgingOnly ? [] : [{ name: 'POS Dining Covers', value: diningCovers.toString(), change: '↗ +12.4%', desc: 'Number of restaurant customers served', icon: 'restaurant-outline' }]),
     { name: 'Room Service Revenue', value: roomServiceRev, change: '↗ +8.1%', desc: 'In-room food & beverage orders', icon: 'notifications-outline' }
   ];
 
@@ -110,14 +112,14 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
 
   // 6. Revenue Split Module Data
   let lodgingRevNum = 85000;
-  let restaurantRevNum = 38200;
+  let restaurantRevNum = isLodgingOnly ? 0 : 38200;
   let roomServiceRevNum = 15400;
   let laundryRevNum = 10050;
   let totalRevNum = lodgingRevNum + restaurantRevNum + roomServiceRevNum + laundryRevNum;
 
   if (!isDemo && revenue) {
     lodgingRevNum = revenue.lodgingRevenue || 0;
-    restaurantRevNum = revenue.restaurantRevenue || 0;
+    restaurantRevNum = isLodgingOnly ? 0 : (revenue.restaurantRevenue || 0);
     roomServiceRevNum = Math.round((revenue.otherRevenue || 0) * 0.6);
     laundryRevNum = Math.round((revenue.otherRevenue || 0) * 0.4);
     totalRevNum = lodgingRevNum + restaurantRevNum + roomServiceRevNum + laundryRevNum || 1;
@@ -125,7 +127,7 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
 
   const revenueSplit = [
     { name: 'Room Bookings', value: lodgingRevNum, percent: Math.round(lodgingRevNum / totalRevNum * 100), color: '#0C2340' },
-    { name: 'Restaurant Dining', value: restaurantRevNum, percent: Math.round(restaurantRevNum / totalRevNum * 100), color: '#D4AF37' },
+    ...(isLodgingOnly ? [] : [{ name: 'Restaurant Dining', value: restaurantRevNum, percent: Math.round(restaurantRevNum / totalRevNum * 100), color: '#D4AF37' }]),
     { name: 'Room Service', value: roomServiceRevNum, percent: Math.round(roomServiceRevNum / totalRevNum * 100), color: '#F59E0B' },
     { name: 'Laundry & Mini Bar', value: laundryRevNum, percent: Math.round(laundryRevNum / totalRevNum * 100), color: '#718096' }
   ];
@@ -142,7 +144,7 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
           )}
           <View>
             <Text style={styles.headerTitle}>Managerial Reports</Text>
-            <Text style={styles.headerSubtitle}>Lodging & POS Analytics</Text>
+            <Text style={styles.headerSubtitle}>{isLodgingOnly ? 'Lodging Analytics' : 'Lodging & POS Analytics'}</Text>
           </View>
         </View>
         <TouchableOpacity style={styles.logoutBtn} onPress={onLogout}>
@@ -155,7 +157,11 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
         <View style={styles.titleSection}>
           <View style={{ flex: 1 }}>
             <Text style={styles.titleHeading}>Reports & Analytics</Text>
-            <Text style={styles.titleSubheading}>Review lodging KPIs, restaurant occupancy ratios, and net revenue distributions</Text>
+            <Text style={styles.titleSubheading}>
+              {isLodgingOnly 
+                ? 'Review lodging KPIs, room occupancy ratios, and net revenue distributions' 
+                : 'Review lodging KPIs, restaurant occupancy ratios, and net revenue distributions'}
+            </Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
             {isDemo && (
@@ -178,19 +184,22 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
           <>
             {/* KPI Cards Grid */}
             <View style={styles.kpiGrid}>
-              {kpis.map((kpi) => (
-                <View key={kpi.name} style={styles.kpiCard}>
-                  <View style={styles.kpiHeader}>
-                    <Text style={styles.kpiLabel} numberOfLines={1}>{kpi.name}</Text>
-                    <Ionicons name={kpi.icon} size={18} color="#D4AF37" />
+              {kpis.map((kpi, idx) => {
+                const isLastOdd = kpis.length % 2 !== 0 && idx === kpis.length - 1;
+                return (
+                  <View key={kpi.name} style={[styles.kpiCard, isLastOdd && { width: '100%' }]}>
+                    <View style={styles.kpiHeader}>
+                      <Text style={styles.kpiLabel} numberOfLines={1}>{kpi.name}</Text>
+                      <Ionicons name={kpi.icon} size={18} color="#D4AF37" />
+                    </View>
+                    <Text style={styles.kpiValue}>{kpi.value}</Text>
+                    <View style={styles.kpiFooter}>
+                      <Text style={styles.kpiDesc} numberOfLines={1}>{kpi.desc}</Text>
+                      <Text style={styles.kpiChange}>{kpi.change}</Text>
+                    </View>
                   </View>
-                  <Text style={styles.kpiValue}>{kpi.value}</Text>
-                  <View style={styles.kpiFooter}>
-                    <Text style={styles.kpiDesc} numberOfLines={1}>{kpi.desc}</Text>
-                    <Text style={styles.kpiChange}>{kpi.change}</Text>
-                  </View>
-                </View>
-              ))}
+                );
+              })}
             </View>
 
             {/* Weekly Occupancy Timeline Chart */}
