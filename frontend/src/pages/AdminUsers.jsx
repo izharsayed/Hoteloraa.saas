@@ -15,7 +15,7 @@ function AdminUsers() {
 
   let availableRoles = ['MANAGER', 'RECEPTIONIST', 'CAPTAIN', 'CHEF', 'HOUSEKEEPING', 'ACCOUNTANT', 'CASHIER'];
   if (businessType === 'LODGING' || businessType === 'HOTEL') {
-    availableRoles = ['MANAGER', 'RECEPTIONIST', 'HOUSEKEEPING', 'ACCOUNTANT', 'CASHIER'];
+    availableRoles = ['MANAGER', 'RECEPTIONIST', 'HOUSEKEEPING', 'ACCOUNTANT'];
   } else if (businessType === 'RESTAURANT') {
     availableRoles = ['MANAGER', 'CAPTAIN', 'CHEF', 'ACCOUNTANT', 'CASHIER'];
   }
