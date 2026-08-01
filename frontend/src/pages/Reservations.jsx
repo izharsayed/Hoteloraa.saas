@@ -1303,7 +1303,15 @@ function Step6({ bookingData, guestData, selectedGuest, selectedRoom, nights, id
                 <span>Advance Paid</span><span>₹{advance.toLocaleString('en-IN')}</span>
               </div>
               <div className={`flex justify-between font-bold pt-1 border-t border-border-cream/40 ${balance > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                <span>Balance Due</span><span>₹{balance.toLocaleString('en-IN')}</span>
+                <span className="flex items-center gap-1.5">
+                  Balance Due
+                  {balance <= 0 && (
+                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-md">
+                      Paid in Full ✓
+                    </span>
+                  )}
+                </span>
+                <span>₹{Math.max(0, balance).toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>
@@ -2270,14 +2278,36 @@ function Reservations() {
                                   <span>Total Amount</span>
                                   <span>₹{(b.totalAmount || 0).toLocaleString('en-IN')}</span>
                                 </div>
-                                <div className="flex justify-between text-emerald-600 font-medium">
-                                  <span>Advance Paid</span>
-                                  <span>₹{(b.advancePaid || 0).toLocaleString('en-IN')} {b.advanceMethod ? `(${b.advanceMethod})` : ''}</span>
-                                </div>
-                                <div className={`flex justify-between border-t border-border-cream/40 pt-1.5 font-bold ${b.totalAmount - (b.advancePaid || 0) > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                                  <span>Balance Due</span>
-                                  <span>₹{(Math.max(0, b.totalAmount - (b.advancePaid || 0))).toLocaleString('en-IN')}</span>
-                                </div>
+                                {(() => {
+                                  const totalPaid = Math.max(
+                                    b.advancePaid || 0,
+                                    b.payment?.status === 'PAID' ? (b.payment?.amount || b.totalAmount || 0) : (b.payment?.amount || 0),
+                                    b.paymentStatus === 'PAID' ? (b.totalAmount || 0) : 0,
+                                    b.status === 'CHECKED_OUT' ? (b.totalAmount || 0) : 0
+                                  );
+                                  const balanceDue = Math.max(0, (b.totalAmount || 0) - totalPaid);
+                                  const isPaidInFull = balanceDue <= 0 || b.paymentStatus === 'PAID' || b.payment?.status === 'PAID' || b.status === 'CHECKED_OUT';
+
+                                  return (
+                                    <>
+                                      <div className="flex justify-between text-emerald-600 font-medium">
+                                        <span>{isPaidInFull ? 'Total Paid' : 'Advance Paid'}</span>
+                                        <span>₹{totalPaid.toLocaleString('en-IN')} {b.advanceMethod && !isPaidInFull ? `(${b.advanceMethod})` : ''}</span>
+                                      </div>
+                                      <div className={`flex justify-between border-t border-border-cream/40 pt-1.5 font-bold ${isPaidInFull ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                        <span className="flex items-center gap-1.5">
+                                          Balance Due
+                                          {isPaidInFull && (
+                                            <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-md">
+                                              Paid in Full ✓
+                                            </span>
+                                          )}
+                                        </span>
+                                        <span>₹{balanceDue.toLocaleString('en-IN')}</span>
+                                      </div>
+                                    </>
+                                  );
+                                })()}
                               </div>
                             </div>
                           </div>

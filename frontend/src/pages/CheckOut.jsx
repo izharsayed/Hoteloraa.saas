@@ -788,9 +788,14 @@ function CheckOut() {
                               <span>Amount Paid:</span>
                               <span className="font-mono">₹{printInvoiceData.grandTotal.toLocaleString()}</span>
                             </div>
-                            <div className="flex justify-between items-center text-[11px] font-bold text-slate pt-1 border-t border-border-cream/20">
-                              <span>Balance Due:</span>
-                              <span className="font-mono text-navy font-bold">₹0</span>
+                            <div className="flex justify-between items-center text-[11px] font-bold text-emerald-600 pt-1 border-t border-border-cream/20">
+                              <span className="flex items-center gap-1.5">
+                                Balance Due:
+                                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-md">
+                                  Paid in Full ✓
+                                </span>
+                              </span>
+                              <span className="font-mono text-emerald-600 font-bold">₹0</span>
                             </div>
                           </>
                         )}

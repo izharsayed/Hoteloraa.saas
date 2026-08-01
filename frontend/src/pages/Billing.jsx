@@ -786,9 +786,16 @@ function Billing() {
                                 <span>Total Paid so far:</span>
                                 <span className="font-mono">₹{selectedInvoice.paidAmount.toLocaleString()}</span>
                               </div>
-                              <div className="flex justify-between text-navy font-bold text-xs border-t border-dashed border-border-cream/80 pt-1.5">
-                                <span>Balance Due:</span>
-                                <span className="font-mono">₹{remaining.toLocaleString()}</span>
+                              <div className={`flex justify-between font-bold text-xs border-t border-dashed border-border-cream/80 pt-1.5 ${remaining <= 0 || selectedInvoice.status === 'Paid' ? 'text-emerald-600' : 'text-navy'}`}>
+                                <span className="flex items-center gap-1.5">
+                                  Balance Due:
+                                  {(remaining <= 0 || selectedInvoice.status === 'Paid') && (
+                                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-md">
+                                      Paid in Full ✓
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="font-mono">₹{Math.max(0, remaining).toLocaleString()}</span>
                               </div>
                             </>
                           );
@@ -1183,9 +1190,16 @@ function Billing() {
                               <span>Total Paid:</span>
                               <span className="font-mono">₹{selectedInvoice.paidAmount.toLocaleString()}</span>
                             </div>
-                            <div className="flex justify-between text-navy font-bold text-xs border-t border-dashed border-border-cream pt-1">
-                              <span>Balance Due:</span>
-                              <span className="font-mono">₹{remaining.toLocaleString()}</span>
+                            <div className={`flex justify-between font-bold text-xs border-t border-dashed border-border-cream pt-1 ${remaining <= 0 || selectedInvoice.status === 'Paid' ? 'text-emerald-600' : 'text-navy'}`}>
+                              <span className="flex items-center gap-1.5">
+                                Balance Due:
+                                {(remaining <= 0 || selectedInvoice.status === 'Paid') && (
+                                  <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-md">
+                                    Paid in Full ✓
+                                  </span>
+                                )}
+                              </span>
+                              <span className="font-mono">₹{Math.max(0, remaining).toLocaleString()}</span>
                             </div>
                           </>
                         );
