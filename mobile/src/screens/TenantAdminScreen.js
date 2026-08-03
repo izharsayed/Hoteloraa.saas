@@ -67,13 +67,15 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
       setError(null);
 
       if (tabKey === 'tenant_overview') {
-        // Load combined hotel metrics, settings (to display plan name) & staff count
+        // Load combined hotel metrics, settings (to display plan name), staff count & roles count
         const dbStats = await api.get('/dashboard');
         const setts = await api.get('/settings');
         const stf = await api.get('/users');
+        const roles = await api.get('/roles');
         setDashboardData(dbStats || {});
         setSettingsData(setts || {});
         setStaffList(stf || []);
+        setRolesList(roles || []);
       } else if (tabKey === 'tenant_staff') {
         const data = await api.get('/users');
         const roles = await api.get('/roles');
@@ -323,10 +325,10 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
                   <Text style={[styles.kpiFootnote, { color: '#D4AF37' }]}>Manage Staff Registry ➔</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.kpiCard} onPress={() => { if (onNavigate) onNavigate('tenant_features'); }}>
-                  <Text style={styles.kpiValue}>{user.businessType?.replace('_', ' ') || 'HOTEL'}</Text>
-                  <Text style={styles.kpiTitle}>BUSINESS CATEGORY</Text>
-                  <Text style={[styles.kpiFootnote, { color: '#D4AF37' }]}>Configure Modules ➔</Text>
+                <TouchableOpacity style={styles.kpiCard} onPress={() => { if (onNavigate) onNavigate('tenant_rbac'); }}>
+                  <Text style={styles.kpiValue}>{rolesList.length} Roles</Text>
+                  <Text style={styles.kpiTitle}>ROLES & PERMISSIONS</Text>
+                  <Text style={[styles.kpiFootnote, { color: '#D4AF37' }]}>Configure RBAC & Access ➔</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.kpiCard} onPress={() => { if (onNavigate) onNavigate('tenant_settings'); }}>

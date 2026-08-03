@@ -57,67 +57,63 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
     fetchReports();
   }, []);
 
-  // Determine whether to use demo data (mirroring web checks)
-  const isDemo = !occupancy || occupancy.totalRooms === 0;
-
   // 1. Average Daily Rate (ADR)
-  const adrValue = !isDemo && occupancy.occupiedNights > 0
+  const adrValue = occupancy && occupancy.occupiedNights > 0
     ? `₹${Math.round(occupancy.revenue / occupancy.occupiedNights).toLocaleString('en-IN')}`
-    : '₹4,850';
+    : '₹0';
 
   // 2. RevPAR
-  const revparValue = !isDemo && occupancy.totalRoomNightsAvailable > 0
+  const revparValue = occupancy && occupancy.totalRoomNightsAvailable > 0
     ? `₹${Math.round(occupancy.revenue / occupancy.totalRoomNightsAvailable).toLocaleString('en-IN')}`
-    : '₹3,780';
+    : '₹0';
 
   // 3. POS Dining Covers
-  const diningCovers = !isDemo
+  const diningCovers = sales && sales.length > 0
     ? sales.reduce((sum, s) => sum + (s.totalOrders || 0), 0)
-    : 184;
+    : 0;
 
   // 4. Room Service Revenue
-  const roomServiceRev = !isDemo && revenue
+  const roomServiceRev = revenue
     ? `₹${Math.round(revenue.otherRevenue * 0.6).toLocaleString('en-IN')}`
-    : '₹15,400';
+    : '₹0';
 
   const isLodgingOnly = user?.businessType === 'LODGING';
 
   const kpis = [
-    { name: 'Average Daily Rate (ADR)', value: adrValue, change: '↗ +3.4%', desc: 'Average rent paid per occupied room', icon: 'cash-outline' },
-    { name: 'RevPAR', value: revparValue, change: '↗ +4.2%', desc: 'Revenue per available room', icon: 'trending-up-outline' },
-    ...(isLodgingOnly ? [] : [{ name: 'POS Dining Covers', value: diningCovers.toString(), change: '↗ +12.4%', desc: 'Number of restaurant customers served', icon: 'restaurant-outline' }]),
-    { name: 'Room Service Revenue', value: roomServiceRev, change: '↗ +8.1%', desc: 'In-room food & beverage orders', icon: 'notifications-outline' }
+    { name: 'Average Daily Rate (ADR)', value: adrValue, change: '↗ +0.0%', desc: 'Average rent paid per occupied room', icon: 'cash-outline' },
+    { name: 'RevPAR', value: revparValue, change: '↗ +0.0%', desc: 'Revenue per available room', icon: 'trending-up-outline' },
+    ...(isLodgingOnly ? [] : [{ name: 'POS Dining Covers', value: diningCovers.toString(), change: '↗ +0.0%', desc: 'Number of restaurant customers served', icon: 'restaurant-outline' }]),
+    { name: 'Room Service Revenue', value: roomServiceRev, change: '↗ +0.0%', desc: 'In-room food & beverage orders', icon: 'notifications-outline' }
   ];
 
   // 5. Timeline Chart Data (Weekly Occupancy Timeline)
-  const getDemoTimelineData = () => {
-    const demoRates = [62, 68, 70, 75, 78, 82, 78];
+  const getZeroTimelineData = () => {
     const today = new Date();
-    const demoTimeline = [];
+    const timeline = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(today.getDate() - i);
       const dayStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-      demoTimeline.push({
+      timeline.push({
         date: dayStr,
-        rate: demoRates[6 - i]
+        rate: 0
       });
     }
-    return demoTimeline;
+    return timeline;
   };
 
-  const timelineData = !isDemo && occupancy?.dailyTimeline?.length > 0
+  const timelineData = occupancy?.dailyTimeline?.length > 0
     ? occupancy.dailyTimeline
-    : getDemoTimelineData();
+    : getZeroTimelineData();
 
   // 6. Revenue Split Module Data
-  let lodgingRevNum = 85000;
-  let restaurantRevNum = isLodgingOnly ? 0 : 38200;
-  let roomServiceRevNum = 15400;
-  let laundryRevNum = 10050;
-  let totalRevNum = lodgingRevNum + restaurantRevNum + roomServiceRevNum + laundryRevNum;
+  let lodgingRevNum = 0;
+  let restaurantRevNum = 0;
+  let roomServiceRevNum = 0;
+  let laundryRevNum = 0;
+  let totalRevNum = 1;
 
-  if (!isDemo && revenue) {
+  if (revenue) {
     lodgingRevNum = revenue.lodgingRevenue || 0;
     restaurantRevNum = isLodgingOnly ? 0 : (revenue.restaurantRevenue || 0);
     roomServiceRevNum = Math.round((revenue.otherRevenue || 0) * 0.6);
@@ -164,11 +160,6 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
             </Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-            {isDemo && (
-              <View style={styles.demoBadge}>
-                <Text style={styles.demoBadgeText}>DEMO PREVIEW DATA</Text>
-              </View>
-            )}
             <TouchableOpacity style={styles.refreshBtn} onPress={fetchReports} disabled={loading}>
               <Text style={styles.refreshBtnText}>🔄 Refresh</Text>
             </TouchableOpacity>
