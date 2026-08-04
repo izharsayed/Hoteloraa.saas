@@ -239,7 +239,7 @@ export default function App() {
   const renderActiveScreen = (onOpenDrawerAction) => {
     switch (activeView) {
       case 'dashboard':
-        return <ManagerScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
+        return <ManagerScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} onNavigate={setActiveView} />;
       case 'manager_hub':
         return <ManagerHubScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
       case 'attendance':

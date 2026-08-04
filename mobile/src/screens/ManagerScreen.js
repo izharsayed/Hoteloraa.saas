@@ -14,7 +14,7 @@ import {
 import { api } from '../api';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function ManagerScreen({ user, onLogout, onOpenDrawer }) {
+export default function ManagerScreen({ user, onLogout, onOpenDrawer, onNavigate }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -42,16 +42,26 @@ export default function ManagerScreen({ user, onLogout, onOpenDrawer }) {
     fetchDashboardStats();
   };
 
-  const renderCard = (title, value, subtitle, iconName) => (
-    <View style={styles.statCard}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>{title}</Text>
-        <Ionicons name={iconName} size={18} color="#D4AF37" />
-      </View>
-      <Text style={styles.cardValue}>{value}</Text>
-      {subtitle ? <Text style={styles.cardSubtitle}>{subtitle}</Text> : null}
-    </View>
-  );
+  const renderCard = (title, value, subtitle, iconName, targetView) => {
+    const CardWrapper = targetView && onNavigate ? TouchableOpacity : View;
+    return (
+      <CardWrapper
+        style={styles.statCard}
+        onPress={() => {
+          if (targetView && onNavigate) {
+            onNavigate(targetView);
+          }
+        }}
+      >
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle}>{title}</Text>
+          <Ionicons name={iconName} size={18} color="#D4AF37" />
+        </View>
+        <Text style={styles.cardValue}>{value}</Text>
+        {subtitle ? <Text style={styles.cardSubtitle}>{subtitle}</Text> : null}
+      </CardWrapper>
+    );
+  };
 
   const renderRestaurantStats = (data) => {
     if (!data) return null;
@@ -59,10 +69,10 @@ export default function ManagerScreen({ user, onLogout, onOpenDrawer }) {
       <View style={styles.section}>
         <Text style={styles.sectionHeading}>Restaurant Operations</Text>
         <View style={styles.grid}>
-          {renderCard("Today's Revenue", `₹${data.todayRevenue || 0}`, "Paid orders today", "cash-outline")}
-          {renderCard("Occupied Tables", `${data.occupiedTables || 0} / ${data.totalTables || 0}`, "Currently active tables", "restaurant-outline")}
-          {renderCard("Pending KOTs", data.pendingKOTs || 0, "Orders in kitchen", "flame-outline")}
-          {renderCard("Total Orders", data.totalOrders || 0, "Orders processed today", "receipt-outline")}
+          {renderCard("Today's Revenue", `₹${data.todayRevenue || 0}`, "Paid orders today", "cash-outline", "pos")}
+          {renderCard("Occupied Tables", `${data.occupiedTables || 0} / ${data.totalTables || 0}`, "Currently active tables", "restaurant-outline", "tables")}
+          {renderCard("Pending KOTs", data.pendingKOTs || 0, "Orders in kitchen", "flame-outline", "kitchen")}
+          {renderCard("Total Orders", data.totalOrders || 0, "Orders processed today", "receipt-outline", "orders")}
         </View>
 
         {/* Dine-in vs Takeaway split */}
@@ -90,10 +100,10 @@ export default function ManagerScreen({ user, onLogout, onOpenDrawer }) {
       <View style={styles.section}>
         <Text style={styles.sectionHeading}>Lodging / Hotel Operations</Text>
         <View style={styles.grid}>
-          {renderCard("Lodging Revenue", `₹${data.todayRevenue || 0}`, "Room charges & services", "business-outline")}
-          {renderCard("Room Occupancy", `${data.occupiedRooms || 0} / ${data.totalRooms || 0}`, "Rooms currently occupied", "key-outline")}
-          {renderCard("Today's Check-ins", data.todayCheckIns || 0, "Expected arrivals today", "log-in-outline")}
-          {renderCard("Pending Cleanings", data.pendingHousekeeping || 0, "Housekeeping tasks remaining", "brush-outline")}
+          {renderCard("Lodging Revenue", `₹${data.todayRevenue || 0}`, "Room charges & services", "business-outline", "checkout")}
+          {renderCard("Room Occupancy", `${data.occupiedRooms || 0} / ${data.totalRooms || 0}`, "Rooms currently occupied", "key-outline", "rooms")}
+          {renderCard("Today's Check-ins", data.todayCheckIns || 0, "Expected arrivals today", "log-in-outline", "checkin")}
+          {renderCard("Pending Cleanings", data.pendingHousekeeping || 0, "Housekeeping tasks remaining", "brush-outline", "housekeeping")}
         </View>
 
       {/* Room bookings vs room service */}

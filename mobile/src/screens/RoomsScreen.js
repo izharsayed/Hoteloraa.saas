@@ -549,36 +549,51 @@ export default function RoomsScreen({ user, onLogout, onOpenDrawer }) {
                 <Text style={styles.modalHeading}>Room {editingRoom?.number}</Text>
                 <Text style={styles.modalSubheading}>{editingRoom?.type} • {editingRoom?.floor}</Text>
               </View>
-              <TouchableOpacity style={styles.deleteIconBtn} onPress={() => handleDeleteRoom(editingRoom)}>
+              <TouchableOpacity 
+                style={[styles.deleteIconBtn, editingRoom?.status === 'Occupied' && { opacity: 0.4 }]} 
+                onPress={() => {
+                  if (editingRoom?.status === 'Occupied') {
+                    Alert.alert('Cannot Delete', 'This room is currently occupied by a guest. Please check them out before deleting the room.');
+                    return;
+                  }
+                  handleDeleteRoom(editingRoom);
+                }}
+              >
                 <Ionicons name="trash-outline" size={16} color="#E53E3E" />
               </TouchableOpacity>
             </View>
 
             <Text style={styles.modalLabel}>Update Occupancy / Service Status</Text>
             <View style={styles.statusButtonsGrid}>
-              {['Available', 'Occupied', 'Dirty', 'Cleaning', 'Maintenance', 'Reserved'].map((status) => (
-                <TouchableOpacity
-                  key={status}
-                  style={[
-                    styles.statusOptionBtn,
-                    editingRoom?.status === status && styles.statusOptionBtnActive
-                  ]}
-                  onPress={() => handleStatusChange(editingRoom, status)}
-                >
-                  <Ionicons 
-                    name={getStatusIcon(status)} 
-                    size={14} 
-                    color={editingRoom?.status === status ? "#0C2340" : "#718096"} 
-                    style={{ marginRight: 6 }} 
-                  />
-                  <Text style={[
-                    styles.statusOptionText,
-                    editingRoom?.status === status && styles.statusOptionTextActive
-                  ]}>
-                    {status}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              {['Available', 'Occupied', 'Dirty', 'Cleaning', 'Maintenance', 'Reserved'].map((status) => {
+                const isOccupied = editingRoom?.status === 'Occupied';
+                const isDisabled = isOccupied && status !== 'Occupied';
+                return (
+                  <TouchableOpacity
+                    key={status}
+                    style={[
+                      styles.statusOptionBtn,
+                      editingRoom?.status === status && styles.statusOptionBtnActive,
+                      isDisabled && { opacity: 0.4 }
+                    ]}
+                    disabled={isDisabled}
+                    onPress={() => handleStatusChange(editingRoom, status)}
+                  >
+                    <Ionicons 
+                      name={getStatusIcon(status)} 
+                      size={14} 
+                      color={editingRoom?.status === status ? "#0C2340" : "#718096"} 
+                      style={{ marginRight: 6 }} 
+                    />
+                    <Text style={[
+                      styles.statusOptionText,
+                      editingRoom?.status === status && styles.statusOptionTextActive
+                    ]}>
+                      {status}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
             <TouchableOpacity style={styles.closeSheetBtn} onPress={() => setEditingRoom(null)}>
