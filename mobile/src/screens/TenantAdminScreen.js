@@ -332,8 +332,8 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.kpiCard} onPress={() => { if (onNavigate) onNavigate('tenant_settings'); }}>
-                  <Text style={styles.kpiValue}>{settingsData?.planName || 'STARTER'}</Text>
-                  <Text style={styles.kpiTitle}>TENANT SUBSCRIPTION</Text>
+                  <Text style={styles.kpiValue}>Settings</Text>
+                  <Text style={styles.kpiTitle}>TENANT SETTINGS</Text>
                   <Text style={[styles.kpiFootnote, { color: '#D4AF37' }]}>Billing Settings & Plans ➔</Text>
                 </TouchableOpacity>
               </View>
@@ -421,33 +421,6 @@ export default function TenantAdminScreen({ user, onLogout, onOpenDrawer, active
                   <View style={[styles.statBox, { borderLeftColor: '#48BB78', backgroundColor: '#F0FFF4' }]}>
                     <Text style={[styles.statVal, { color: '#276749' }]}>₹{(dashboardData.restaurant?.todayRevenue || 0).toLocaleString()}</Text>
                     <Text style={styles.statLabel}>TODAY SALES</Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Administrative Checklist */}
-              <View style={styles.card}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-                  <Ionicons name="checkbox-outline" size={16} color="#0C2340" style={{ marginRight: 6 }} />
-                  <Text style={[styles.commandTitle, { marginBottom: 0 }]}>Administrative Checklist</Text>
-                </View>
-                <Text style={styles.commandDesc}>Verify property setup logs & parameters</Text>
-                <View style={{ marginTop: 8 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 3 }}>
-                    <Ionicons name="checkmark-circle-outline" size={12} color="#48BB78" style={{ marginRight: 6 }} />
-                    <Text style={[styles.checkItem, { marginVertical: 0 }]}>Verify employee staff profiles</Text>
-                  </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 3 }}>
-                    <Ionicons name="checkmark-circle-outline" size={12} color="#48BB78" style={{ marginRight: 6 }} />
-                    <Text style={[styles.checkItem, { marginVertical: 0 }]}>Audit shift timer configurations</Text>
-                  </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 3 }}>
-                    <Ionicons name="checkmark-circle-outline" size={12} color="#48BB78" style={{ marginRight: 6 }} />
-                    <Text style={[styles.checkItem, { marginVertical: 0 }]}>Set property tax settings ({settingsData?.taxRate || 18}%)</Text>
-                  </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 3 }}>
-                    <Ionicons name="checkmark-circle-outline" size={12} color="#48BB78" style={{ marginRight: 6 }} />
-                    <Text style={[styles.checkItem, { marginVertical: 0 }]}>Configure module feature toggles</Text>
                   </View>
                 </View>
               </View>
