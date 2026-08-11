@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator, Alert, SafeAreaView, TouchableOpacity, ScrollView, Platform, Image } from 'react-native';
+import { StyleSheet, View, Text, ActivityIndicator, Alert, SafeAreaView, TouchableOpacity, ScrollView, Platform, Image, BackHandler } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -42,6 +42,54 @@ export default function App() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [checkoutRoomId, setCheckoutRoomId] = useState(null);
   const [expandedGroups, setExpandedGroups] = useState({});
+  const [viewHistory, setViewHistory] = useState(['dashboard']);
+
+  const navigateTo = (viewName) => {
+    if (activeView === viewName) return;
+
+    // Resolve group category if possible
+    const groups = getNavigationGroups(user);
+    const matchingGroup = groups.find(g => g.items.some(item => item.view === viewName));
+    if (matchingGroup) {
+      setActiveGroupName(matchingGroup.category);
+    }
+
+    setViewHistory(prev => [...prev, viewName]);
+    setActiveView(viewName);
+  };
+
+  const goBack = () => {
+    if (viewHistory.length > 1) {
+      const newHistory = [...viewHistory];
+      newHistory.pop(); // Remove current view
+      const prevView = newHistory[newHistory.length - 1];
+
+      // Resolve group category of the previous view
+      const groups = getNavigationGroups(user);
+      const matchingGroup = groups.find(g => g.items.some(item => item.view === prevView));
+      if (matchingGroup) {
+        setActiveGroupName(matchingGroup.category);
+      }
+
+      setViewHistory(newHistory);
+      setActiveView(prevView);
+      return true; // Intercepted back press
+    }
+    return false; // Let app exit
+  };
+
+  useEffect(() => {
+    const handleBackPress = () => {
+      return goBack();
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress
+    );
+
+    return () => backHandler.remove();
+  }, [viewHistory, user]);
 
   // Notifications State
   const [notifications, setNotifications] = useState([]);
@@ -180,6 +228,7 @@ export default function App() {
       setUser(null);
       setNavigationGroups([]);
       setIsDrawerOpen(false);
+      setViewHistory(['dashboard']);
       setInitializing(false);
     }
   };
@@ -229,6 +278,7 @@ export default function App() {
 
     setActiveView(initialView);
     setActiveGroupName(initialGroupName);
+    setViewHistory([initialView]);
   };
 
   const toggleDrawer = () => {
@@ -239,7 +289,7 @@ export default function App() {
   const renderActiveScreen = (onOpenDrawerAction) => {
     switch (activeView) {
       case 'dashboard':
-        return <ManagerScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} onNavigate={setActiveView} />;
+        return <ManagerScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} onNavigate={navigateTo} />;
       case 'manager_hub':
         return <ManagerHubScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
       case 'attendance':
@@ -249,7 +299,7 @@ export default function App() {
       case 'rooms':
         return <RoomsScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
       case 'reservations':
-        return <ReservationsScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} onNavigate={setActiveView} setCheckoutRoomId={setCheckoutRoomId} />;
+        return <ReservationsScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} onNavigate={navigateTo} setCheckoutRoomId={setCheckoutRoomId} />;
       case 'checkin':
         return <CheckInScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
       case 'checkout':
@@ -282,13 +332,13 @@ export default function App() {
       case 'super_users':
       case 'super_rbac':
       case 'super_audit':
-        return <SuperAdminScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} activeTab={activeView} onNavigate={setActiveView} />;
+        return <SuperAdminScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} activeTab={activeView} onNavigate={navigateTo} />;
       case 'tenant_overview':
       case 'tenant_staff':
       case 'tenant_rbac':
       case 'tenant_features':
       case 'tenant_settings':
-        return <TenantAdminScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} activeTab={activeView} onNavigate={setActiveView} />;
+        return <TenantAdminScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} activeTab={activeView} onNavigate={navigateTo} />;
       case 'tickets':
         return <TicketsScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
       default:
@@ -381,8 +431,7 @@ export default function App() {
                           key={item.name}
                           style={[styles.navItem, isActive && styles.navItemActive]}
                           onPress={() => {
-                            setActiveView(item.view);
-                            setActiveGroupName(group.category);
+                            navigateTo(item.view);
                             setIsDrawerOpen(false);
                           }}
                         >

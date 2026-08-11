@@ -567,7 +567,7 @@ export default function RoomsScreen({ user, onLogout, onOpenDrawer }) {
             <View style={styles.statusButtonsGrid}>
               {['Available', 'Occupied', 'Dirty', 'Cleaning', 'Maintenance', 'Reserved'].map((status) => {
                 const isOccupied = editingRoom?.status === 'Occupied';
-                const isDisabled = isOccupied && status !== 'Occupied';
+                const isDisabled = (isOccupied && status !== 'Occupied') || (!isOccupied && status === 'Occupied');
                 return (
                   <TouchableOpacity
                     key={status}
