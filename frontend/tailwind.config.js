@@ -13,7 +13,7 @@ module.exports = {
           light: '#E5C054',
           pale: '#FAF7EE',
         },
-        cream: '#FEF9F1',
+        cream: '#FEFBF7',
         charcoal: '#1F2933',
         slate: '#6B7280',
         success: {
@@ -37,9 +37,20 @@ module.exports = {
         }
       },
       fontFamily: {
-        display: ['Cormorant Garamond', 'Lora', 'serif'],
-        sans: ['Outfit', 'Inter', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        display: ['Poppins', 'sans-serif'],
+        sans: ['Inter', 'sans-serif'],
+        mono: ['Roboto Mono', 'Inter', 'sans-serif'],
+      },
+      fontSize: {
+        '2xs': ['0.8rem',   { lineHeight: '1.15rem' }],
+        'xs':  ['0.9rem',   { lineHeight: '1.35rem' }],
+        'sm':  ['1rem',     { lineHeight: '1.5rem' }],
+        'base':['1.1rem',   { lineHeight: '1.7rem' }],
+        'lg':  ['1.25rem',  { lineHeight: '1.9rem' }],
+        'xl':  ['1.4rem',   { lineHeight: '2rem' }],
+        '2xl': ['1.65rem',  { lineHeight: '2.15rem' }],
+        '3xl': ['2.1rem',   { lineHeight: '2.5rem' }],
+        '4xl': ['2.6rem',   { lineHeight: '3rem' }],
       },
       keyframes: {
         slideIn: {

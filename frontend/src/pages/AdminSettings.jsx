@@ -84,7 +84,7 @@ function AdminSettings() {
       const blob = await response.blob();
       const contentDisposition = response.headers.get('Content-Disposition') || '';
       const match = contentDisposition.match(/filename="(.+)"/);
-      const filename = match ? match[1] : 'hotel-export.json';
+      const filename = match ? match[1] : 'hotel-export.csv';
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -205,8 +205,8 @@ function AdminSettings() {
               <Database className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="font-display font-bold text-base text-navy">Data Management & Export</h2>
-              <p className="text-slate text-xs font-medium mt-0.5">Download a complete JSON backup of all your property data.</p>
+              <h2 className="font-display font-bold text-base text-navy">Data Management & Export (Excel)</h2>
+              <p className="text-slate text-xs font-medium mt-0.5">Download a complete Excel spreadsheet backup (.csv) of all your property data.</p>
             </div>
           </div>
           <button

@@ -153,8 +153,7 @@ function Kitchen() {
             Active kitchen order tickets. Orders flagged red are delayed and need priority.
           </p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-navy text-gold rounded-xl font-mono text-sm font-semibold border border-gold/20 shadow-sm">
-          <ChefHat className="w-5 h-5" />
+        <div className="flex items-center gap-2 px-4 py-2 bg-navy text-white rounded-xl font-mono text-sm font-semibold border border-gold/20 shadow-sm">
           <span>Active Tickets: {tickets.length}</span>
         </div>
       </div>
@@ -163,7 +162,7 @@ function Kitchen() {
       <div className="flex-1 min-h-0 flex flex-col xl:flex-row gap-6 overflow-hidden">
         
         {/* KOT Columns */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto pr-2">
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         
         {/* Pending Column */}
         <div className="bg-[#FEF9F1] border border-border-cream/80 rounded-2xl flex flex-col h-full min-h-[300px]">
@@ -183,33 +182,30 @@ function Kitchen() {
                   key={ticket.id} 
                   onClick={() => setActiveTicket(ticket)}
                   className={`
-                    cursor-pointer p-5 border rounded-2xl transition-all duration-300 relative bg-white group
+                    cursor-pointer p-3.5 border rounded-2xl transition-all duration-300 relative bg-white group
                     ${delayed 
                       ? 'border-danger bg-danger-pale/40 hover:shadow-lg shadow-danger/5 border-t-4' 
                       : 'border-border-cream hover:border-gold hover:shadow-md'
                     }
                   `}
                 >
-                  {/* Delayed pulsing badge */}
-                  {delayed && (
-                    <span className="absolute top-4 right-4 bg-danger text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg animate-pulse">
-                      Delayed ({elapsed}m)
-                    </span>
-                  )}
-
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h4 className="font-mono font-bold text-sm text-navy">{ticket.kotNumber}</h4>
+                  <div className="flex justify-between items-start mb-2 gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-mono font-bold text-sm text-navy truncate">{ticket.kotNumber}</h4>
                       <p className="text-[10px] text-slate font-semibold uppercase mt-0.5">{ticket.orderType}</p>
                     </div>
-                    {!delayed && (
-                      <span className="text-[10px] text-slate font-semibold flex items-center gap-1">
+                    {delayed ? (
+                      <span className="bg-danger text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg animate-pulse shrink-0">
+                        Delayed ({elapsed}m)
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-slate font-semibold flex items-center gap-1 shrink-0">
                         <Clock className="w-3.5 h-3.5 text-slate" /> {elapsed}m
                       </span>
                     )}
                   </div>
 
-                  <div className="border-b border-border-cream/40 pb-3 mb-4">
+                  <div className="border-b border-border-cream/40 pb-2 mb-2.5">
                     <span className={`
                       text-xs font-bold px-2.5 py-0.5 rounded-md
                       ${ticket.orderType === 'Swiggy' && 'bg-[#FC8019]/10 text-[#FC8019] border border-[#FC8019]/20'}
@@ -220,7 +216,7 @@ function Kitchen() {
                     </span>
                   </div>
 
-                  <div className="space-y-1 text-xs text-charcoal mb-5">
+                  <div className="space-y-1 text-xs text-charcoal mb-3">
                     {ticket.items.map((item, idx) => (
                       <div key={idx} className="flex justify-between">
                         <span>{item.name}</span>
@@ -234,7 +230,7 @@ function Kitchen() {
                       e.stopPropagation();
                       handleStartPrep(ticket.id);
                     }}
-                    className="w-full py-2 bg-navy text-gold text-xs font-bold rounded-xl hover:bg-navy/95 active:scale-98 transition-all"
+                    className="w-full py-1.5 bg-navy text-gold text-xs font-bold rounded-xl hover:bg-navy/95 active:scale-98 transition-all"
                   >
                     Start Preparation
                   </button>
@@ -262,33 +258,30 @@ function Kitchen() {
                   key={ticket.id} 
                   onClick={() => setActiveTicket(ticket)}
                   className={`
-                    cursor-pointer p-5 border rounded-2xl transition-all duration-300 relative bg-white group
+                    cursor-pointer p-3.5 border rounded-2xl transition-all duration-300 relative bg-white group
                     ${delayed 
                       ? 'border-danger bg-danger-pale/40 hover:shadow-lg shadow-danger/5 border-t-4' 
                       : 'border-border-cream hover:border-gold hover:shadow-md'
                     }
                   `}
                 >
-                  {/* Delayed pulsing badge */}
-                  {delayed && (
-                    <span className="absolute top-4 right-4 bg-danger text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg animate-pulse">
-                      Delayed ({elapsed}m)
-                    </span>
-                  )}
-
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h4 className="font-mono font-bold text-sm text-navy">{ticket.kotNumber}</h4>
+                  <div className="flex justify-between items-start mb-2 gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-mono font-bold text-sm text-navy truncate">{ticket.kotNumber}</h4>
                       <p className="text-[10px] text-slate font-semibold uppercase mt-0.5">{ticket.orderType}</p>
                     </div>
-                    {!delayed && (
-                      <span className="text-[10px] text-slate font-semibold flex items-center gap-1">
+                    {delayed ? (
+                      <span className="bg-danger text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg animate-pulse shrink-0">
+                        Delayed ({elapsed}m)
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-slate font-semibold flex items-center gap-1 shrink-0">
                         <Clock className="w-3.5 h-3.5 text-slate" /> {elapsed}m
                       </span>
                     )}
                   </div>
 
-                  <div className="border-b border-border-cream/40 pb-3 mb-4 flex justify-between items-center">
+                  <div className="border-b border-border-cream/40 pb-2 mb-2.5 flex justify-between items-center">
                     <span className={`
                       text-xs font-bold px-2.5 py-0.5 rounded-md
                       ${ticket.orderType === 'Swiggy' && 'bg-[#FC8019]/10 text-[#FC8019] border border-[#FC8019]/20'}
@@ -302,7 +295,7 @@ function Kitchen() {
                     </span>
                   </div>
 
-                  <div className="space-y-1 text-xs text-charcoal mb-5">
+                  <div className="space-y-1 text-xs text-charcoal mb-3">
                     {ticket.items.map((item, idx) => (
                       <div key={idx} className={`flex justify-between ${item.checked ? 'line-through text-slate' : ''}`}>
                         <span className="flex items-center gap-1.5">
@@ -319,7 +312,7 @@ function Kitchen() {
                       e.stopPropagation();
                       handleMarkReady(ticket.id);
                     }}
-                    className="w-full py-2 bg-gold hover:bg-gold-light text-navy text-xs font-bold rounded-xl active:scale-98 transition-all"
+                    className="w-full py-1.5 bg-gold hover:bg-gold-light text-navy text-xs font-bold rounded-xl active:scale-98 transition-all"
                   >
                     Mark Ready
                   </button>
@@ -345,9 +338,9 @@ function Kitchen() {
                 <div 
                   key={ticket.id} 
                   onClick={() => setActiveTicket(ticket)}
-                  className="cursor-pointer p-5 border border-success bg-success-pale/35 hover:shadow-md rounded-2xl transition-all duration-300 relative bg-white group"
+                  className="cursor-pointer p-3.5 border border-success bg-success-pale/35 hover:shadow-md rounded-2xl transition-all duration-300 relative bg-white group"
                 >
-                  <div className="flex justify-between items-start mb-3">
+                  <div className="flex justify-between items-start mb-2">
                     <div>
                       <h4 className="font-mono font-bold text-sm text-navy">{ticket.kotNumber}</h4>
                       <p className="text-[10px] text-slate font-semibold uppercase mt-0.5">{ticket.orderType}</p>
@@ -357,7 +350,7 @@ function Kitchen() {
                     </span>
                   </div>
 
-                  <div className="border-b border-border-cream/40 pb-3 mb-4">
+                  <div className="border-b border-border-cream/40 pb-2 mb-2.5">
                     <span className={`
                       text-xs font-bold px-2.5 py-0.5 rounded-md
                       ${ticket.orderType === 'Swiggy' && 'bg-[#FC8019]/10 text-[#FC8019] border border-[#FC8019]/20'}
@@ -368,7 +361,7 @@ function Kitchen() {
                     </span>
                   </div>
 
-                  <div className="space-y-1 text-xs text-slate line-through mb-5">
+                  <div className="space-y-1 text-xs text-slate line-through mb-3">
                     {ticket.items.map((item, idx) => (
                       <div key={idx} className="flex justify-between items-center">
                         <span className="flex items-center gap-1.5">
@@ -385,7 +378,7 @@ function Kitchen() {
                       e.stopPropagation();
                       handleMarkServed(ticket.id, ticket.orderId);
                     }}
-                    className="w-full py-2 bg-success text-white text-xs font-bold rounded-xl hover:bg-success/90 active:scale-98 transition-all"
+                    className="w-full py-1.5 bg-success text-white text-xs font-bold rounded-xl hover:bg-success/90 active:scale-98 transition-all"
                   >
                     Mark Served
                   </button>
@@ -401,7 +394,7 @@ function Kitchen() {
         <div className="w-full xl:w-80 bg-[#FEF9F1] border border-border-cream/80 rounded-2xl flex flex-col h-full min-h-[300px] shrink-0">
           <div className="p-4 border-b border-border-cream/80 bg-white/50 rounded-t-2xl flex justify-between items-center border-t-4 border-navy">
             <h3 className="text-xs font-bold text-navy uppercase tracking-wider">Aggregated Dishes</h3>
-            <span className="font-mono text-xs px-2 py-0.5 bg-navy text-gold font-bold rounded-lg border border-gold/20">
+            <span className="font-mono text-xs px-2 py-0.5 bg-navy text-white font-bold rounded-lg border border-gold/20">
               {aggregatedItems.reduce((acc, curr) => acc + curr.qty, 0)} Total
             </span>
           </div>

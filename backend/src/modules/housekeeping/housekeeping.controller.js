@@ -97,3 +97,16 @@ var _housekeepingservice = require('./housekeeping.service'); var housekeepingSe
     next(err);
   }
 }; exports.updateStatus = updateStatus;
+
+// ────────────────────────────────────────────────────────────────
+// GET /housekeeping/staff — list all active housekeeping users
+// ────────────────────────────────────────────────────────────────
+const getHousekeepingStaff = async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenantId;
+    const staff = await housekeepingService.getHousekeepingStaff(tenantId);
+    _helpers.sendSuccess.call(void 0, res, staff, 'Housekeeping staff retrieved');
+  } catch (err) {
+    next(err);
+  }
+}; exports.getHousekeepingStaff = getHousekeepingStaff;

@@ -3,6 +3,7 @@ var _errormiddleware = require('../../middleware/error.middleware');
 var _helpers = require('../../shared/helpers');
 
 var _notificationsservice = require('../notifications/notifications.service'); var notificationsService = _interopRequireWildcard(_notificationsservice);
+var _inventoryservice = require('../inventory/inventory.service'); var inventoryService = _interopRequireWildcard(_inventoryservice);
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 50;
@@ -204,6 +205,11 @@ async function recalculateOrderTotals(orderId) {
       data: { status: 'OCCUPIED' },
     });
   }
+
+  // Deduct inventory stock for ordered recipe ingredients asynchronously
+  inventoryService.deductStockForOrder(tenantId, order.id, order.items).catch(err => {
+    console.error('Inventory auto-deduction failed:', err);
+  });
 
   // Notify Chefs
   const itemsText = order.items.map(item => `${item.menuItem?.name} (x${item.quantity})`).join(', ');
@@ -418,6 +424,11 @@ async function recalculateOrderTotals(orderId) {
       data: { status: 'AVAILABLE' },
     });
   }
+
+  // Restock inventory for cancelled order
+  inventoryService.restockForCancelledOrder(tenantId, id).catch(err => {
+    console.error('Inventory restock failed:', err);
+  });
 
   // Notify Chefs
   const tableName = _optionalChain([cancelled, 'access', _3 => _3.table, 'optionalAccess', _4 => _4.name]) || 'Quick POS';

@@ -23,7 +23,53 @@ const demoRoles = [
     password: 'superadminsecret',
     color: 'from-purple-600 to-indigo-700',
     badge: 'SA',
-    desc: 'Full SaaS control',
+    role: 'SUPER_ADMIN',
+    desc: 'Full SaaS platform control',
+  },
+  {
+    name: 'Property Admin',
+    email: 'admin@grandpalace.com',
+    password: 'admin123',
+    color: 'from-blue-600 to-navy',
+    badge: 'PA',
+    role: 'TENANT_ADMIN',
+    desc: 'Property config & settings',
+  },
+  {
+    name: 'Manager',
+    email: 'manager@grandpalace.com',
+    password: 'manager123',
+    color: 'from-[#D4AF37] to-amber-700',
+    badge: 'MGR',
+    role: 'MANAGER',
+    desc: 'Operations & reports',
+  },
+  {
+    name: 'Front Desk',
+    email: 'reception@grandpalace.com',
+    password: 'reception123',
+    color: 'from-emerald-600 to-teal-700',
+    badge: 'FD',
+    role: 'RECEPTIONIST',
+    desc: 'Check-in, rooms & checkout',
+  },
+  {
+    name: 'Captain / POS',
+    email: 'captain@grandpalace.com',
+    password: 'captain123',
+    color: 'from-rose-600 to-pink-700',
+    badge: 'CP',
+    role: 'CAPTAIN',
+    desc: 'Restaurant order taking',
+  },
+  {
+    name: 'Chef / KOT',
+    email: 'chef@grandpalace.com',
+    password: 'chef123',
+    color: 'from-amber-500 to-orange-600',
+    badge: 'KT',
+    role: 'CHEF',
+    desc: 'Kitchen display & status',
   },
 ];
 
@@ -578,71 +624,6 @@ function Login() {
                   {loading ? 'Signing In...' : 'Sign In'}
                 </button>
               </form>
-
-              {/* Divider */}
-              <div className="relative w-full my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/20"></div>
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-white/50 backdrop-blur-md px-3 py-0.5 text-slate-800 font-extrabold uppercase tracking-widest text-[9px] rounded-full border border-white/30">
-                    Quick Demo Access
-                  </span>
-                </div>
-              </div>
-
-              {/* Custom Demo Dropdown */}
-              <div className="relative w-full">
-                <button
-                  type="button"
-                  onClick={() => setDemoDropdownOpen(!demoDropdownOpen)}
-                  disabled={anyLoading}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-full glass-input text-xs font-bold text-slate-900 transition-all hover:bg-white/60 active:scale-[0.99] border border-white/40"
-                >
-                  <span className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-[#D4AF37]" />
-                    {activeRole ? `Logging in as ${activeRole}...` : 'Select Demo Account...'}
-                  </span>
-                  <ChevronDown className={`w-4 h-4 text-slate-800 transition-transform duration-200 ${demoDropdownOpen ? 'transform rotate-180' : ''}`} />
-                </button>
-
-                {demoDropdownOpen && (
-                  <div className="absolute left-0 right-0 bottom-full mb-2 z-50 rounded-2xl border border-white/50 bg-white/95 backdrop-blur-xl shadow-2xl p-2 space-y-1 max-h-56 overflow-y-auto">
-                    {demoRoles.map((role) => {
-                      const isThisLoading = activeRole === role.name;
-                      return (
-                        <button
-                          key={role.name}
-                          type="button"
-                          onClick={() => {
-                            setDemoDropdownOpen(false);
-                            handleRoleSelect(role);
-                          }}
-                          disabled={anyLoading}
-                          className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-navy/5 transition-all text-left group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${role.color} flex items-center justify-center text-white text-[10px] font-black shadow-sm shrink-0`}>
-                              {role.badge}
-                            </div>
-                            <div>
-                              <p className="text-xs font-bold text-slate-900 leading-tight">{role.name}</p>
-                              <p className="text-[10px] text-slate-700 leading-tight">{role.desc}</p>
-                            </div>
-                          </div>
-                          <span className="text-[9px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md group-hover:bg-white transition-colors">
-                            {role.email.split('@')[0]}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              <p className="text-[9px] text-slate-800 font-bold text-center mt-3">
-                Select Super Admin to instantly log in
-              </p>
             </>
           )}
 

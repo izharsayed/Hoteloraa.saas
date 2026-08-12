@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Building, 
@@ -14,7 +14,11 @@ import {
   Loader2,
   CheckCircle,
   Trash2,
-  UploadCloud
+  UploadCloud,
+  Bell,
+  UserCheck,
+  AlertTriangle,
+  Info
 } from 'lucide-react';
 import api, { assetUrl } from '../utils/api';
 
@@ -23,14 +27,16 @@ function Dashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [revenueTimeframe, setRevenueTimeframe] = useState('daily');
 
   const userJson = localStorage.getItem('user');
-  let user = { businessType: 'HOTEL_RESTAURANT' };
+  let user = { businessType: 'HOTEL' };
   try {
     if (userJson) user = JSON.parse(userJson);
   } catch (e) {}
 
-  const businessType = user.businessType || 'HOTEL_RESTAURANT';
+  const rawType = data?.businessType || user.tenant?.businessType || user.businessType || 'HOTEL';
+  const businessType = (rawType === 'HOTEL' || rawType === 'LODGING') ? 'LODGING' : rawType;
 
   // Support Ticket Modal States
   const [showTicketModal, setShowTicketModal] = useState(false);
@@ -39,6 +45,56 @@ function Dashboard() {
   const [ticketSuccess, setTicketSuccess] = useState(false);
   const [ticketError, setTicketError] = useState('');
   const [attachmentUploading, setAttachmentUploading] = useState(false);
+
+  // Notification States
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notificationRef = useRef(null);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await api.get('/notifications');
+      setNotifications(res || []);
+    } catch (e) {
+      console.error('Failed to fetch notifications:', e);
+    }
+  };
+
+  const handleMarkRead = async (id) => {
+    try {
+      await api.patch(`/notifications/${id}/read`);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await api.post('/notifications/mark-all-read');
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    const timer = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setNotificationsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -173,12 +229,13 @@ function Dashboard() {
       };
     });
 
+    const restBreakdown = data?.revenueBreakdown?.[revenueTimeframe] || { total: todayRevenue, dineIn: data?.dineInSales || 0, takeaway: data?.takeawaySales || 0 };
     revenueHighlights = {
-      netSales: todayRevenue,
+      netSales: restBreakdown.total,
       title: 'Restaurant Sales',
       items: [
-        { label: 'Dine-In Sales', value: data?.dineInSales || 0 },
-        { label: 'Takeaways & Delivery', value: data?.takeawaySales || 0 }
+        { label: 'Dine-In Sales', value: restBreakdown.dineIn || 0 },
+        { label: 'Takeaways & Delivery', value: restBreakdown.takeaway || 0 }
       ]
     };
 
@@ -189,12 +246,12 @@ function Dashboard() {
     const todayCheckIns = data?.todayCheckIns || 0;
     const todayRevenue = data?.todayRevenue || 0;
 
-    const occupancyRate = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+    const vacantCount = Math.max(0, totalRooms - occupiedRooms);
 
     metrics = [
       {
         title: 'Total Lodging Occupancy',
-        value: `${occupancyRate}%`,
+        value: String(vacantCount),
         subtitle: `${occupiedRooms} of ${totalRooms} Rooms Booked`,
         icon: Bed,
         color: 'text-navy',
@@ -236,12 +293,13 @@ function Dashboard() {
       };
     });
 
+    const lodgingBreakdown = data?.revenueBreakdown?.[revenueTimeframe] || { total: todayRevenue, bookings: data?.roomBookings || 0, service: data?.roomService || 0 };
     revenueHighlights = {
-      netSales: todayRevenue,
+      netSales: lodgingBreakdown.total,
       title: 'Lodging Sales',
       items: [
-        { label: 'Room Bookings', value: data?.roomBookings || 0 },
-        { label: 'Room Service & Laundry', value: data?.roomService || 0 }
+        { label: 'Room Bookings', value: lodgingBreakdown.bookings || 0 },
+        { label: 'Room Service & Laundry', value: lodgingBreakdown.service || 0 }
       ]
     };
 
@@ -250,12 +308,12 @@ function Dashboard() {
     const lodging = data?.lodging || {};
     const combinedTodayRevenue = data?.combinedTodayRevenue || 0;
 
-    const occupancyRate = lodging.totalRooms > 0 ? Math.round((lodging.occupiedRooms / lodging.totalRooms) * 100) : 0;
+    const lodgingVacantCount = Math.max(0, (lodging.totalRooms || 0) - (lodging.occupiedRooms || 0));
 
     metrics = [
       {
         title: 'Total Lodging Occupancy',
-        value: `${occupancyRate}%`,
+        value: String(lodgingVacantCount),
         subtitle: `${lodging.occupiedRooms || 0} of ${lodging.totalRooms || 0} Rooms Booked`,
         icon: Bed,
         color: 'text-navy',
@@ -307,14 +365,18 @@ function Dashboard() {
       .sort((a, b) => b.createdAt - a.createdAt)
       .slice(0, 8);
 
+    const restBreakdown = restaurant.revenueBreakdown?.[revenueTimeframe] || { total: restaurant.todayRevenue || 0, dineIn: restaurant.dineInSales || 0, takeaway: restaurant.takeawaySales || 0 };
+    const lodgingBreakdown = lodging.revenueBreakdown?.[revenueTimeframe] || { total: lodging.todayRevenue || 0, bookings: lodging.roomBookings || 0, service: lodging.roomService || 0 };
+    const netTotal = (restBreakdown.total || 0) + (lodgingBreakdown.total || 0);
+
     revenueHighlights = {
-      netSales: combinedTodayRevenue,
+      netSales: netTotal,
       title: 'Room & Table Sales',
       items: [
-        { label: 'Room Bookings', value: lodging.roomBookings || 0 },
-        { label: 'Restaurant Dining', value: restaurant.dineInSales || 0 },
-        { label: 'Takeaways & Delivery', value: restaurant.takeawaySales || 0 },
-        { label: 'Room Service & Laundry', value: lodging.roomService || 0 }
+        { label: 'Room Bookings', value: lodgingBreakdown.bookings || 0 },
+        { label: 'Restaurant Dining', value: restBreakdown.dineIn || 0 },
+        { label: 'Takeaways & Delivery', value: restBreakdown.takeaway || 0 },
+        { label: 'Room Service & Laundry', value: lodgingBreakdown.service || 0 }
       ]
     };
   }
@@ -325,7 +387,7 @@ function Dashboard() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="font-display font-bold text-3xl text-navy">
-            Hoteloraa Operations Dashboard
+            Operations Dashboard
           </h1>
           <p className="text-slate text-sm font-medium mt-1">
             Real-time status overview of Hotel & Restaurant modules
@@ -335,16 +397,79 @@ function Dashboard() {
           <span className="font-mono text-sm px-3 py-1.5 bg-white border border-border-cream rounded-xl text-slate shadow-sm">
             Fiscal: {new Date().toISOString().split('T')[0]}
           </span>
-          {(user.userRole === 'MANAGER' || user.userRole === 'TENANT_ADMIN') && (
-            <button onClick={() => setShowTicketModal(true)} className="flex items-center gap-2 px-4 py-2 border border-navy/20 hover:border-navy text-navy hover:bg-navy/5 font-semibold rounded-xl text-xs transition-all duration-200">
-              <LifeBuoy className="w-4 h-4 text-gold" /> Report Issue
-            </button>
-          )}
+
           {businessType !== 'RESTAURANT' && (
-            <button onClick={() => navigate('/checkin')} className="btn-primary">
-              Quick Check-In <ArrowRight className="w-4 h-4" />
+            <button 
+              onClick={() => navigate('/checkin')} 
+              title="Quick Check-In"
+              className="p-3 bg-white border border-border-cream rounded-2xl text-charcoal hover:bg-cream/40 transition-all relative flex items-center justify-center shadow-sm cursor-pointer"
+            >
+              <UserCheck className="w-6 h-6 text-black" />
             </button>
           )}
+
+          {/* Notification Bell */}
+          <div className="relative" ref={notificationRef}>
+            <button 
+              onClick={() => setNotificationsOpen(!notificationsOpen)}
+              title="Notifications"
+              className="p-3 bg-white border border-border-cream rounded-2xl text-charcoal hover:bg-cream/40 transition-all relative flex items-center justify-center shadow-sm cursor-pointer"
+            >
+              <Bell className="w-6 h-6 text-black" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-danger text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {notificationsOpen && (
+              <div className="absolute right-0 mt-2 w-80 bg-white border border-border-cream rounded-2xl shadow-xl z-50 overflow-hidden animate-scaleUp p-1">
+                <div className="p-3 border-b border-border-cream flex justify-between items-center bg-cream/20 rounded-t-xl">
+                  <span className="font-display font-bold text-navy text-xs uppercase tracking-wider">Notifications</span>
+                  {unreadCount > 0 && (
+                    <button 
+                      onClick={handleMarkAllRead}
+                      className="text-[10px] text-amber-600 hover:text-navy font-bold transition-all uppercase cursor-pointer"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-64 overflow-y-auto divide-y divide-border-cream/40">
+                  {notifications.length === 0 ? (
+                    <div className="p-6 text-center text-slate text-xs font-semibold">
+                      No new notifications
+                    </div>
+                  ) : (
+                    notifications.map((notif) => (
+                      <div 
+                        key={notif.id}
+                        onClick={() => handleMarkRead(notif.id)}
+                        className={`p-3 hover:bg-cream/30 cursor-pointer flex gap-3 items-start transition-all rounded-lg ${!notif.isRead ? 'bg-amber-50/20' : ''}`}
+                      >
+                        {notif.type === 'SUCCESS' && <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />}
+                        {notif.type === 'WARNING' && <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />}
+                        {notif.type === 'DANGER' && <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />}
+                        {notif.type === 'INFO' && <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />}
+                        
+                        <div className="min-w-0 flex-1">
+                          <p className={`text-xs text-charcoal font-semibold ${!notif.isRead ? 'font-extrabold text-navy' : ''}`}>
+                            {notif.title}
+                          </p>
+                          <p className="text-[10px] text-slate mt-0.5 leading-normal">{notif.message}</p>
+                          <span className="text-[8px] text-slate/50 block mt-1 font-medium">
+                            {new Date(notif.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -353,19 +478,19 @@ function Dashboard() {
         {metrics.map((metric, index) => {
           const Icon = metric.icon;
           return (
-            <div key={index} className="soft-card p-6 flex flex-col justify-between h-40">
+            <div key={index} className="soft-card p-5 flex flex-col justify-between h-36 hover:shadow-md transition-all">
+              {/* Top Row: Label + Icon */}
               <div className="flex justify-between items-start">
-                <div>
-                  <span className="text-slate text-xs font-semibold uppercase tracking-wider">{metric.title}</span>
-                  <h3 className="font-mono font-bold text-2xl text-navy mt-2 tracking-tight">{metric.value}</h3>
-                </div>
-                <div className={`p-3 rounded-xl ${metric.bgColor} ${metric.color}`}>
-                  <Icon className="w-6 h-6" />
+                <span className="text-slate text-xs font-semibold uppercase tracking-wider leading-tight">{metric.title}</span>
+                <div className={`p-2 rounded-xl ${metric.bgColor} ${metric.color} shrink-0`}>
+                  <Icon className="w-5 h-5" />
                 </div>
               </div>
-              <div className="text-xs text-slate border-t border-border-cream/50 pt-3 mt-3 font-medium flex items-center justify-between">
-                <span>{metric.subtitle}</span>
-                <TrendingUp className="w-3.5 h-3.5 text-success" />
+
+              {/* Bottom Row: Value + Subtitle */}
+              <div className="flex items-end justify-between gap-2">
+                <h3 className="font-mono font-bold text-3xl text-navy tracking-tight leading-none">{metric.value}</h3>
+                <span className="text-[11px] font-semibold text-charcoal leading-tight text-right max-w-[90px]">{metric.subtitle}</span>
               </div>
             </div>
           );
@@ -379,7 +504,7 @@ function Dashboard() {
         <div className="soft-card p-6 lg:col-span-2 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display font-semibold text-lg text-navy">Live Operations Feed</h2>
+              <h2 className="font-display font-semibold text-2xl text-navy">Live Operations Feed</h2>
               <span onClick={() => navigate('/reports')} className="text-xs text-gold font-semibold flex items-center cursor-pointer hover:underline">
                 View All Audit Logs <ChevronRight className="w-4 h-4" />
               </span>
@@ -396,12 +521,12 @@ function Dashboard() {
                       <Clock className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-charcoal truncate">{activity.text}</p>
-                      <p className="text-[10px] text-slate font-medium mt-0.5">{activity.time}</p>
+                      <p className="text-sm font-semibold text-charcoal truncate">{activity.text}</p>
+                      <p className="text-xs text-slate font-medium mt-0.5">{activity.time}</p>
                     </div>
                     <div>
                       <span className={`
-                        text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded
+                        text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg
                         ${activity.status === 'completed' && 'bg-success-pale text-success border border-success/20'}
                         ${activity.status === 'preparing' && 'bg-warning-pale text-warning border border-warning/20'}
                         ${activity.status === 'paid' && 'bg-success-pale text-success border border-success/20'}
@@ -418,33 +543,40 @@ function Dashboard() {
         </div>
 
         {/* Brand/Revenue Split Card */}
-        <div className="soft-card p-6 flex flex-col justify-between bg-navy text-white hover:border-gold">
+        <div className="soft-card p-6 flex flex-col justify-between bg-white text-navy hover:border-gold">
           <div>
-            <div className="mb-4">
-              <span className="text-[10px] bg-gold/20 text-gold font-mono font-bold uppercase tracking-wider px-2.5 py-1 border border-gold/30 rounded-lg">
-                Revenue Highlights
-              </span>
+            <div className="flex justify-between items-center border-b border-border-cream/60 pb-3 mb-6 gap-2">
+              <h3 className="font-display font-bold text-2xl text-navy">{revenueHighlights.title}</h3>
+              <select
+                value={revenueTimeframe}
+                onChange={(e) => setRevenueTimeframe(e.target.value)}
+                className="px-3 py-1.5 bg-cream/10 border border-border-cream rounded-xl text-xs font-bold text-navy focus:outline-none focus:border-gold cursor-pointer"
+              >
+                <option value="daily">Daily (Today)</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+              </select>
             </div>
-            <h3 className="font-display font-bold text-2xl text-gold-pale mt-4">{revenueHighlights.title}</h3>
-            <p className="text-slate text-xs mt-1">Daily consolidated segment audit</p>
 
-            <div className="mt-8 space-y-4">
+            <div className="space-y-4">
               {revenueHighlights.items.map((item, idx) => (
-                <div key={idx} className={`flex justify-between items-center ${idx < revenueHighlights.items.length - 1 ? 'border-b border-white/10 pb-2' : ''}`}>
-                  <span className="text-xs text-slate font-medium">{item.label}</span>
-                  <span className="font-mono text-sm text-white">₹{item.value.toLocaleString()}</span>
+                <div key={idx} className={`flex justify-between items-center ${idx < revenueHighlights.items.length - 1 ? 'border-b border-border-cream/60 pb-2.5' : ''}`}>
+                  <span className="text-sm text-slate font-medium">{item.label}</span>
+                  <span className="font-mono text-base text-navy font-bold">₹{(item.value || 0).toLocaleString()}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="border-t border-white/10 pt-4 mt-6 flex justify-between items-center">
-            <span className="text-xs text-gold font-semibold uppercase tracking-wider">Net Sales</span>
-            <span className="font-mono text-xl text-gold font-bold">
-              ₹{revenueHighlights.netSales.toLocaleString()}
+          <div className="border-t border-border-cream pt-4 mt-6 flex justify-between items-center">
+            <span className="text-sm text-navy font-bold uppercase tracking-wider">
+              {revenueTimeframe === 'monthly' ? 'Monthly Net Sales' : revenueTimeframe === 'yearly' ? 'Yearly Net Sales' : 'Net Sales'}
+            </span>
+            <span className="font-mono text-2xl text-navy font-extrabold">
+              ₹{(revenueHighlights.netSales || 0).toLocaleString()}
             </span>
           </div>
-      </div>
+        </div>
     </div>
 
       {/* Support Ticket Modal */}

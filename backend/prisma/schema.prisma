@@ -181,6 +181,7 @@ model Tenant {
   guests        Guest[]
   housekeeping  Housekeeping[]
   inventory     InventoryItem[]
+  inventoryLogs InventoryLog[]
   vendors       Vendor[]
   purchases     Purchase[]
   payments      Payment[]
@@ -401,6 +402,7 @@ model MenuItem {
   menuCategory MenuCategory? @relation(fields: [menuCategoryId], references: [id])
   category     Category?     @relation(fields: [categoryId], references: [id])
   orderItems   OrderItem[]
+  ingredients  MenuItemIngredient[]
 
   @@index([tenantId, isAvailable, sortOrder])
   @@index([tenantId, menuCategoryId])
@@ -766,6 +768,8 @@ model InventoryItem {
 
   tenant        Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   purchaseItems PurchaseItem[]
+  ingredients   MenuItemIngredient[]
+  logs          InventoryLog[]
 
   @@unique([tenantId, sku])
   @@map("inventory_items")
@@ -1128,4 +1132,49 @@ model Ticket {
   @@index([status])
   @@index([priority])
   @@map("tickets")
+}
+
+// ============================================================
+// RECIPES & INVENTORY DEDUCTION LOGS
+// ============================================================
+
+model MenuItemIngredient {
+  id               String        @id @default(uuid())
+  menuItemId       String
+  inventoryItemId  String
+  quantityRequired Float         // Amount used for 1 serving (e.g. 0.200)
+  unit             InventoryUnit @default(PIECE)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  menuItem      MenuItem      @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  @@unique([menuItemId, inventoryItemId])
+  @@index([menuItemId])
+  @@index([inventoryItemId])
+  @@map("menu_item_ingredients")
+}
+
+model InventoryLog {
+  id              String        @id @default(uuid())
+  tenantId        String
+  inventoryItemId String
+  orderId         String?
+  changeType      String        // "ORDER_DEDUCTION", "RESTOCK_CANCEL", "MANUAL_ADJUST", "PURCHASE_RECEIPT"
+  quantityChange  Float         // Negative for deduction, positive for addition
+  previousQuantity Float
+  newQuantity     Float
+  unit            InventoryUnit @default(PIECE)
+  reason          String?
+  createdById     String?
+  createdAt       DateTime      @default(now())
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt])
+  @@index([inventoryItemId])
+  @@index([orderId])
+  @@map("inventory_logs")
 }

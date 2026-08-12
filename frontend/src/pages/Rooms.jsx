@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Bed, CheckCircle2, AlertCircle, Wrench, Ban, RefreshCw, Filter, SlidersHorizontal, X, Plus, Trash2 } from 'lucide-react';
-import api from '../utils/api';
+import { createPortal } from 'react-dom';
+import { Bed, CheckCircle2, AlertCircle, Wrench, Ban, RefreshCw, Filter, SlidersHorizontal, X, Plus, Trash2, Upload, Camera } from 'lucide-react';
+import api, { assetUrl } from '../utils/api';
 
 function Rooms() {
   const [selectedType, setSelectedType] = useState('All');
@@ -16,6 +17,13 @@ function Rooms() {
   const [newRoomFloor, setNewRoomFloor] = useState('');
   const [newRoomTypeId, setNewRoomTypeId] = useState('');
   const [newRoomDesc, setNewRoomDesc] = useState('');
+  const [newRoomPhotoUrl, setNewRoomPhotoUrl] = useState('');
+  const [uploadingRoomPhoto, setUploadingRoomPhoto] = useState(false);
+  const [newRoomGuests, setNewRoomGuests] = useState('2');
+  const [newRoomBed, setNewRoomBed] = useState('1 King Bed');
+  const [newRoomSize, setNewRoomSize] = useState('32 m²');
+  const [newRoomView, setNewRoomView] = useState('City View');
+  const [newRoomAmenities, setNewRoomAmenities] = useState(['Free WiFi', 'AC']);
   const [roomTypes, setRoomTypes] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -115,6 +123,12 @@ function Rooms() {
     setNewRoomFloor('');
     setNewRoomTypeId('');
     setNewRoomDesc('');
+    setNewRoomPhotoUrl('');
+    setNewRoomGuests('2');
+    setNewRoomBed('1 King Bed');
+    setNewRoomSize('32 m²');
+    setNewRoomView('City View');
+    setNewRoomAmenities(['Free WiFi', 'AC']);
   };
 
   const handleAddRoom = async (e) => {
@@ -122,11 +136,22 @@ function Rooms() {
     if (!newRoomNumber || !newRoomFloor || !newRoomTypeId) return;
     try {
       setSubmitting(true);
+      const specDetails = [
+        newRoomGuests && `${newRoomGuests} Guests`,
+        newRoomBed,
+        newRoomSize,
+        newRoomView,
+        newRoomAmenities.length > 0 && newRoomAmenities.join(', ')
+      ].filter(Boolean).join(' • ');
+
+      const fullDesc = [newRoomDesc, specDetails ? `Specs: ${specDetails}` : ''].filter(Boolean).join(' | ');
+
       await api.post('/rooms', {
         number: newRoomNumber,
         floor: newRoomFloor,
         roomTypeId: newRoomTypeId,
-        description: newRoomDesc || undefined
+        description: fullDesc || undefined,
+        imageUrl: newRoomPhotoUrl || undefined
       });
       fetchRooms();
       setShowAddModal(false);
@@ -371,34 +396,33 @@ function Rooms() {
       )}
 
       {/* Room Status Editor Modal */}
-      {editingRoom && (
-        <div className="fixed inset-0 bg-navy/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-white border border-border-cream rounded-[2rem] w-full max-w-md p-8 shadow-xl relative">
+      {editingRoom && createPortal(
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white border border-border-cream rounded-3xl w-full max-w-md p-5 shadow-2xl relative my-auto">
             <button 
               onClick={() => setEditingRoom(null)}
-              className="absolute top-6 right-6 text-slate hover:text-navy transition-colors"
+              className="absolute top-5 right-5 text-slate hover:text-navy transition-colors p-1 rounded-lg hover:bg-cream/50"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
 
-            <div className="border-b border-border-cream pb-4 mb-6">
-              <span className="text-[10px] text-slate font-bold uppercase tracking-wider">ROOM OPERATIONS</span>
-              <h3 className="font-display font-bold text-xl text-navy mt-1">Room {editingRoom.number}</h3>
-              <p className="text-xs text-slate mt-1">{editingRoom.type} | Current Status: <strong className="text-navy">{editingRoom.status}</strong></p>
+            <div className="border-b border-border-cream pb-3 mb-4">
+              <h3 className="font-display font-bold text-lg text-navy mt-0.5">Room {editingRoom.number}</h3>
+              <p className="text-xs text-slate mt-0.5">{editingRoom.type} | Status: <strong className="text-navy">{editingRoom.status}</strong></p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <span className="text-slate text-[10px] font-bold uppercase tracking-wider block">Update Status</span>
-              <div className="grid grid-cols-2 gap-3">
-                {['Available', 'Occupied', 'Dirty', 'Cleaning', 'Maintenance', 'Reserved'].map((status) => (
+              <div className="grid grid-cols-3 gap-2">
+                {['Available', 'Dirty', 'Cleaning', 'Maintenance', 'Reserved'].map((status) => (
                   <button
                     key={status}
                     onClick={() => handleStatusChange(editingRoom.number, status)}
                     className={`
-                      py-3 px-4 text-xs font-bold rounded-xl border text-center transition-all
+                      py-2 px-2.5 text-xs font-bold rounded-xl border text-center transition-all cursor-pointer truncate
                       ${editingRoom.status === status 
-                        ? 'bg-navy border-navy text-gold' 
-                        : 'bg-white border-border-cream text-charcoal hover:bg-gold-pale/30'
+                        ? 'bg-navy border-navy text-white shadow-sm' 
+                        : 'bg-white border-border-cream text-charcoal hover:bg-gold-pale/30 hover:border-gold/40'
                       }
                     `}
                   >
@@ -408,115 +432,243 @@ function Rooms() {
               </div>
             </div>
 
-            <div className="flex gap-3 mt-8 pt-4 border-t border-border-cream">
+            <div className="flex gap-3 mt-5 pt-3 border-t border-border-cream">
               <button 
                 type="button"
                 onClick={() => handleDeleteRoom(editingRoom.id)}
                 disabled={deleting}
-                className="w-1/2 flex items-center justify-center gap-2 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold py-2.5 transition-all active:scale-95 disabled:opacity-50"
+                className="w-1/2 flex items-center justify-center gap-1.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold py-2 transition-all active:scale-95 disabled:opacity-50"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3.5 h-3.5" />
                 {deleting ? 'Deleting...' : 'Delete Room'}
               </button>
               <button 
                 onClick={() => setEditingRoom(null)}
-                className="w-1/2 btn-secondary"
+                className="w-1/2 btn-secondary py-2 text-xs"
               >
                 Close
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* Add Room Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-navy/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-white border border-border-cream rounded-[2rem] w-full max-w-md p-8 shadow-xl relative">
+      {/* Add Room Modal (Horizontal 2-Column Layout) */}
+      {showAddModal && createPortal(
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white border border-border-cream rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-y-auto p-5 md:p-6 shadow-2xl relative my-auto">
             <button 
               onClick={() => {
                 setShowAddModal(false);
                 resetAddForm();
               }}
-              className="absolute top-6 right-6 text-slate hover:text-navy transition-colors"
+              className="absolute top-4 right-4 text-slate hover:text-navy transition-colors p-1.5 rounded-xl hover:bg-cream/50"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
 
-            <div className="border-b border-border-cream pb-4 mb-6">
-              <span className="text-[10px] text-slate font-bold uppercase tracking-wider">ROOMS</span>
-              <h3 className="font-display font-bold text-xl text-navy mt-1">Add New Room</h3>
-              <p className="text-xs text-slate mt-1">Configure room number, floor allocation, and type</p>
+            <div className="border-b border-border-cream pb-2 mb-3.5">
+              <h3 className="font-display font-bold text-lg text-navy mt-0.5">Add New Room</h3>
+              <p className="text-[11px] text-slate mt-0.5">Configure room specs, floor allocation, photos, and optional amenities</p>
             </div>
 
-            <form onSubmit={handleAddRoom} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Room Number *</label>
-                <input 
-                  type="text" 
-                  required
-                  placeholder="e.g. 104 or 205"
-                  value={newRoomNumber}
-                  onChange={(e) => setNewRoomNumber(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
-                />
+            <form onSubmit={handleAddRoom} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Left Column: Core Setup */}
+              <div className="space-y-3.5">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Room Number *</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="e.g. 104 or 205"
+                    value={newRoomNumber}
+                    onChange={(e) => setNewRoomNumber(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Floor *</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="e.g. 1 or Ground Floor"
+                    value={newRoomFloor}
+                    onChange={(e) => setNewRoomFloor(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Room Type *</label>
+                  <select 
+                    required
+                    value={newRoomTypeId}
+                    onChange={(e) => setNewRoomTypeId(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                  >
+                    <option value="">Select Room Type</option>
+                    {roomTypes.map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.name} (₹{type.basePrice.toLocaleString()} / night)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Room Photo Upload */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Room Photo (Optional)</label>
+                  <div className="flex gap-3 items-center">
+                    <label className="flex-1 border border-dashed border-border-cream/80 hover:border-gold rounded-xl p-2.5 bg-cream/10 hover:bg-cream/20 cursor-pointer flex items-center justify-center gap-2 text-xs font-semibold text-navy transition-all group">
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            setUploadingRoomPhoto(true);
+                            const fd = new FormData();
+                            fd.append('file', file);
+                            const res = await api.upload('/guests/upload-id', fd);
+                            setNewRoomPhotoUrl(res.url);
+                          } catch (err) {
+                            alert(err.message || 'Photo upload failed');
+                          } finally {
+                            setUploadingRoomPhoto(false);
+                          }
+                        }}
+                      />
+                      <Upload className="w-4 h-4 text-gold group-hover:scale-110 transition-transform" />
+                      {uploadingRoomPhoto ? 'Uploading...' : newRoomPhotoUrl ? 'Change Photo' : 'Upload Room Photo'}
+                    </label>
+
+                    {newRoomPhotoUrl && (
+                      <div className="relative w-14 h-11 rounded-lg border border-border-cream overflow-hidden bg-white shrink-0 group">
+                        <img src={assetUrl(newRoomPhotoUrl)} alt="Room Preview" className="w-full h-full object-cover" />
+                        <button 
+                          type="button" 
+                          onClick={() => setNewRoomPhotoUrl('')}
+                          className="absolute inset-0 bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Remove photo"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Description (Optional)</label>
+                  <textarea 
+                    placeholder="Additional features, layout notes..."
+                    value={newRoomDesc}
+                    onChange={(e) => setNewRoomDesc(e.target.value)}
+                    rows="2"
+                    className="w-full px-3.5 py-2 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal resize-none"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Floor *</label>
-                <input 
-                  type="text" 
-                  required
-                  placeholder="e.g. 1 or Ground Floor"
-                  value={newRoomFloor}
-                  onChange={(e) => setNewRoomFloor(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
-                />
+              {/* Right Column: Specifications & Amenities */}
+              <div className="space-y-3 bg-cream/5 border border-border-cream/60 rounded-2xl p-4 flex flex-col justify-between">
+                <div>
+                  <label className="text-[10px] font-bold text-navy uppercase tracking-wider block mb-2">
+                    Features &amp; Amenities (Optional)
+                  </label>
+
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    <div>
+                      <label className="text-[9px] font-bold text-slate uppercase block mb-1">Max Guests</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. 2 Guests" 
+                        value={newRoomGuests} 
+                        onChange={e => setNewRoomGuests(e.target.value)} 
+                        className="w-full px-3 py-1.5 bg-white border border-border-cream rounded-xl text-xs font-semibold text-charcoal focus:outline-none focus:border-gold" 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-bold text-slate uppercase block mb-1">Bed Type</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. 1 King Bed" 
+                        value={newRoomBed} 
+                        onChange={e => setNewRoomBed(e.target.value)} 
+                        className="w-full px-3 py-1.5 bg-white border border-border-cream rounded-xl text-xs font-semibold text-charcoal focus:outline-none focus:border-gold" 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-bold text-slate uppercase block mb-1">Room Size</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. 32 m²" 
+                        value={newRoomSize} 
+                        onChange={e => setNewRoomSize(e.target.value)} 
+                        className="w-full px-3 py-1.5 bg-white border border-border-cream rounded-xl text-xs font-semibold text-charcoal focus:outline-none focus:border-gold" 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-bold text-slate uppercase block mb-1">Room View</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. City View" 
+                        value={newRoomView} 
+                        onChange={e => setNewRoomView(e.target.value)} 
+                        className="w-full px-3 py-1.5 bg-white border border-border-cream rounded-xl text-xs font-semibold text-charcoal focus:outline-none focus:border-gold" 
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-bold text-slate uppercase block mb-1.5">Amenities</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {['Free WiFi', 'AC', 'Smart TV', 'Mini Bar', 'Balcony', 'Geyser'].map(item => {
+                        const active = newRoomAmenities.includes(item);
+                        return (
+                          <button
+                            key={item}
+                            type="button"
+                            onClick={() => {
+                              setNewRoomAmenities(prev => 
+                                active ? prev.filter(a => a !== item) : [...prev, item]
+                              );
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
+                              active 
+                                ? 'bg-navy text-white border-navy shadow-sm' 
+                                : 'bg-white text-slate border-border-cream hover:bg-gold-pale/20'
+                            }`}
+                          >
+                            {active ? '✓ ' : '+ '}{item}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Room Type *</label>
-                <select 
-                  required
-                  value={newRoomTypeId}
-                  onChange={(e) => setNewRoomTypeId(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
-                >
-                  <option value="">Select Room Type</option>
-                  {roomTypes.map((type) => (
-                    <option key={type.id} value={type.id}>
-                      {type.name} (₹{type.basePrice.toLocaleString()} / night)
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Description (Optional)</label>
-                <textarea 
-                  placeholder="Additional features, bed configuration, views, etc."
-                  value={newRoomDesc}
-                  onChange={(e) => setNewRoomDesc(e.target.value)}
-                  rows="3"
-                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal resize-none"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4 border-t border-border-cream">
+              {/* Bottom Actions spanning both columns */}
+              <div className="md:col-span-2 flex justify-end gap-3 pt-3 border-t border-border-cream">
                 <button 
                   type="button"
                   onClick={() => {
                     setShowAddModal(false);
                     resetAddForm();
                   }}
-                  className="w-1/2 btn-secondary"
+                  className="px-6 py-2.5 btn-secondary text-xs"
                   disabled={submitting}
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
-                  className="w-1/2 btn-primary flex items-center justify-center gap-1.5"
+                  className="px-6 py-2.5 btn-primary flex items-center justify-center gap-1.5 text-xs"
                   disabled={submitting}
                 >
                   {submitting ? 'Creating...' : 'Create Room'}
@@ -524,113 +676,118 @@ function Rooms() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* Add Room Type Modal */}
-      {showAddTypeModal && (
-        <div className="fixed inset-0 bg-navy/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-white border border-border-cream rounded-[2rem] w-full max-w-md p-8 shadow-xl relative">
+      {/* Add Room Type Modal (Horizontal 2-Column Layout) */}
+      {showAddTypeModal && createPortal(
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white border border-border-cream rounded-[2rem] w-full max-w-2xl p-6 md:p-8 shadow-2xl relative my-auto">
             <button 
               onClick={() => {
                 setShowAddTypeModal(false);
                 resetAddTypeForm();
               }}
-              className="absolute top-6 right-6 text-slate hover:text-navy transition-colors"
+              className="absolute top-6 right-6 text-slate hover:text-navy transition-colors p-1.5 rounded-xl hover:bg-cream/50"
             >
               <X className="w-6 h-6" />
             </button>
 
-            <div className="border-b border-border-cream pb-4 mb-6">
-              <span className="text-[10px] text-slate font-bold uppercase tracking-wider">ROOMS</span>
-              <h3 className="font-display font-bold text-xl text-navy mt-1">Add Room Type</h3>
-              <p className="text-xs text-slate mt-1">Define pricing, occupancy rules, and amenities</p>
+            <div className="border-b border-border-cream pb-3 mb-5">
+              <h3 className="font-display font-bold text-xl text-navy mt-0.5">Add Room Type</h3>
+              <p className="text-xs text-slate mt-0.5">Define pricing tier, base rate, occupancy rules, and room amenities</p>
             </div>
 
-            <form onSubmit={handleAddRoomType} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Room Type Name *</label>
-                <input 
-                  type="text" 
-                  required
-                  placeholder="e.g. Executive Suite or Deluxe Double"
-                  value={newTypeName}
-                  onChange={(e) => setNewTypeName(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
-                />
+            <form onSubmit={handleAddRoomType} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Room Type Name *</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="e.g. Executive Suite or Deluxe Double"
+                    value={newTypeName}
+                    onChange={(e) => setNewTypeName(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Base Price Per Night (₹) *</label>
+                  <input 
+                    type="number" 
+                    required
+                    min="0"
+                    placeholder="e.g. 4500"
+                    value={newTypePrice}
+                    onChange={(e) => setNewTypePrice(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Max Occupancy *</label>
+                  <input 
+                    type="number" 
+                    required
+                    min="1"
+                    placeholder="e.g. 2"
+                    value={newTypeOccupancy}
+                    onChange={(e) => setNewTypeOccupancy(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Base Price Per Night (₹) *</label>
-                <input 
-                  type="number" 
-                  required
-                  min="0"
-                  placeholder="e.g. 4500"
-                  value={newTypePrice}
-                  onChange={(e) => setNewTypePrice(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
-                />
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Amenities (Comma separated)</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. AC, Free Wi-Fi, Smart TV, Mini Fridge"
+                    value={newTypeAmenities}
+                    onChange={(e) => setNewTypeAmenities(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Description (Optional)</label>
+                  <textarea 
+                    placeholder="Describe properties, views, layout or specific amenities..."
+                    value={newTypeDesc}
+                    onChange={(e) => setNewTypeDesc(e.target.value)}
+                    rows="3"
+                    className="w-full px-3.5 py-2 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal resize-none"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Max Occupancy *</label>
-                <input 
-                  type="number" 
-                  required
-                  min="1"
-                  placeholder="e.g. 2"
-                  value={newTypeOccupancy}
-                  onChange={(e) => setNewTypeOccupancy(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Amenities (Comma separated)</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. AC, Free Wi-Fi, Smart TV, Mini Fridge"
-                  value={newTypeAmenities}
-                  onChange={(e) => setNewTypeAmenities(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Description (Optional)</label>
-                <textarea 
-                  placeholder="Describe properties, views, layout or specific amenities..."
-                  value={newTypeDesc}
-                  onChange={(e) => setNewTypeDesc(e.target.value)}
-                  rows="3"
-                  className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold text-charcoal resize-none"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4 border-t border-border-cream">
+              <div className="md:col-span-2 flex justify-end gap-3 pt-3 border-t border-border-cream">
                 <button 
                   type="button"
                   onClick={() => {
                     setShowAddTypeModal(false);
                     resetAddTypeForm();
                   }}
-                  className="w-1/2 btn-secondary"
+                  className="px-6 py-2.5 btn-secondary text-xs"
                   disabled={submittingType}
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
-                  className="w-1/2 btn-primary flex items-center justify-center gap-1.5"
+                  className="px-6 py-2.5 btn-primary flex items-center justify-center gap-1.5 text-xs"
                   disabled={submittingType}
                 >
-                  {submittingType ? 'Creating...' : 'Create Type'}
+                  {submittingType ? 'Creating...' : 'Create Room Type'}
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

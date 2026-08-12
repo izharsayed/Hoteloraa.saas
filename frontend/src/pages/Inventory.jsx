@@ -24,6 +24,8 @@ const PAGE_SIZE = 10;
 function Inventory() {
   const [items, setItems] = useState([]);
   const [vendors, setVendors] = useState([]);
+  const [logs, setLogs] = useState([]);
+  const [activeTab, setActiveTab] = useState('stock'); // 'stock' | 'logs'
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -55,12 +57,14 @@ function Inventory() {
     try {
       setLoading(true);
       setError('');
-      const [itemsData, vendorsData] = await Promise.all([
+      const [itemsData, vendorsData, logsData] = await Promise.all([
         api.get('/inventory'),
-        api.get('/vendors').catch(() => [])
+        api.get('/vendors').catch(() => []),
+        api.get('/inventory/logs').catch(() => [])
       ]);
       setItems(itemsData || []);
       setVendors(vendorsData || []);
+      setLogs(logsData || []);
     } catch (err) {
       setError(err.message || 'Failed to load inventory');
     } finally {
@@ -212,8 +216,8 @@ function Inventory() {
 
   // ── Shared form fields renderer ────────────────────────────────
   const renderFormFields = () => (
-    <>
-      <div className="space-y-1.5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="space-y-1.5 sm:col-span-2">
         <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Item Name *</label>
         <input type="text" required placeholder="e.g. Extra Virgin Olive Oil"
           value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
@@ -272,7 +276,7 @@ function Inventory() {
             className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold" disabled={saving} />
         )}
       </div>
-    </>
+    </div>
   );
 
   return (
@@ -306,179 +310,262 @@ function Inventory() {
         <div className="p-3.5 bg-success/10 border border-success/20 rounded-xl text-success text-xs font-semibold">{successMsg}</div>
       )}
 
-      {/* KPI Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="soft-card p-5 flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-gold-pale text-navy shrink-0">
-            <Package className="w-5 h-5" />
-          </div>
+      {/* KPI Summary Cards — Standard Dashboard Layout */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="soft-card p-4 md:p-5 bg-white border border-border-cream rounded-2xl flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-slate text-[10px] font-bold uppercase tracking-wider block">Total Items</span>
-            <span className="font-mono font-bold text-xl text-navy">{loading ? '—' : totalItems}</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate block">Total Items</span>
+            <span className="text-2xl font-display font-bold text-navy mt-0.5 block">{loading ? '—' : totalItems}</span>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-gold-pale text-navy flex items-center justify-center shrink-0 border border-gold/20">
+            <Package className="w-5 h-5" />
           </div>
         </div>
 
-        <div className={`soft-card p-5 flex items-center gap-4 ${lowStockCount > 0 ? 'border-danger/20' : ''}`}>
-          <div className={`p-3 rounded-xl shrink-0 ${lowStockCount > 0 ? 'bg-danger-pale text-danger' : 'bg-success/10 text-success'}`}>
-            <AlertTriangle className="w-5 h-5" />
-          </div>
+        <div className={`soft-card p-4 md:p-5 bg-white border border-border-cream rounded-2xl flex items-center justify-between shadow-sm ${lowStockCount > 0 ? 'border-danger/30' : ''}`}>
           <div>
-            <span className="text-slate text-[10px] font-bold uppercase tracking-wider block">Low Stock Alerts</span>
-            <span className={`font-mono font-bold text-xl ${lowStockCount > 0 ? 'text-danger' : 'text-success'}`}>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate block">Low Stock Alerts</span>
+            <span className={`text-2xl font-display font-bold mt-0.5 block ${lowStockCount > 0 ? 'text-danger' : 'text-emerald-600'}`}>
               {loading ? '—' : `${lowStockCount} items`}
             </span>
           </div>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${lowStockCount > 0 ? 'bg-danger-pale text-danger border-danger/20' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+            <AlertTriangle className="w-5 h-5" />
+          </div>
         </div>
 
-        <div className="soft-card p-5 flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-gold-pale/50 text-gold shrink-0">
+        <div className="soft-card p-4 md:p-5 bg-white border border-border-cream rounded-2xl flex items-center justify-between shadow-sm">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate block">Active Vendors</span>
+            <span className="text-2xl font-display font-bold text-navy mt-0.5 block">{loading ? '—' : activeVendors}</span>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-gold-pale/60 text-gold flex items-center justify-center shrink-0 border border-gold/20">
             <Truck className="w-5 h-5" />
           </div>
-          <div>
-            <span className="text-slate text-[10px] font-bold uppercase tracking-wider block">Active Vendors</span>
-            <span className="font-mono font-bold text-xl text-navy">{loading ? '—' : activeVendors}</span>
-          </div>
         </div>
 
-        <div className="soft-card p-5 flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-navy/5 text-navy shrink-0">
-            <BarChart2 className="w-5 h-5" />
-          </div>
+        <div className="soft-card p-4 md:p-5 bg-white border border-border-cream rounded-2xl flex items-center justify-between shadow-sm">
           <div>
-            <span className="text-slate text-[10px] font-bold uppercase tracking-wider block">Stock Value</span>
-            <span className="font-mono font-bold text-xl text-navy">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate block">Stock Value</span>
+            <span className="text-2xl font-display font-bold text-navy mt-0.5 block">
               {loading ? '—' : `₹${totalValue.toLocaleString('en-IN')}`}
             </span>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-navy/5 text-navy flex items-center justify-center shrink-0 border border-navy/10">
+            <BarChart2 className="w-5 h-5" />
           </div>
         </div>
       </div>
 
-      {/* Stock Table */}
-      <div className="soft-card p-6">
-        {/* Table header + filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <h3 className="font-display font-semibold text-lg text-navy">Master Stock Index</h3>
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* Status filter pills */}
-            <div className="flex rounded-xl border border-border-cream overflow-hidden text-[10px] font-bold">
-              {[['all','All'], ['good','Good'], ['low','Low Stock']].map(([val, label]) => (
-                <button key={val} onClick={() => { setFilterStatus(val); setPage(1); }}
-                  className={`px-3 py-1.5 transition-all ${filterStatus === val ? 'bg-navy text-white' : 'bg-white text-slate hover:bg-cream/40'}`}>
-                  {label}
-                </button>
-              ))}
-            </div>
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate" />
-              <input type="text" placeholder="Search name / SKU..."
-                value={searchQuery}
-                onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
-                className="pl-9 pr-4 py-2 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs bg-cream/20 w-48" />
-            </div>
+      {/* Stock & Logs Tabs */}
+      <div className="soft-card p-6 min-h-[540px]">
+        {/* Navigation Tabs Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border-cream/80 mb-6 gap-4 pb-1">
+          <div className="flex gap-6">
+            <button
+              onClick={() => setActiveTab('stock')}
+              className={`pb-3 text-sm font-bold border-b-2 transition-all ${
+                activeTab === 'stock' ? 'border-navy text-navy font-display' : 'border-transparent text-slate hover:text-navy'
+              }`}
+            >
+              Master Stock Index
+            </button>
+            <button
+              onClick={() => setActiveTab('logs')}
+              className={`pb-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
+                activeTab === 'logs' ? 'border-navy text-navy font-display' : 'border-transparent text-slate hover:text-navy'
+              }`}
+            >
+              Order Deduction & Audit Logs
+              <span className="px-2 py-0.5 rounded-full bg-gold-pale text-navy text-[10px] font-mono font-bold">
+                {logs.length}
+              </span>
+            </button>
           </div>
+
+          {/* Inline Filter Controls on the Right side of the Tab Row */}
+          {activeTab === 'stock' && (
+            <div className="flex items-center gap-3 pb-2.5 flex-wrap">
+              {/* Status filter pills */}
+              <div className="flex rounded-xl border border-border-cream overflow-hidden text-[10px] font-bold">
+                {[['all','All'], ['good','Good'], ['low','Low Stock']].map(([val, label]) => (
+                  <button key={val} onClick={() => { setFilterStatus(val); setPage(1); }}
+                    className={`px-3 py-1.5 transition-all ${filterStatus === val ? 'bg-navy text-white' : 'bg-white text-slate hover:bg-cream/40'}`}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate" />
+                <input type="text" placeholder="Search name / SKU..."
+                  value={searchQuery}
+                  onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+                  className="pl-9 pr-4 py-1.5 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs bg-cream/20 w-48" />
+              </div>
+            </div>
+          )}
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-16 gap-3 text-slate">
-            <Loader2 className="w-6 h-6 animate-spin text-gold" />
-            <span className="text-sm font-semibold">Loading stock data...</span>
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-border-cream text-[10px] font-bold text-slate uppercase tracking-wider">
-                    <th className="pb-3">Item ID</th>
-                    <th className="pb-3">Description</th>
-                    <th className="pb-3 text-center">Quantity</th>
-                    <th className="pb-3 text-center">Min. Stock</th>
-                    <th className="pb-3 text-right">Cost / Unit</th>
-                    <th className="pb-3">Vendor</th>
-                    <th className="pb-3 text-center">Status</th>
-                    <th className="pb-3 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-cream/40 text-xs font-semibold">
-                  {paged.length === 0 ? (
-                    <tr>
-                      <td colSpan="8" className="text-center py-12 text-slate">
-                        {searchQuery || filterStatus !== 'all' ? 'No items match your filter.' : 'No inventory items yet. Click "+ Add Inventory Item" to get started.'}
-                      </td>
-                    </tr>
-                  ) : paged.map(item => {
-                    const isLow = item.quantity <= item.minimumStock;
-                    const unit = UNIT_LABELS[item.unit] || item.unit?.toLowerCase();
-                    return (
-                      <tr key={item.id} className="hover:bg-gold-pale/10 transition-colors group">
-                        <td className="py-3.5 font-mono font-bold text-navy text-[11px]">{item.sku || item.id.slice(0, 8)}</td>
-                        <td className="py-3.5 text-charcoal max-w-[180px] truncate" title={item.name}>{item.name}</td>
-                        <td className="py-3.5 text-center font-mono font-bold text-charcoal">{item.quantity} <span className="text-slate font-normal">{unit}</span></td>
-                        <td className="py-3.5 text-center font-mono text-slate">{item.minimumStock} <span className="text-slate/60 font-normal">{unit}</span></td>
-                        <td className="py-3.5 text-right font-mono text-slate">
-                          {item.costPrice ? `₹${Number(item.costPrice).toLocaleString('en-IN')}` : '—'}
-                        </td>
-                        <td className="py-3.5 text-slate max-w-[130px] truncate" title={getVendorName(item.description)}>
-                          {getVendorName(item.description)}
-                        </td>
-                        <td className="py-3.5 text-center">
-                          <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
-                            isLow ? 'bg-danger-pale text-danger border border-danger/20' : 'bg-success/10 text-success border border-success/20'
-                          }`}>
-                            {isLow ? 'Low Stock' : 'Good'}
-                          </span>
-                        </td>
-                        <td className="py-3.5 text-center">
-                          <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => setAdjustItem(item)} title="Adjust Stock"
-                              className="p-1.5 hover:bg-gold/10 rounded-lg text-gold transition-colors">
-                              <TrendingDown className="w-3.5 h-3.5" />
-                            </button>
-                            <button onClick={() => openEdit(item)} title="Edit Item"
-                              className="p-1.5 hover:bg-navy/10 rounded-lg text-navy transition-colors">
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-                            <button onClick={() => setDeleteConfirm(item)} title="Delete Item"
-                              className="p-1.5 hover:bg-danger/10 rounded-lg text-danger transition-colors">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
+        {activeTab === 'stock' ? (
+          <div>
+            {loading ? (
+              <div className="flex items-center justify-center py-16 gap-3 text-slate">
+                <Loader2 className="w-6 h-6 animate-spin text-gold" />
+                <span className="text-sm font-semibold">Loading stock data...</span>
+              </div>
+            ) : (
+              <div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-border-cream text-[0.9rem] font-bold text-slate uppercase tracking-wider">
+                        <th className="pb-3">Item ID</th>
+                        <th className="pb-3">Description</th>
+                        <th className="pb-3 text-center">Quantity</th>
+                        <th className="pb-3 text-center">Min. Stock</th>
+                        <th className="pb-3 text-right">Cost / Unit</th>
+                        <th className="pb-3">Vendor</th>
+                        <th className="pb-3 text-center">Status</th>
+                        <th className="pb-3 text-center">Actions</th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-border-cream/40">
-                <span className="text-[10px] text-slate font-semibold">
-                  Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} items
-                </span>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                    className="p-1.5 rounded-lg border border-border-cream disabled:opacity-40 hover:bg-cream/40 transition-all">
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <span className="px-3 text-xs font-bold text-navy">{page} / {totalPages}</span>
-                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                    className="p-1.5 rounded-lg border border-border-cream disabled:opacity-40 hover:bg-cream/40 transition-all">
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
+                    </thead>
+                    <tbody className="divide-y divide-border-cream/40 text-xs font-semibold">
+                      {paged.length === 0 ? (
+                        <tr>
+                          <td colSpan="8" className="text-center py-12 text-slate">
+                            {searchQuery || filterStatus !== 'all' ? 'No items match your filter.' : 'No inventory items yet. Click "+ Add Inventory Item" to get started.'}
+                          </td>
+                        </tr>
+                      ) : paged.map(item => {
+                        const isLow = item.quantity <= item.minimumStock;
+                        const unit = UNIT_LABELS[item.unit] || item.unit?.toLowerCase();
+                        return (
+                          <tr key={item.id} className="hover:bg-gold-pale/10 transition-colors group">
+                            <td className="py-3.5 font-mono font-bold text-navy text-[11px]">{item.sku || item.id.slice(0, 8)}</td>
+                            <td className="py-3.5 text-charcoal max-w-[180px] truncate" title={item.name}>{item.name}</td>
+                            <td className="py-3.5 text-center font-mono font-bold text-charcoal">{item.quantity} <span className="text-slate font-normal">{unit}</span></td>
+                            <td className="py-3.5 text-center font-mono text-slate">{item.minimumStock} <span className="text-slate/60 font-normal">{unit}</span></td>
+                            <td className="py-3.5 text-right font-mono text-slate">
+                              {item.costPrice ? `₹${Number(item.costPrice).toLocaleString('en-IN')}` : '—'}
+                            </td>
+                            <td className="py-3.5 text-slate max-w-[130px] truncate" title={getVendorName(item.description)}>
+                              {getVendorName(item.description)}
+                            </td>
+                            <td className="py-3.5 text-center">
+                              <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                                isLow ? 'bg-danger-pale text-danger border border-danger/20' : 'bg-success/10 text-success border border-success/20'
+                              }`}>
+                                {isLow ? 'Low Stock' : 'Good'}
+                              </span>
+                            </td>
+                            <td className="py-3.5 text-center">
+                              <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onClick={() => setAdjustItem(item)} title="Adjust Stock"
+                                  className="p-1.5 hover:bg-gold/10 rounded-lg text-gold transition-colors">
+                                  <TrendingDown className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => openEdit(item)} title="Edit Item"
+                                  className="p-1.5 hover:bg-navy/10 rounded-lg text-navy transition-colors">
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => setDeleteConfirm(item)} title="Delete Item"
+                                  className="p-1.5 hover:bg-danger/10 rounded-lg text-danger transition-colors">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border-cream/40">
+                    <span className="text-[10px] text-slate font-semibold">
+                      Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} items
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                        className="p-1.5 rounded-lg border border-border-cream disabled:opacity-40 hover:bg-cream/40 transition-all">
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <span className="px-3 text-xs font-bold text-navy">{page} / {totalPages}</span>
+                      <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                        className="p-1.5 rounded-lg border border-border-cream disabled:opacity-40 hover:bg-cream/40 transition-all">
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
-          </>
+          </div>
+        ) : (
+          /* Logs Tab View */
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-border-cream text-[0.9rem] font-bold text-slate uppercase tracking-wider">
+                  <th className="pb-3">Timestamp</th>
+                  <th className="pb-3">Inventory Item</th>
+                  <th className="pb-3 text-center">Type</th>
+                  <th className="pb-3 text-right">Quantity Change</th>
+                  <th className="pb-3 text-right">Stock Level</th>
+                  <th className="pb-3">Reason / Details</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-cream/40 text-xs font-semibold">
+                {logs.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-12 text-slate font-medium">
+                      No stock deduction or adjustment logs yet. Orders placed with configured recipes will appear here automatically.
+                    </td>
+                  </tr>
+                ) : logs.map(log => {
+                  const isDeduction = log.quantityChange < 0;
+                  return (
+                    <tr key={log.id} className="hover:bg-gold-pale/10 transition-colors">
+                      <td className="py-3.5 text-slate font-mono text-[11px]">
+                        {new Date(log.createdAt).toLocaleString()}
+                      </td>
+                      <td className="py-3.5 font-bold text-navy">
+                        {log.inventoryItem?.name || 'Unknown Item'}
+                      </td>
+                      <td className="py-3.5 text-center">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                          log.changeType === 'ORDER_DEDUCTION' ? 'bg-amber-100 text-amber-800' :
+                          log.changeType === 'RESTOCK_CANCEL' ? 'bg-blue-100 text-blue-800' :
+                          'bg-emerald-100 text-emerald-800'
+                        }`}>
+                          {log.changeType?.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className={`py-3.5 text-right font-mono font-bold ${isDeduction ? 'text-red-600' : 'text-emerald-600'}`}>
+                        {isDeduction ? '' : '+'}{log.quantityChange} {UNIT_LABELS[log.unit] || log.unit}
+                      </td>
+                      <td className="py-3.5 text-right font-mono text-slate">
+                        {log.newQuantity} <span className="text-slate/60">{UNIT_LABELS[log.unit] || log.unit}</span>
+                      </td>
+                      <td className="py-3.5 text-slate font-medium max-w-[200px] truncate" title={log.reason}>
+                        {log.reason || '—'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
       {/* ── ADD ITEM MODAL ── */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-navy/10 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2rem] border border-border-cream p-8 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-navy/60 flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white rounded-[2rem] border border-border-cream p-8 w-full max-w-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto my-auto animate-scaleUp">
             <button onClick={() => setShowAddModal(false)} disabled={saving}
               className="absolute top-6 right-6 text-slate hover:text-navy transition-colors">
               <X className="w-5 h-5" />
@@ -504,8 +591,8 @@ function Inventory() {
 
       {/* ── EDIT ITEM MODAL ── */}
       {editItem && (
-        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-navy/10 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2rem] border border-border-cream p-8 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-navy/60 flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white rounded-[2rem] border border-border-cream p-8 w-full max-w-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto my-auto animate-scaleUp">
             <button onClick={() => setEditItem(null)} disabled={saving}
               className="absolute top-6 right-6 text-slate hover:text-navy transition-colors">
               <X className="w-5 h-5" />
@@ -531,8 +618,8 @@ function Inventory() {
 
       {/* ── ADJUST STOCK MODAL ── */}
       {adjustItem && (
-        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-navy/10 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2rem] border border-border-cream p-8 w-full max-w-sm shadow-2xl relative">
+        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-navy/60 flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white rounded-[2rem] border border-border-cream p-8 w-full max-w-sm shadow-2xl relative my-auto animate-scaleUp">
             <button onClick={() => setAdjustItem(null)} disabled={saving}
               className="absolute top-6 right-6 text-slate hover:text-navy transition-colors">
               <X className="w-5 h-5" />
@@ -562,15 +649,15 @@ function Inventory() {
 
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">
-                  Quantity to {adjustDir > 0 ? 'Add' : 'Remove'} ({UNIT_LABELS[adjustItem.unit] || adjustItem.unit})
+                  Quantity ({UNIT_LABELS[adjustItem.unit] || adjustItem.unit}) *
                 </label>
-                <input type="number" required min="0.01" step="any" placeholder="0"
+                <input type="number" required min="1" placeholder="1"
                   value={adjustQty} onChange={e => setAdjustQty(e.target.value)}
                   className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-mono font-bold" disabled={saving} />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Reason *</label>
+                <label className="text-[10px] font-bold text-navy uppercase tracking-wider block">Reason / Reference</label>
                 <input type="text" required placeholder="e.g. Received from vendor, Used in kitchen..."
                   value={adjustReason} onChange={e => setAdjustReason(e.target.value)}
                   className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:outline-none focus:border-gold text-xs font-semibold" disabled={saving} />
@@ -596,8 +683,8 @@ function Inventory() {
 
       {/* ── DELETE CONFIRM MODAL ── */}
       {deleteConfirm && (
-        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-navy/10 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2rem] border border-border-cream p-8 w-full max-w-sm shadow-2xl text-center">
+        <div className="fixed inset-0 z-50 backdrop-blur-sm bg-navy/60 flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white rounded-[2rem] border border-border-cream p-8 w-full max-w-sm shadow-2xl text-center my-auto animate-scaleUp">
             <div className="w-14 h-14 bg-danger-pale rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Trash2 className="w-6 h-6 text-danger" />
             </div>

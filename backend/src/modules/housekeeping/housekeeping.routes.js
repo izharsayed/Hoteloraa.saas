@@ -18,6 +18,9 @@ router.get('/my-tasks', _authmiddleware.checkPermission.call(void 0, 'HOUSEKEEPI
 // GET /housekeeping/dashboard — must be before /:id
 router.get('/dashboard', _authmiddleware.checkPermission.call(void 0, 'HOUSEKEEPING', 'READ'), controller.getDashboard);
 
+// GET /housekeeping/staff — list active housekeeping staff (no USERS perm needed)
+router.get('/staff', _authmiddleware.checkPermission.call(void 0, 'HOUSEKEEPING', 'READ'), controller.getHousekeepingStaff);
+
 // GET /housekeeping/:id
 router.get('/:id', _authmiddleware.checkPermission.call(void 0, 'HOUSEKEEPING', 'READ'), controller.getTaskById);
 

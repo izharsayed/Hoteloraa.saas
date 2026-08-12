@@ -338,7 +338,7 @@ function Orders() {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto soft-card p-6 bg-[#FEF9F1] bg-[radial-gradient(#EBE5DA_1.5px,transparent_1.5px)] bg-[size:24px_24px] rounded-2xl min-h-[300px]">
+            <div className="flex-1 overflow-y-auto soft-card p-6 bg-white border border-border-cream rounded-2xl min-h-[300px]">
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 gap-6 justify-items-center mt-4">
                 {tables.map((table) => {
                   const colorClass = 
@@ -357,7 +357,7 @@ function Orders() {
                         ${colorClass} hover:scale-105 hover:shadow-md
                       `}>
                         <span className="font-bold text-sm">{table.name}</span>
-                        <span className="text-[9px] opacity-75 font-semibold mt-1">{table.capacity} Pax</span>
+                        <span className="text-xs opacity-75 font-semibold mt-1">{table.capacity} Pax</span>
                       </div>
                     </div>
                   );
@@ -406,7 +406,7 @@ function Orders() {
                     onClick={() => setSelectedCategoryId('All')}
                     className={`px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all ${
                       selectedCategoryId === 'All' 
-                        ? 'bg-navy text-gold shadow-sm' 
+                        ? 'bg-navy text-white shadow-sm' 
                         : 'bg-cream/40 text-slate hover:text-navy border border-border-cream/50'
                     }`}
                   >
@@ -418,7 +418,7 @@ function Orders() {
                       onClick={() => setSelectedCategoryId(cat.id)}
                       className={`px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all whitespace-nowrap ${
                         selectedCategoryId === cat.id 
-                          ? 'bg-navy text-gold shadow-sm' 
+                          ? 'bg-navy text-white shadow-sm' 
                           : 'bg-cream/40 text-slate hover:text-navy border border-border-cream/50'
                       }`}
                     >
@@ -440,7 +440,7 @@ function Orders() {
                       {item.imageUrl ? (
                         <img 
                           src={(() => {
-                            if (item.imageUrl.startsWith('/uploads')) return `http://localhost:5000${item.imageUrl}`;
+                            if (item.imageUrl.startsWith('/uploads')) return assetUrl(item.imageUrl);
                             if (item.imageUrl.startsWith('/images/dishes/')) {
                               const fileName = item.imageUrl.split('/').pop();
                               return dishImages[`../assets/images/dishes/${fileName}`] || item.imageUrl;
@@ -570,19 +570,21 @@ function Orders() {
         )
       ) : (
         /* ======================== HISTORY VIEW ======================== */
-        <div className="flex-1 flex flex-col bg-white border border-border-cream rounded-2xl p-6 min-h-0">
-          <div className="flex justify-between items-center border-b border-border-cream pb-3 mb-4 shrink-0">
+        <div className="flex-1 flex flex-col min-h-0 space-y-4">
+          <div className="flex justify-between items-center shrink-0">
             <div>
-              <h3 className="font-display font-bold text-navy text-lg">Active & Recent Orders</h3>
+              <h3 className="font-display font-bold text-navy text-[1.4rem]">Active & Recent Orders</h3>
               <p className="text-slate text-xs mt-0.5">Manage existing running tables, add extra items, void entries or change status</p>
             </div>
             <button 
               onClick={() => loadOrders()}
-              className="px-3 py-1.5 bg-cream/40 text-navy font-bold text-xs rounded-xl hover:bg-cream/60 transition-all border border-border-cream/50"
+              className="px-3.5 py-1.5 bg-white text-navy font-bold text-xs rounded-xl hover:bg-cream/30 transition-all border border-border-cream shadow-sm"
             >
               Refresh Orders
             </button>
           </div>
+
+          <div className="flex-1 flex flex-col bg-white border border-border-cream rounded-2xl p-6 min-h-0">
 
           <div className="flex-1 overflow-y-auto pr-1">
             {orders.length === 0 ? (
@@ -664,7 +666,8 @@ function Orders() {
             )}
           </div>
         </div>
-      )}
+      </div>
+    )}
 
       {/* ======================== EDIT ORDER MODAL ======================== */}
       {editingOrder && (

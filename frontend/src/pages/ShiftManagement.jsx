@@ -164,15 +164,15 @@ const ShiftManagement = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-navy">Shift Management</h1>
+          <h1 className="font-display font-bold text-3xl text-navy">Shift Management</h1>
           <p className="text-slate text-sm">Create and manage working shifts and assign employees.</p>
         </div>
         <button
           onClick={() => handleOpenShiftModal()}
-          className="flex items-center gap-2 px-5 py-2.5 bg-navy text-gold font-bold rounded-xl shadow-md hover:bg-navy-light transition-all"
+          className="flex items-center gap-2 px-5 py-2.5 bg-navy text-white font-bold rounded-xl shadow-md hover:bg-navy-light transition-all"
         >
           <Plus className="w-5 h-5" />
           Create Shift
@@ -237,9 +237,9 @@ const ShiftManagement = () => {
 
       {/* CREATE / EDIT SHIFT MODAL */}
       {isShiftModalOpen && (
-        <div className="fixed inset-0 bg-navy/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-scaleUp">
-            <div className="p-6 border-b border-border-cream flex justify-between items-center bg-cream/10">
+        <div className="fixed inset-0 bg-navy/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-scaleUp my-auto">
+            <div className="px-6 py-4 border-b border-border-cream flex justify-between items-center bg-cream/10">
               <h2 className="font-display font-bold text-navy text-xl">
                 {currentShift ? 'Edit Shift' : 'Create New Shift'}
               </h2>
@@ -249,42 +249,40 @@ const ShiftManagement = () => {
             </div>
             
             <form onSubmit={handleSaveShift} className="p-6 space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate uppercase mb-1">Shift Name</label>
-                <input 
-                  required
-                  type="text" 
-                  value={shiftFormData.name}
-                  onChange={e => setShiftFormData({...shiftFormData, name: e.target.value})}
-                  className="w-full px-4 py-3 border border-border-cream rounded-xl focus:border-gold focus:outline-none"
-                  placeholder="e.g. Morning Shift"
-                />
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-slate uppercase mb-1">Shift Name *</label>
+                  <input 
+                    required
+                    type="text" 
+                    value={shiftFormData.name}
+                    onChange={e => setShiftFormData({...shiftFormData, name: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:border-gold focus:outline-none text-xs font-semibold"
+                    placeholder="e.g. Morning Shift"
+                  />
+                </div>
 
-              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate uppercase mb-1">Start Time</label>
+                  <label className="block text-xs font-bold text-slate uppercase mb-1">Start Time *</label>
                   <input 
                     required
                     type="time" 
                     value={shiftFormData.startTime}
                     onChange={e => setShiftFormData({...shiftFormData, startTime: e.target.value})}
-                    className="w-full px-4 py-3 border border-border-cream rounded-xl focus:border-gold focus:outline-none"
+                    className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:border-gold focus:outline-none text-xs font-semibold"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate uppercase mb-1">End Time</label>
+                  <label className="block text-xs font-bold text-slate uppercase mb-1">End Time *</label>
                   <input 
                     required
                     type="time" 
                     value={shiftFormData.endTime}
                     onChange={e => setShiftFormData({...shiftFormData, endTime: e.target.value})}
-                    className="w-full px-4 py-3 border border-border-cream rounded-xl focus:border-gold focus:outline-none"
+                    className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:border-gold focus:outline-none text-xs font-semibold"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate uppercase mb-1">Grace Period (mins)</label>
                   <input 
@@ -293,7 +291,7 @@ const ShiftManagement = () => {
                     min="0"
                     value={shiftFormData.gracePeriodMinutes}
                     onChange={e => setShiftFormData({...shiftFormData, gracePeriodMinutes: parseInt(e.target.value)})}
-                    className="w-full px-4 py-3 border border-border-cream rounded-xl focus:border-gold focus:outline-none"
+                    className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:border-gold focus:outline-none text-xs font-mono font-bold"
                   />
                 </div>
                 <div>
@@ -304,53 +302,53 @@ const ShiftManagement = () => {
                     min="0"
                     value={shiftFormData.breakDurationMinutes}
                     onChange={e => setShiftFormData({...shiftFormData, breakDurationMinutes: parseInt(e.target.value)})}
-                    className="w-full px-4 py-3 border border-border-cream rounded-xl focus:border-gold focus:outline-none"
+                    className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:border-gold focus:outline-none text-xs font-mono font-bold"
                   />
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate uppercase mb-1">Auto-Checkout Time (Optional)</label>
-                <input 
-                  type="time" 
-                  value={shiftFormData.autoCheckoutTime}
-                  onChange={e => setShiftFormData({...shiftFormData, autoCheckoutTime: e.target.value})}
-                  className="w-full px-4 py-3 border border-border-cream rounded-xl focus:border-gold focus:outline-none"
-                />
-                <p className="text-[10px] text-slate mt-1">If set, employees will be auto-checked out at this time if they forget.</p>
-              </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-slate uppercase mb-1">Auto-Checkout Time (Optional)</label>
+                  <input 
+                    type="time" 
+                    value={shiftFormData.autoCheckoutTime}
+                    onChange={e => setShiftFormData({...shiftFormData, autoCheckoutTime: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-cream/10 border border-border-cream rounded-xl focus:border-gold focus:outline-none text-xs font-semibold"
+                  />
+                  <p className="text-[10px] text-slate mt-1">If set, employees will be auto-checked out at this time if they forget.</p>
+                </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate uppercase mb-2">Weekly Off Days</label>
-                <div className="flex flex-wrap gap-2">
-                  {DAYS.map(day => (
-                    <button
-                      key={day}
-                      type="button"
-                      onClick={() => toggleDay(day)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-                        shiftFormData.weeklyOffDays.includes(day)
-                          ? 'bg-navy text-gold'
-                          : 'bg-cream text-slate hover:bg-cream/70'
-                      }`}
-                    >
-                      {day}
-                    </button>
-                  ))}
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-slate uppercase mb-2">Weekly Off Days</label>
+                  <div className="flex flex-wrap gap-2">
+                    {DAYS.map(day => (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => toggleDay(day)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                          shiftFormData.weeklyOffDays.includes(day)
+                            ? 'bg-navy text-white'
+                            : 'bg-cream text-slate hover:bg-cream/70'
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-4 flex justify-end gap-3">
+              <div className="pt-4 flex justify-end gap-3 border-t border-border-cream/50">
                 <button 
                   type="button"
                   onClick={() => setIsShiftModalOpen(false)}
-                  className="px-5 py-2.5 text-slate font-bold hover:bg-cream rounded-xl transition-colors"
+                  className="px-5 py-2.5 text-slate font-bold hover:bg-cream rounded-xl text-xs transition-colors"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit"
-                  className="px-5 py-2.5 bg-navy text-gold font-bold rounded-xl shadow-md hover:bg-navy-light transition-colors"
+                  className="px-5 py-2.5 bg-navy text-white font-bold rounded-xl text-xs shadow-md hover:bg-navy-light transition-colors"
                 >
                   Save Shift
                 </button>

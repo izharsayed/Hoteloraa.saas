@@ -17,10 +17,12 @@ import {
   Globe,
   Copy,
   Key,
-  Bed,
-  Utensils,
-  CopyCheck,
-  Info
+  Bed, 
+  Utensils, 
+  CopyCheck, 
+  Info,
+  Users,
+  Shield
 } from 'lucide-react';
 import api from '../utils/api.js';
 
@@ -33,6 +35,16 @@ function SuperAdminTenants() {
   const [selectedTenant, setSelectedTenant] = useState(null);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  // Manage Tenant Users Modal States
+  const [showUsersModal, setShowUsersModal] = useState(false);
+  const [selectedTenantForUsers, setSelectedTenantForUsers] = useState(null);
+  const [tenantUsers, setTenantUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersError, setUsersError] = useState('');
+  const [usersSuccess, setUsersSuccess] = useState('');
+  const [resetPasswordUser, setResetPasswordUser] = useState(null);
+  const [newPasswordInput, setNewPasswordInput] = useState('');
 
   // New Tenant Form States
   const [newName, setNewName] = useState('');
@@ -72,6 +84,55 @@ function SuperAdminTenants() {
   useEffect(() => {
     fetchTenants();
   }, []);
+
+  const openUsersModal = async (tenant) => {
+    setSelectedTenantForUsers(tenant);
+    setShowUsersModal(true);
+    setUsersError('');
+    setUsersSuccess('');
+    setResetPasswordUser(null);
+    setNewPasswordInput('');
+    await fetchTenantUsers(tenant.id);
+  };
+
+  const fetchTenantUsers = async (tenantId) => {
+    try {
+      setUsersLoading(true);
+      const res = await api.get(`/superadmin/users?tenantId=${tenantId}`);
+      setTenantUsers(res || []);
+    } catch (err) {
+      setUsersError(err.message || 'Failed to load tenant users');
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  const handleToggleTenantUserStatus = async (user) => {
+    setUsersError('');
+    setUsersSuccess('');
+    try {
+      await api.patch(`/superadmin/users/${user.id}/status`, {});
+      setUsersSuccess(`Status updated for ${user.name}`);
+      await fetchTenantUsers(selectedTenantForUsers.id);
+    } catch (err) {
+      setUsersError(err.message || 'Failed to toggle user status');
+    }
+  };
+
+  const handleResetTenantUserPassword = async (e) => {
+    e.preventDefault();
+    if (!resetPasswordUser || !newPasswordInput) return;
+    setUsersError('');
+    setUsersSuccess('');
+    try {
+      await api.put(`/superadmin/users/${resetPasswordUser.id}/reset-password`, { password: newPasswordInput });
+      setUsersSuccess(`Password updated for ${resetPasswordUser.name}`);
+      setResetPasswordUser(null);
+      setNewPasswordInput('');
+    } catch (err) {
+      setUsersError(err.message || 'Failed to reset password');
+    }
+  };
 
   const handleSlugChange = (val) => {
     // Keep URL safe characters only
@@ -322,6 +383,13 @@ function SuperAdminTenants() {
                     </span>
                   </td>
                   <td className="py-3.5 px-4 text-right space-x-1.5">
+                    <button 
+                      onClick={() => openUsersModal(t)}
+                      className="text-navy hover:text-navy/80 p-1.5 border border-border-cream hover:border-gold rounded-lg hover:bg-cream/10 transition-all inline-flex items-center gap-1 text-[10px] font-bold"
+                      title="Manage Property Users & Staff"
+                    >
+                      <Users className="w-3.5 h-3.5 text-gold" /> Users
+                    </button>
                     <button 
                       onClick={() => {
                         setSelectedTenant(JSON.parse(JSON.stringify(t))); // deep copy
@@ -714,6 +782,113 @@ function SuperAdminTenants() {
               </form>
             </div>
           )}
+        </div>,
+        document.body
+      )}
+
+      {/* ─── MODAL: MANAGE TENANT USERS / STAFF ────────────────── */}
+      {showUsersModal && selectedTenantForUsers && createPortal(
+        <div className="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2rem] border border-border-cream p-6 sm:p-8 w-full max-w-3xl shadow-2xl space-y-6 animate-fadeInScale max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start border-b border-border-cream pb-3">
+              <div>
+                <h3 className="font-display font-bold text-xl text-navy flex items-center gap-2">
+                  <Users className="w-5 h-5 text-gold" /> Manage Property Users & Staff
+                </h3>
+                <p className="text-slate text-xs font-semibold mt-0.5">
+                  Property Node: <span className="text-navy font-bold">{selectedTenantForUsers.name}</span> ({selectedTenantForUsers.slug})
+                </p>
+              </div>
+              <button onClick={() => setShowUsersModal(false)} className="text-slate hover:text-navy p-1 rounded-lg hover:bg-cream/20">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {usersError && <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-xl">{usersError}</div>}
+            {usersSuccess && <div className="p-3 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold rounded-xl">{usersSuccess}</div>}
+
+            {usersLoading ? (
+              <div className="text-center py-12 text-slate font-semibold text-xs animate-pulse">Loading property staff records...</div>
+            ) : tenantUsers.length === 0 ? (
+              <div className="text-center py-12 text-slate font-medium text-xs">No user accounts found for this property node.</div>
+            ) : (
+              <div className="space-y-3">
+                {tenantUsers.map((u) => (
+                  <div key={u.id} className="p-4 border border-border-cream/80 rounded-2xl bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-gold/50 transition-all shadow-sm">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 border ${
+                        u.isActive ? 'bg-gold-pale/50 text-navy border-gold/30' : 'bg-slate/10 text-slate border-slate/20'
+                      }`}>
+                        {u.initials || 'U'}
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="font-display font-bold text-sm text-navy truncate">{u.name}</h4>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 bg-navy/5 text-navy border border-navy/10 rounded-full flex items-center gap-1">
+                            <Shield className="w-2.5 h-2.5 text-gold" /> {u.userRole || u.role}
+                          </span>
+                          <span className="text-[10px] text-slate font-mono truncate">{u.email}</span>
+                          {u.phone && <span className="text-[10px] text-slate/80">{u.phone}</span>}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                      <button
+                        onClick={() => {
+                          setResetPasswordUser(u);
+                          setNewPasswordInput('');
+                          setUsersError('');
+                          setUsersSuccess('');
+                        }}
+                        className="px-3 py-1.5 border border-border-cream hover:border-gold rounded-xl text-[10px] font-bold text-navy hover:bg-cream/20 transition-all flex items-center gap-1"
+                      >
+                        <Key className="w-3.5 h-3.5 text-gold" /> Reset Password
+                      </button>
+                      <button
+                        onClick={() => handleToggleTenantUserStatus(u)}
+                        className={`px-3 py-1.5 rounded-xl border text-[10px] font-bold flex items-center gap-1 transition-all ${
+                          u.isActive
+                            ? 'bg-success-pale text-success border-success/20 hover:bg-danger-pale hover:text-danger hover:border-danger/20'
+                            : 'bg-slate/10 text-slate border-slate/20 hover:bg-success-pale hover:text-success hover:border-success/20'
+                        }`}
+                      >
+                        {u.isActive ? <><ToggleRight className="w-4 h-4" /> Active</> : <><ToggleLeft className="w-4 h-4" /> Suspended</>}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Sub-modal inline form: Reset Password */}
+            {resetPasswordUser && (
+              <div className="p-4 border border-gold/30 bg-gold-pale/10 rounded-2xl space-y-3 animate-fadeIn">
+                <h4 className="font-display font-bold text-xs text-navy flex items-center gap-1.5">
+                  <Key className="w-3.5 h-3.5 text-gold" /> Reset Password for <span className="underline">{resetPasswordUser.name}</span> ({resetPasswordUser.email})
+                </h4>
+                <form onSubmit={handleResetTenantUserPassword} className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={newPasswordInput}
+                    onChange={(e) => setNewPasswordInput(e.target.value)}
+                    placeholder="Enter new password (min 6 chars)"
+                    className="flex-1 px-3 py-2 border border-border-cream rounded-xl text-xs focus:outline-none focus:border-gold bg-white"
+                  />
+                  <div className="flex gap-2">
+                    <button type="submit" className="btn-primary text-xs whitespace-nowrap">Save Password</button>
+                    <button type="button" onClick={() => { setResetPasswordUser(null); setNewPasswordInput(''); }} className="btn-secondary text-xs">Cancel</button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-4 border-t border-border-cream">
+              <button onClick={() => setShowUsersModal(false)} className="btn-secondary text-xs">Close</button>
+            </div>
+          </div>
         </div>,
         document.body
       )}

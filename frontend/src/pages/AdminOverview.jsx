@@ -80,7 +80,7 @@ function AdminOverview() {
       const blob = await response.blob();
       const contentDisposition = response.headers.get('Content-Disposition') || '';
       const match = contentDisposition.match(/filename="(.+)"/);
-      const filename = match ? match[1] : 'hotel-export.json';
+      const filename = match ? match[1] : 'hotel-export.csv';
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -136,7 +136,7 @@ function AdminOverview() {
   const totalStaff = staff.length;
   const activeStaff = staff.filter(u => u.isActive).length;
 
-  const showLodging = businessType === 'LODGING' || businessType === 'HOTEL_RESTAURANT';
+  const showLodging = businessType === 'LODGING' || businessType === 'HOTEL' || businessType === 'HOTEL_RESTAURANT';
   const showRestaurant = businessType === 'RESTAURANT' || businessType === 'HOTEL_RESTAURANT';
 
   // Metrics for lodging
@@ -162,8 +162,6 @@ function AdminOverview() {
       icon: Users,
       color: 'text-navy',
       bgColor: 'bg-gold-pale/50',
-      actionText: 'Manage Staff Registry',
-      action: () => navigate('/admin/users')
     },
     {
       title: 'Business Category',
@@ -172,8 +170,6 @@ function AdminOverview() {
       icon: Building,
       color: 'text-gold',
       bgColor: 'bg-gold-pale/30',
-      actionText: 'Configure Modules',
-      action: () => navigate('/admin/features')
     },
     {
       title: 'Tenant Subscription',
@@ -182,8 +178,6 @@ function AdminOverview() {
       icon: CreditCard,
       color: subscriptionStatus === 'ACTIVE' ? 'text-success' : 'text-danger',
       bgColor: subscriptionStatus === 'ACTIVE' ? 'bg-success-pale' : 'bg-danger-pale',
-      actionText: 'Billing Settings & Plans',
-      action: () => navigate('/admin/settings')
     }
   ];
 
@@ -204,23 +198,17 @@ function AdminOverview() {
         {cards.map((card, idx) => {
           const Icon = card.icon;
           return (
-            <div key={idx} className="soft-card p-6 bg-white flex flex-col justify-between h-48 group hover:border-gold/50 transition-all duration-300">
+            <div key={idx} className="soft-card p-6 bg-white flex flex-col justify-between h-36 group hover:border-gold/50 transition-all duration-300">
               <div className="flex justify-between items-start">
                 <div>
                   <span className="text-slate text-xs font-semibold uppercase tracking-wider">{card.title}</span>
-                  <h3 className="font-sans font-bold text-2xl text-navy mt-2.5 tracking-tight">{card.value}</h3>
+                  <h3 className="font-sans font-bold text-2xl text-navy mt-2 tracking-tight">{card.value}</h3>
                   <p className="text-[10px] text-slate font-medium mt-1">{card.subtitle}</p>
                 </div>
                 <div className={`p-3 rounded-xl ${card.bgColor} ${card.color} transition-all duration-300 group-hover:scale-110`}>
                   <Icon className="w-5 h-5" />
                 </div>
               </div>
-              <button 
-                onClick={card.action}
-                className="text-xs text-gold font-bold flex items-center gap-1.5 hover:text-gold-light border-t border-border-cream/50 pt-3 mt-3 w-full text-left transition-colors"
-              >
-                {card.actionText} →
-              </button>
             </div>
           );
         })}
@@ -402,14 +390,6 @@ function AdminOverview() {
                 <span className="flex items-center gap-2.5"><ShieldCheck className="w-4.5 h-4.5 text-gold" /> Edit Permissions</span>
                 <ChevronRight className="w-4 h-4 text-stone-400 group-hover:text-gold group-hover:translate-x-0.5 transition-all" />
               </button>
-
-              <button 
-                onClick={() => navigate('/admin/features')}
-                className="w-full flex items-center justify-between text-xs p-3.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-gold/35 text-white font-semibold transition-all duration-200 group active:scale-[0.98]"
-              >
-                <span className="flex items-center gap-2.5"><Sliders className="w-4.5 h-4.5 text-gold" /> Toggle Modules</span>
-                <ChevronRight className="w-4 h-4 text-stone-400 group-hover:text-gold group-hover:translate-x-0.5 transition-all" />
-              </button>
             </div>
           </div>
 
@@ -427,8 +407,8 @@ function AdminOverview() {
               <Database className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="font-display font-bold text-lg text-navy">Data Export</h2>
-              <p className="text-slate text-xs font-medium mt-0.5">Download a complete backup of all your property's data as a JSON file.</p>
+              <h2 className="font-display font-bold text-lg text-navy">Data Export (Excel)</h2>
+              <p className="text-slate text-xs font-medium mt-0.5">Download a complete backup of all your property's data in Excel spreadsheet format (.csv).</p>
             </div>
           </div>
           <button

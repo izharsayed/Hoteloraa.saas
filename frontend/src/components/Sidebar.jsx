@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import logoIcon from '../assets/logo-icon.png';
 import logo from '../assets/logo.png';
 import {
@@ -28,6 +28,7 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Clock,
   MapPin,
 } from 'lucide-react';
@@ -42,8 +43,30 @@ function Sidebar({ collapsed, onToggle }) {
     if (userJson) user = JSON.parse(userJson);
   } catch (e) { }
 
-  const businessType = user.businessType || 'HOTEL_RESTAURANT';
+  const rawType = user.tenant?.businessType || user.businessType || 'HOTEL';
+  const businessType = (rawType === 'HOTEL' || rawType === 'LODGING') ? 'LODGING' : rawType;
   const role = user.userRole;
+
+  const initials = user.name
+    ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    : 'US';
+
+  const roleLabel = user.userRole
+    ? user.userRole.replace('_', ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
+    : '';
+
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
+        setProfileMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Check if role is allowed for a given module key
   const can = (moduleKey) => {
@@ -92,7 +115,7 @@ function Sidebar({ collapsed, onToggle }) {
         { name: 'Active Orders & History', path: '/captain/history', icon: ClipboardList, roles: ['CAPTAIN', 'MANAGER', 'TENANT_ADMIN', 'SUPER_ADMIN'] },
       ]
     },
-    /* {
+    {
       category: 'Procurement',
       businessTypes: ['RESTAURANT', 'HOTEL_RESTAURANT'],
       items: [
@@ -100,7 +123,7 @@ function Sidebar({ collapsed, onToggle }) {
         { name: 'Vendors', path: '/vendors', icon: Truck, module: 'vendors' },
         { name: 'Purchase Orders', path: '/purchases', icon: ShoppingCart, module: 'purchases' },
       ]
-    }, */
+    },
     {
       category: 'Administration',
       items: [
@@ -131,6 +154,37 @@ function Sidebar({ collapsed, onToggle }) {
       })
     }))
     .filter((group) => group.items.length > 0);
+
+  const location = useLocation();
+
+  // State for category dropdown accordion collapse/expand
+  const [openCategories, setOpenCategories] = useState(() => {
+    const initial = {};
+    rawNavigation.forEach(g => {
+      initial[g.category] = true;
+    });
+    return initial;
+  });
+
+  // Auto-expand category matching current active route
+  useEffect(() => {
+    navigation.forEach(group => {
+      const hasActive = group.items.some(item => {
+        if (item.path === '/') return location.pathname === '/';
+        return location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+      });
+      if (hasActive) {
+        setOpenCategories(prev => ({ ...prev, [group.category]: true }));
+      }
+    });
+  }, [location.pathname]);
+
+  const toggleCategory = (categoryName) => {
+    setOpenCategories(prev => ({
+      ...prev,
+      [categoryName]: !prev[categoryName]
+    }));
+  };
 
   const handleLogout = async () => {
     await api.logout();
@@ -175,82 +229,127 @@ function Sidebar({ collapsed, onToggle }) {
         </div>
       )}
 
-      {/* Navigation List */}
-      <nav className="flex-1 px-2 py-4 space-y-4 overflow-y-auto overflow-x-hidden">
-        {navigation.map((group) => (
-          <div key={group.category} className="space-y-0.5">
-            {/* Category label — only when expanded */}
-            {!collapsed && (
-              <h4 className="text-[10px] font-bold text-slate uppercase tracking-wider px-3 mb-1">
-                {group.category}
-              </h4>
-            )}
-            {/* Divider when collapsed */}
-            {collapsed && (
-              <div className="border-t border-border-cream/60 mx-1 mb-1" />
-            )}
-
-            <div className="space-y-0.5">
-              {group.items.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.name}
-                    to={item.path}
-                    end={item.path === '/captain' || item.path === '/'}
-                    onClick={() => {
-                      if (window.innerWidth < 768 && !collapsed) {
-                        onToggle();
-                      }
-                    }}
-                    title={collapsed ? item.name : undefined}
-                    className={({ isActive }) => `
-                      flex items-center gap-3 font-medium text-xs transition-all duration-200 group
-                      ${collapsed
-                        ? 'w-10 h-10 justify-center rounded-xl mx-auto'
-                        : 'px-3 py-2 rounded-xl hover:translate-x-1'
-                      }
-                      ${isActive
-                        ? collapsed
-                          ? 'bg-gold-pale text-navy shadow-sm'
-                          : 'bg-gold-pale text-navy border-l-4 border-gold shadow-sm font-semibold'
-                        : 'text-slate hover:bg-gold-pale/50 hover:text-navy'
-                      }
-                    `}
+      {/* Navigation List with Category Dropdowns */}
+      <nav className="flex-1 px-2 py-4 space-y-3 overflow-y-auto overflow-x-hidden">
+        {navigation.map((group) => {
+          const isGeneral = group.category === 'General';
+          const isOpen = isGeneral || openCategories[group.category] !== false;
+          return (
+            <div key={group.category} className="space-y-1">
+              {/* Category Header */}
+              {!collapsed ? (
+                isGeneral ? (
+                  <div className="px-3 py-1.5 text-xs font-bold text-slate uppercase tracking-wider">
+                    <span className="truncate">{group.category}</span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => toggleCategory(group.category)}
+                    className="w-full flex items-center justify-between px-3 py-1.5 text-xs font-bold text-slate uppercase tracking-wider hover:text-navy hover:bg-gold-pale/30 rounded-xl transition-all cursor-pointer group/cat"
                   >
-                    {({ isActive }) => (
-                      <>
-                        <Icon
-                          className={`w-4 h-4 shrink-0 transition-colors duration-200 ${isActive ? 'text-gold' : 'text-slate group-hover:text-navy'}`}
-                        />
-                        {/* Label — only when expanded */}
-                        {!collapsed && <span className="truncate">{item.name}</span>}
-                      </>
-                    )}
-                  </NavLink>
-                );
-              })}
+                    <span className="truncate">{group.category}</span>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 text-slate group-hover/cat:text-navy transition-transform duration-200 ${
+                        isOpen ? 'rotate-0' : '-rotate-90'
+                      }`}
+                    />
+                  </button>
+                )
+              ) : (
+                <div className="border-t border-border-cream/60 mx-1 mb-1" />
+              )}
+
+              {/* Nav Items — visible always for General or when isOpen or when sidebar is collapsed */}
+              {(isOpen || collapsed) && (
+                <div className="space-y-0.5 animate-fadeIn">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <NavLink
+                        key={item.name}
+                        to={item.path}
+                        end={item.path === '/captain' || item.path === '/'}
+                        onClick={() => {
+                          if (window.innerWidth < 768 && !collapsed) {
+                            onToggle();
+                          }
+                        }}
+                        title={collapsed ? item.name : undefined}
+                        className={({ isActive }) => `
+                          flex items-center gap-3 font-semibold text-[0.9rem] transition-all duration-200 group
+                          ${collapsed
+                            ? 'w-10 h-10 justify-center rounded-xl mx-auto'
+                            : 'px-3 py-2 rounded-xl hover:translate-x-1'
+                          }
+                          ${isActive
+                            ? collapsed
+                              ? 'bg-gold-pale text-navy shadow-sm'
+                              : 'bg-gold-pale text-navy border-l-4 border-gold shadow-sm font-semibold'
+                            : 'text-slate hover:bg-gold-pale/50 hover:text-navy'
+                          }
+                        `}
+                      >
+                        {({ isActive }) => (
+                          <>
+                            <Icon
+                              className={`w-4 h-4 shrink-0 transition-colors duration-200 ${isActive ? 'text-gold' : 'text-slate group-hover:text-navy'}`}
+                            />
+                            {/* Label — only when expanded */}
+                            {!collapsed && <span className="truncate">{item.name}</span>}
+                          </>
+                        )}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </nav>
 
-      {/* Bottom Actions */}
-      <div className="p-2 border-t border-border-cream bg-white shrink-0">
+      {/* Bottom User Profile Dropdown */}
+      <div ref={profileMenuRef} className="p-3 border-t border-border-cream bg-white shrink-0 relative">
+        {/* Dropdown panel — pops upward */}
+        {profileMenuOpen && (
+          <div className="absolute bottom-full left-3 right-3 mb-2 bg-white border border-border-cream rounded-2xl shadow-xl overflow-hidden animate-scaleUp z-50 p-2 space-y-1">
+            <div className="p-3 bg-cream/20 rounded-xl border border-border-cream/50">
+              <p className="text-xs font-bold text-navy truncate">{user.name || 'Staff'}</p>
+              <p className="text-[10px] text-slate font-medium truncate">{roleLabel}</p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 text-danger font-bold text-xs hover:bg-danger-pale p-2.5 rounded-xl transition-all"
+            >
+              <LogOut className="w-4 h-4 shrink-0" />
+              <span>Exit Platform</span>
+            </button>
+          </div>
+        )}
+
+        {/* Profile Trigger Button */}
         <button
-          onClick={handleLogout}
-          title={collapsed ? 'Exit Platform' : undefined}
+          onClick={() => setProfileMenuOpen(o => !o)}
+          title={collapsed ? `${user.name || 'User'} — Click for options` : undefined}
           className={`
-            flex items-center gap-3 text-danger font-medium text-xs
-            hover:bg-danger-pale hover:text-danger active:scale-98 transition-all
-            ${collapsed
-              ? 'w-10 h-10 justify-center rounded-xl mx-auto'
-              : 'w-full px-3 py-2.5 rounded-xl'
-            }
+            flex items-center gap-3 p-2 bg-cream/30 border border-border-cream/80 rounded-2xl
+            hover:bg-cream/60 hover:border-border-cream transition-all cursor-pointer w-full
+            ${collapsed ? 'justify-center' : ''}
           `}
         >
-          <LogOut className="w-4 h-4 shrink-0" />
-          {!collapsed && <span>Exit Platform</span>}
+          <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-navy text-gold font-display font-bold flex items-center justify-center border border-gold/20 shrink-0 text-xs shadow-sm">
+            {initials}
+          </div>
+          {!collapsed && (
+            <>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="text-xs font-bold text-charcoal truncate">{user.name || 'Staff'}</p>
+                <p className="text-[10px] text-slate font-medium truncate">{roleLabel}</p>
+              </div>
+              <ChevronRight className={`w-3.5 h-3.5 text-slate shrink-0 transition-transform duration-200 ${profileMenuOpen ? '-rotate-90' : 'rotate-90'}`} />
+            </>
+          )}
         </button>
       </div>
     </aside>

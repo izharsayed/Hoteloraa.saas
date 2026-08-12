@@ -2,31 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Override: font-bold uses 600 (semibold) for Poppins/Inter — 700 looks too heavy */
+.font-bold {
+  font-weight: 600 !important;
+}
+
+.font-extrabold {
+  font-weight: 700 !important;
+}
+
 @layer base {
   body {
-    background-color: #FEF9F1;
+    background-color: #FEFBF7;
     background-image: radial-gradient(#EBE5DA 1.5px, transparent 1.5px);
     background-size: 24px 24px;
     color: #1F2933;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
   }
 
-  /* Custom scrollbars for a premium look */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+  }
+
+  /* Force clean normal 0 without dots or slashes */
+  *, body, input, select, textarea, span, p, div, button {
+    font-variant-numeric: normal !important;
+    font-feature-settings: "zero" 0, "slnt" 0 !important;
+  }
+
+  /* Custom scrollbars for a premium luxury golden look */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #EBE5DA;
+    background: rgba(235, 229, 218, 0.3);
     border-radius: 999px;
   }
 
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #D4AF37 0%, #C5A059 100%);
+    border-radius: 999px;
+    box-shadow: 0 0 4px rgba(197, 160, 89, 0.4);
+  }
+
   ::-webkit-scrollbar-thumb:hover {
-    background: #D4AF37;
+    background: linear-gradient(180deg, #F0C436 0%, #D4AF37 100%);
+  }
+
+  /* Firefox scrollbar color support */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #C5A059 rgba(235, 229, 218, 0.3);
   }
 }
 
@@ -34,7 +64,7 @@
 
   /* Premium luxury card style */
   .soft-card {
-    @apply bg-white/40 backdrop-blur-md border border-border-cream rounded-2xl transition-all duration-300;
+    @apply bg-white border border-border-cream rounded-2xl transition-all duration-300;
   }
 
   .soft-card:hover {

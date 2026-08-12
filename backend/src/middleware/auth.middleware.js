@@ -193,7 +193,7 @@ const checkStaticRoleFallback = (role, module, action) => {
     VENDORS: ['CREATE', 'READ', 'UPDATE', 'DELETE'],
     PURCHASES: ['CREATE', 'READ', 'UPDATE', 'DELETE'],
     POS: ['CREATE', 'READ', 'UPDATE', 'DELETE'],
-    USERS: ['READ'],
+    USERS: ['CREATE', 'READ', 'UPDATE', 'DELETE'],
     ATTENDANCE: ['CREATE', 'READ', 'UPDATE', 'DELETE'],
     SHIFTS: ['CREATE', 'READ', 'UPDATE', 'DELETE'],
   };

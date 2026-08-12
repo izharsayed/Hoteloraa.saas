@@ -351,22 +351,30 @@ var _emailService = require('../../shared/email.service');
  const getAllUsers = async (query = {}) => {
   const { skip, take } = parsePagination(query);
 
+  const where = {};
+  if (query.tenantId) {
+    where.tenantId = query.tenantId;
+  }
+
   const users = await _database2.default.user.findMany({
+    where,
     include: { tenant: true, role: true },
     orderBy: { createdAt: 'desc' },
-    skip,
-    take,
+    ...(query.tenantId ? {} : { skip, take }),
   });
 
   return users.map(u => ({
     id: u.id,
     name: u.name,
     email: u.email,
-    tenant: u.tenant.name,
+    phone: u.phone || '',
+    tenant: u.tenant ? u.tenant.name : 'System',
+    tenantId: u.tenantId,
+    userRole: u.userRole,
     role: u.userRole === 'TENANT_ADMIN' ? 'Tenant Admin' : (_optionalChain([u, 'access', _30 => _30.role, 'optionalAccess', _31 => _31.name]) || u.userRole),
     isActive: u.isActive,
     lastLogin: u.lastLogin ? u.lastLogin.toISOString().replace('T', ' ').substring(0, 19) : 'Never',
-    initials: u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+    initials: u.name ? u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'U'
   }));
 }; exports.getAllUsers = getAllUsers;
 

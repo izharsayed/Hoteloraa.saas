@@ -74,9 +74,31 @@ const AttendanceManager = () => {
     }
   };
 
-  const handleExport = () => {
-    const query = new URLSearchParams(filter).toString();
-    window.open(`${api.defaults.baseURL}/attendance/export?${query}`, '_blank');
+  const handleExport = async () => {
+    try {
+      const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '');
+      const query = new URLSearchParams(filter).toString();
+      const res = await fetch(`${API_BASE}/attendance/export?${query}`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      // Add UTF-8 BOM for Excel compatibility
+      const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+      const bomBlob = new Blob([bom, blob], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(bomBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `attendance_report_${filter.date || new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export error:', err);
+      alert('Failed to export report. Please try again.');
+    }
   };
 
   if (loading && !dashboard) {
@@ -92,7 +114,7 @@ const AttendanceManager = () => {
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-navy">Team Attendance</h1>
+          <h1 className="font-display font-bold text-3xl text-navy">Team Attendance</h1>
           <p className="text-slate text-sm">Monitor staff check-ins and manage timesheets today.</p>
         </div>
         <button 
@@ -104,39 +126,47 @@ const AttendanceManager = () => {
         </button>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards — Standard Dashboard Layout */}
       {dashboard && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-border-cream flex flex-col items-center justify-center text-center">
-            <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center mb-3">
-              <Users className="w-6 h-6" />
+          <div className="soft-card p-4 md:p-5 bg-white border border-border-cream rounded-2xl flex items-center justify-between shadow-sm">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate block">Total Staff</span>
+              <span className="text-2xl font-display font-bold text-navy mt-0.5 block">{dashboard.totalEmployees}</span>
             </div>
-            <span className="text-3xl font-display font-bold text-navy">{dashboard.totalEmployees}</span>
-            <span className="text-slate text-xs uppercase tracking-wider font-bold mt-1">Total Staff</span>
+            <div className="w-10 h-10 rounded-xl bg-navy/5 text-navy flex items-center justify-center shrink-0 border border-navy/10">
+              <Users className="w-5 h-5" />
+            </div>
           </div>
 
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-border-cream flex flex-col items-center justify-center text-center">
-            <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center mb-3">
-              <UserCheck className="w-6 h-6" />
+          <div className="soft-card p-4 md:p-5 bg-white border border-border-cream rounded-2xl flex items-center justify-between shadow-sm">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate block">Present Today</span>
+              <span className="text-2xl font-display font-bold text-emerald-600 mt-0.5 block">{dashboard.presentCount}</span>
             </div>
-            <span className="text-3xl font-display font-bold text-emerald-600">{dashboard.presentCount}</span>
-            <span className="text-slate text-xs uppercase tracking-wider font-bold mt-1">Present Today</span>
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+              <UserCheck className="w-5 h-5" />
+            </div>
           </div>
 
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-border-cream flex flex-col items-center justify-center text-center">
-            <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mb-3">
-              <Clock className="w-6 h-6" />
+          <div className="soft-card p-4 md:p-5 bg-white border border-border-cream rounded-2xl flex items-center justify-between shadow-sm">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate block">Late Arrivals</span>
+              <span className="text-2xl font-display font-bold text-amber-600 mt-0.5 block">{dashboard.lateCount}</span>
             </div>
-            <span className="text-3xl font-display font-bold text-amber-600">{dashboard.lateCount}</span>
-            <span className="text-slate text-xs uppercase tracking-wider font-bold mt-1">Late Arrivals</span>
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
+              <Clock className="w-5 h-5" />
+            </div>
           </div>
 
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-border-cream flex flex-col items-center justify-center text-center">
-            <div className="w-12 h-12 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mb-3">
-              <UserX className="w-6 h-6" />
+          <div className="soft-card p-4 md:p-5 bg-white border border-border-cream rounded-2xl flex items-center justify-between shadow-sm">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate block">Absent</span>
+              <span className="text-2xl font-display font-bold text-rose-600 mt-0.5 block">{dashboard.absentCount}</span>
             </div>
-            <span className="text-3xl font-display font-bold text-red-600">{dashboard.absentCount}</span>
-            <span className="text-slate text-xs uppercase tracking-wider font-bold mt-1">Absent</span>
+            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
+              <UserX className="w-5 h-5" />
+            </div>
           </div>
         </div>
       )}
@@ -216,18 +246,38 @@ const AttendanceManager = () => {
                     {record.checkOutTime ? new Date(record.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex flex-col gap-1 text-xs">
-                      {record.checkInLat ? (
-                        <a href={`https://maps.google.com/?q=${record.checkInLat},${record.checkInLng}`} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline flex items-center gap-1">
-                          <MapPin className="w-3 h-3" /> In
-                        </a>
-                      ) : <span className="text-slate opacity-50">-</span>}
-                      {record.checkOutLat ? (
-                        <a href={`https://maps.google.com/?q=${record.checkOutLat},${record.checkOutLng}`} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline flex items-center gap-1">
-                          <MapPin className="w-3 h-3" /> Out
-                        </a>
-                      ) : null}
-                    </div>
+                    {record.checkInLat || record.checkOutLat ? (
+                      <div className="flex items-center gap-1.5 text-xs font-semibold">
+                        <MapPin className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                        {record.checkInLat ? (
+                          <a
+                            href={`https://maps.google.com/?q=${record.checkInLat},${record.checkInLng}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-600 hover:text-blue-800 hover:underline font-bold"
+                          >
+                            In
+                          </a>
+                        ) : (
+                          <span className="text-slate/40">—</span>
+                        )}
+                        <span className="text-slate/40 font-bold">/</span>
+                        {record.checkOutLat ? (
+                          <a
+                            href={`https://maps.google.com/?q=${record.checkOutLat},${record.checkOutLng}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-600 hover:text-blue-800 hover:underline font-bold"
+                          >
+                            Out
+                          </a>
+                        ) : (
+                          <span className="text-slate/40">—</span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-slate opacity-40 text-xs">—</span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider ${
@@ -242,19 +292,15 @@ const AttendanceManager = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center gap-2">
-                      {record.status === 'MISSED_CHECKOUT' || record.status === 'LATE' ? (
-                        <>
-                          <button 
-                            disabled={actionLoading}
-                            onClick={() => handleApprove(record.id, true)}
-                            className="p-1 text-emerald-500 hover:bg-emerald-50 rounded transition-colors"
-                            title="Approve / Override"
-                          >
-                            <CheckCircle className="w-5 h-5" />
-                          </button>
-                        </>
-                      ) : (
-                        <span className="text-xs text-slate opacity-50">-</span>
+                      {(record.status === 'MISSED_CHECKOUT' || record.status === 'LATE') && (
+                        <button 
+                          disabled={actionLoading}
+                          onClick={() => handleApprove(record.id, true)}
+                          className="p-1 text-emerald-500 hover:bg-emerald-50 rounded transition-colors"
+                          title="Approve / Override"
+                        >
+                          <CheckCircle className="w-5 h-5" />
+                        </button>
                       )}
 
                       <button 
