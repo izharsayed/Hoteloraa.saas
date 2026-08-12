@@ -179,8 +179,8 @@ function CheckOut() {
 
       const payload = {
         reservationId: selectedRoom.id,
-        // Send extraVal + taxAmount so the final payment/totalAmount correctly includes tax
-        extraCharges: extraVal + taxAmount,
+        extraCharges: extraVal,
+        taxAmount: taxAmount,
         discount: discVal,
         paymentMethod,
         notes: notes || undefined,

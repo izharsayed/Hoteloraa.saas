@@ -185,7 +185,8 @@ export default function CheckOutScreen({ user, onLogout, onOpenDrawer, checkoutR
 
       const payload = {
         reservationId: selectedRoom.id,
-        extraCharges: extraVal + taxAmount,
+        extraCharges: extraVal,
+        taxAmount: taxAmount,
         discount: discVal,
         paymentMethod,
         notes: notes || undefined,

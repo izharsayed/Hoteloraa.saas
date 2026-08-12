@@ -63,7 +63,7 @@ var _errormiddleware = require('../../middleware/error.middleware');
 }; exports.getTodayCheckOuts = getTodayCheckOuts;
 
  const checkOut = async (tenantId, userId, dto) => {
-  const { reservationId, extraCharges = 0, discount = 0, paymentMethod, notes } = dto;
+  const { reservationId, extraCharges = 0, taxAmount = 0, discount = 0, paymentMethod, notes } = dto;
 
   const reservation = await _database2.default.reservation.findFirst({
     where: {
@@ -86,8 +86,9 @@ var _errormiddleware = require('../../middleware/error.middleware');
 
   const finalRoomCharges = reservation.roomCharges;
   const finalExtraCharges = reservation.extraCharges + extraCharges;
+  const finalTaxAmount = reservation.taxAmount + taxAmount;
   const finalDiscount = reservation.discount + discount;
-  const finalTotalAmount = finalRoomCharges + finalExtraCharges - finalDiscount;
+  const finalTotalAmount = finalRoomCharges + finalExtraCharges + finalTaxAmount - finalDiscount;
 
   // Start Transaction
   return _database2.default.$transaction(async (tx) => {
@@ -99,6 +100,7 @@ var _errormiddleware = require('../../middleware/error.middleware');
         actualCheckOut: new Date(),
         checkedOutById: userId,
         extraCharges: finalExtraCharges,
+        taxAmount: finalTaxAmount,
         discount: finalDiscount,
         totalAmount: finalTotalAmount,
         notes: notes ? `${reservation.notes || ''}\nCheck-out notes: ${notes}` : reservation.notes,
