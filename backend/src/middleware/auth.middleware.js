@@ -137,7 +137,6 @@ const checkStaticRoleFallback = (role, module, action) => {
     RESERVATIONS: ['CREATE', 'READ', 'UPDATE'],
     CHECKIN: ['CREATE', 'READ', 'UPDATE'],
     CHECKOUT: ['CREATE', 'READ', 'UPDATE'],
-    HOUSEKEEPING: ['CREATE', 'READ', 'UPDATE'],
     USERS: ['READ'],
     PAYMENTS: ['CREATE', 'READ'],
     FOLIO: ['CREATE', 'READ', 'UPDATE'],

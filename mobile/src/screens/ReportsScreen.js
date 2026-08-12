@@ -18,7 +18,15 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
   const [occupancy, setOccupancy] = useState(null);
   const [revenue, setRevenue] = useState(null);
   const [sales, setSales] = useState([]);
-  const [datesRange, setDatesRange] = useState({ start: '', end: '' });
+  const [datesRange, setDatesRange] = useState(() => {
+    const today = new Date();
+    const startDate = new Date();
+    startDate.setDate(today.getDate() - 6);
+    return {
+      start: startDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+      end: today.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+    };
+  });
 
   const fetchReports = async () => {
     try {
@@ -49,59 +57,65 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
     fetchReports();
   }, []);
 
-  // Determine whether to use demo data (mirroring web checks)
-  const isDemo = !occupancy || occupancy.totalRooms === 0;
-
   // 1. Average Daily Rate (ADR)
-  const adrValue = !isDemo && occupancy.occupiedNights > 0
+  const adrValue = occupancy && occupancy.occupiedNights > 0
     ? `₹${Math.round(occupancy.revenue / occupancy.occupiedNights).toLocaleString('en-IN')}`
-    : '₹4,850';
+    : '₹0';
 
   // 2. RevPAR
-  const revparValue = !isDemo && occupancy.totalRoomNightsAvailable > 0
+  const revparValue = occupancy && occupancy.totalRoomNightsAvailable > 0
     ? `₹${Math.round(occupancy.revenue / occupancy.totalRoomNightsAvailable).toLocaleString('en-IN')}`
-    : '₹3,780';
+    : '₹0';
 
   // 3. POS Dining Covers
-  const diningCovers = !isDemo
+  const diningCovers = sales && sales.length > 0
     ? sales.reduce((sum, s) => sum + (s.totalOrders || 0), 0)
-    : 184;
+    : 0;
 
   // 4. Room Service Revenue
-  const roomServiceRev = !isDemo && revenue
+  const roomServiceRev = revenue
     ? `₹${Math.round(revenue.otherRevenue * 0.6).toLocaleString('en-IN')}`
-    : '₹15,400';
+    : '₹0';
+
+  const isLodgingOnly = user?.businessType === 'LODGING';
 
   const kpis = [
-    { name: 'Average Daily Rate (ADR)', value: adrValue, change: '↗ +3.4%', desc: 'Average rent paid per occupied room', icon: 'cash-outline' },
-    { name: 'RevPAR', value: revparValue, change: '↗ +4.2%', desc: 'Revenue per available room', icon: 'trending-up-outline' },
-    { name: 'POS Dining Covers', value: diningCovers.toString(), change: '↗ +12.4%', desc: 'Number of restaurant customers served', icon: 'restaurant-outline' },
-    { name: 'Room Service Revenue', value: roomServiceRev, change: '↗ +8.1%', desc: 'In-room food & beverage orders', icon: 'notifications-outline' }
+    { name: 'Average Daily Rate (ADR)', value: adrValue, change: '↗ +0.0%', desc: 'Average rent paid per occupied room', icon: 'cash-outline' },
+    { name: 'RevPAR', value: revparValue, change: '↗ +0.0%', desc: 'Revenue per available room', icon: 'trending-up-outline' },
+    ...(isLodgingOnly ? [] : [{ name: 'POS Dining Covers', value: diningCovers.toString(), change: '↗ +0.0%', desc: 'Number of restaurant customers served', icon: 'restaurant-outline' }]),
+    { name: 'Room Service Revenue', value: roomServiceRev, change: '↗ +0.0%', desc: 'In-room food & beverage orders', icon: 'notifications-outline' }
   ];
 
   // 5. Timeline Chart Data (Weekly Occupancy Timeline)
-  const timelineData = !isDemo && occupancy?.dailyTimeline?.length > 0
+  const getZeroTimelineData = () => {
+    const today = new Date();
+    const timeline = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      const dayStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+      timeline.push({
+        date: dayStr,
+        rate: 0
+      });
+    }
+    return timeline;
+  };
+
+  const timelineData = occupancy?.dailyTimeline?.length > 0
     ? occupancy.dailyTimeline
-    : [
-        { date: '13 Jun', rate: 62 },
-        { date: '14 Jun', rate: 68 },
-        { date: '15 Jun', rate: 70 },
-        { date: '16 Jun', rate: 75 },
-        { date: '17 Jun', rate: 78 },
-        { date: '18 Jun', rate: 82 },
-        { date: '19 Jun', rate: 78 }
-      ];
+    : getZeroTimelineData();
 
   // 6. Revenue Split Module Data
-  let lodgingRevNum = 85000;
-  let restaurantRevNum = 38200;
-  let roomServiceRevNum = 15400;
-  let laundryRevNum = 10050;
-  let totalRevNum = lodgingRevNum + restaurantRevNum + roomServiceRevNum + laundryRevNum;
+  let lodgingRevNum = 0;
+  let restaurantRevNum = 0;
+  let roomServiceRevNum = 0;
+  let laundryRevNum = 0;
+  let totalRevNum = 1;
 
-  if (!isDemo && revenue) {
+  if (revenue) {
     lodgingRevNum = revenue.lodgingRevenue || 0;
-    restaurantRevNum = revenue.restaurantRevenue || 0;
+    restaurantRevNum = isLodgingOnly ? 0 : (revenue.restaurantRevenue || 0);
     roomServiceRevNum = Math.round((revenue.otherRevenue || 0) * 0.6);
     laundryRevNum = Math.round((revenue.otherRevenue || 0) * 0.4);
     totalRevNum = lodgingRevNum + restaurantRevNum + roomServiceRevNum + laundryRevNum || 1;
@@ -109,7 +123,7 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
 
   const revenueSplit = [
     { name: 'Room Bookings', value: lodgingRevNum, percent: Math.round(lodgingRevNum / totalRevNum * 100), color: '#0C2340' },
-    { name: 'Restaurant Dining', value: restaurantRevNum, percent: Math.round(restaurantRevNum / totalRevNum * 100), color: '#D4AF37' },
+    ...(isLodgingOnly ? [] : [{ name: 'Restaurant Dining', value: restaurantRevNum, percent: Math.round(restaurantRevNum / totalRevNum * 100), color: '#D4AF37' }]),
     { name: 'Room Service', value: roomServiceRevNum, percent: Math.round(roomServiceRevNum / totalRevNum * 100), color: '#F59E0B' },
     { name: 'Laundry & Mini Bar', value: laundryRevNum, percent: Math.round(laundryRevNum / totalRevNum * 100), color: '#718096' }
   ];
@@ -126,7 +140,7 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
           )}
           <View>
             <Text style={styles.headerTitle}>Managerial Reports</Text>
-            <Text style={styles.headerSubtitle}>Lodging & POS Analytics</Text>
+            <Text style={styles.headerSubtitle}>{isLodgingOnly ? 'Lodging Analytics' : 'Lodging & POS Analytics'}</Text>
           </View>
         </View>
         <TouchableOpacity style={styles.logoutBtn} onPress={onLogout}>
@@ -139,14 +153,13 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
         <View style={styles.titleSection}>
           <View style={{ flex: 1 }}>
             <Text style={styles.titleHeading}>Reports & Analytics</Text>
-            <Text style={styles.titleSubheading}>Review lodging KPIs, restaurant occupancy ratios, and net revenue distributions</Text>
+            <Text style={styles.titleSubheading}>
+              {isLodgingOnly 
+                ? 'Review lodging KPIs, room occupancy ratios, and net revenue distributions' 
+                : 'Review lodging KPIs, restaurant occupancy ratios, and net revenue distributions'}
+            </Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-            {isDemo && (
-              <View style={styles.demoBadge}>
-                <Text style={styles.demoBadgeText}>DEMO PREVIEW DATA</Text>
-              </View>
-            )}
             <TouchableOpacity style={styles.refreshBtn} onPress={fetchReports} disabled={loading}>
               <Text style={styles.refreshBtnText}>🔄 Refresh</Text>
             </TouchableOpacity>
@@ -162,19 +175,22 @@ export default function ReportsScreen({ user, onLogout, onOpenDrawer }) {
           <>
             {/* KPI Cards Grid */}
             <View style={styles.kpiGrid}>
-              {kpis.map((kpi) => (
-                <View key={kpi.name} style={styles.kpiCard}>
-                  <View style={styles.kpiHeader}>
-                    <Text style={styles.kpiLabel} numberOfLines={1}>{kpi.name}</Text>
-                    <Ionicons name={kpi.icon} size={18} color="#D4AF37" />
+              {kpis.map((kpi, idx) => {
+                const isLastOdd = kpis.length % 2 !== 0 && idx === kpis.length - 1;
+                return (
+                  <View key={kpi.name} style={[styles.kpiCard, isLastOdd && { width: '100%' }]}>
+                    <View style={styles.kpiHeader}>
+                      <Text style={styles.kpiLabel} numberOfLines={1}>{kpi.name}</Text>
+                      <Ionicons name={kpi.icon} size={18} color="#D4AF37" />
+                    </View>
+                    <Text style={styles.kpiValue}>{kpi.value}</Text>
+                    <View style={styles.kpiFooter}>
+                      <Text style={styles.kpiDesc} numberOfLines={1}>{kpi.desc}</Text>
+                      <Text style={styles.kpiChange}>{kpi.change}</Text>
+                    </View>
                   </View>
-                  <Text style={styles.kpiValue}>{kpi.value}</Text>
-                  <View style={styles.kpiFooter}>
-                    <Text style={styles.kpiDesc} numberOfLines={1}>{kpi.desc}</Text>
-                    <Text style={styles.kpiChange}>{kpi.change}</Text>
-                  </View>
-                </View>
-              ))}
+                );
+              })}
             </View>
 
             {/* Weekly Occupancy Timeline Chart */}

@@ -29,6 +29,7 @@ import ActiveOrdersHistoryScreen from './src/screens/ActiveOrdersHistoryScreen';
 import PlaceholderScreen from './src/screens/PlaceholderScreen';
 import SuperAdminScreen from './src/screens/SuperAdminScreen';
 import TenantAdminScreen from './src/screens/TenantAdminScreen';
+import TicketsScreen from './src/screens/TicketsScreen';
 
 export default function App() {
   const [initializing, setInitializing] = useState(true);
@@ -238,7 +239,7 @@ export default function App() {
   const renderActiveScreen = (onOpenDrawerAction) => {
     switch (activeView) {
       case 'dashboard':
-        return <ManagerScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
+        return <ManagerScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} onNavigate={setActiveView} />;
       case 'manager_hub':
         return <ManagerHubScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
       case 'attendance':
@@ -288,6 +289,8 @@ export default function App() {
       case 'tenant_features':
       case 'tenant_settings':
         return <TenantAdminScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} activeTab={activeView} onNavigate={setActiveView} />;
+      case 'tickets':
+        return <TicketsScreen user={user} onLogout={handleLogout} onOpenDrawer={onOpenDrawerAction} />;
       default:
         return (
           <PlaceholderScreen

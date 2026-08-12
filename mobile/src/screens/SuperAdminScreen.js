@@ -346,7 +346,7 @@ export default function SuperAdminScreen({ user, onLogout, onOpenDrawer, activeT
                     <View style={styles.itemHeader}>
                       <View>
                         <Text style={styles.itemTitle}>{tenant.name}</Text>
-                        <Text style={styles.itemSubtitle}>slug: /{tenant.slug} • type: {tenant.businessType}</Text>
+                        <Text style={styles.itemSubtitle}>slug: /{tenant.slug} • type: {tenant.businessType === 'HOTEL_RESTAURANT' ? 'LODGING+RESTAURANT' : tenant.businessType}</Text>
                       </View>
                       <View style={[styles.statusBadge, tenant.status === 'ACTIVE' ? styles.statusActive : tenant.status === 'TRIAL' ? styles.statusTrial : styles.statusSuspended]}>
                         <Text style={styles.statusText}>{tenant.status}</Text>
@@ -735,7 +735,7 @@ export default function SuperAdminScreen({ user, onLogout, onOpenDrawer, activeT
                     onPress={() => setNewTenantBusiness(b)}
                   >
                     <Text style={[styles.choiceBtnText, newTenantBusiness === b && styles.choiceBtnTextActive]}>
-                      {b.replace('_', ' ')}
+                      {b === 'HOTEL_RESTAURANT' ? 'LODGING+RESTAURANT' : b.replace('_', ' ')}
                     </Text>
                   </TouchableOpacity>
                 ))}
